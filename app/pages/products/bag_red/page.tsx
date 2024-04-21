@@ -53,7 +53,7 @@ const Bag = () => {
             <DetailSection
               info={{
                 _id: '1',
-                name: '',
+                name: 'Hello Jayed make a very good title ',
                 price: '20',
                 orginal_price: '50',
                 sale: 50,
