@@ -1,4 +1,5 @@
 import Breadcrumb from '@/components/common/Breadcrumb'
+import DetailSection from '@/components/DetailSection'
 import ImageSection from '@/components/ImageSection'
 import ProductDescription from '@/components/ProductDescription'
 
@@ -49,17 +50,17 @@ const Bag = () => {
 
           {/* Right side or detail section */}
           <div className='md:w-1/2'>
-            {/* <DetailSection
+            <DetailSection
               info={{
                 _id: '1',
-                name: 'bag',
+                name: '',
                 price: '20',
                 orginal_price: '50',
                 sale: 50,
                 stock: 5,
                 sku: '5',
                 images: '',
-                // ratings: 5,
+                ratings: 5,
                 shipping: 55,
                 description: 'data.description',
                 seller: '',
@@ -67,13 +68,12 @@ const Bag = () => {
                 category: 'data.category',
                 props_list: ['data.props_list'],
               }}
-            /> */}
+            />
           </div>
         </div>
       </div>
     </section>
   )
-  // return <p>Something went wrong, try again later.</p>
 }
 
 export default Bag
