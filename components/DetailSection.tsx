@@ -111,7 +111,7 @@ const DetailSection = ({ info }: InfoProps) => {
   // }
 
   return (
-    <section>
+    <section className='px-3'>
       <h1 className=' py-6 text-2xl font-semibold uppercase text-gray-100'>
         {name}
       </h1>
