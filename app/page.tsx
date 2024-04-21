@@ -21,7 +21,7 @@ export default function Home() {
         <Image
           className='relative'
           src='/abx.png'
-          alt='Next.js Logo'
+          alt='BlueX logo'
           width={350}
           height={80}
           priority
