@@ -1,4 +1,5 @@
 // import DetailSection from '@/components/DetailSection'
+import Breadcrumb from '@/components/common/Breadcrumb'
 import ImageSection from '@/components/ImageSection'
 import ProductDescription from '@/components/ProductDescription'
 // import { useRouter } from 'next/router'
@@ -31,21 +32,25 @@ const Bag = () => {
   return (
     <section className='py-20'>
       <div className='container mx-auto'>
-        {/* <Breadcrumb
-            data={[
-              ...singleProductsBC,
-              {
-                id: 3,
-                name: data?.category ? data?.category : 'Product Name',
-                url: '#',
-              },
-              {
-                id: 4,
-                name: data?.title.slice(0, 15) + ' ...',
-                url: '#',
-              },
-            ]}
-          /> */}
+        <Breadcrumb
+          data={[
+            {
+              id: 1,
+              name: 'Products',
+              url: '#',
+            },
+            {
+              id: 2,
+              name: 'Bags',
+              url: '#',
+            },
+            {
+              id: 3,
+              name: 'Red bag',
+              url: '#',
+            },
+          ]}
+        />
         <div className=' justify-between gap-20 md:flex'>
           {/* left side */}
           <div className='md:w-1/2'>
