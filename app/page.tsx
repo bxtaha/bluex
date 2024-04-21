@@ -36,19 +36,7 @@ export default function Home() {
         /> */}
       </div>
 
-      <div className='mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left'>
-        <a href='http://www.freevisitorcounters.com'>
-          more on freevisitorcounters.com
-        </a>
-        <Script
-          src='https://www.freevisitorcounters.com/auth.php?id=5e63b40bdb972252e041791ccd9d1b582896bd74'
-          strategy='lazyOnload'
-        />
-        <Script
-          src='https://www.freevisitorcounters.com/en/home/counter/1174455/t/6'
-          strategy='lazyOnload'
-        />
-      </div>
+      <div className='mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left'></div>
     </main>
   )
 }
