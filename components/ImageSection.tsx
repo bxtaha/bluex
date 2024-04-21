@@ -27,22 +27,22 @@ const ImageSection = ({ itemImgs }: Props) => {
       </div>
 
       {/* Small Images */}
-      <div className='mt-2 flex gap-2 '>
+      <div className='mt-2 flex gap-2  overflow-auto'>
         {itemImgs.map((obj) => {
           return (
             <div
-              className={`mb-5 cursor-pointer min-h-[60px] min-w-[60px] ${
+              className={` cursor-pointer min-h-[60px] min-w-[60px] ${
                 obj._id === selectedImage._id && 'ring-2 ring-blue-600 '
               }`}
               onClick={() => setSelectedImage(obj)}
-              key={obj._id}
+              key={obj?._id}
             >
               <Image
                 style={{
                   height: '100%',
                   width: '100%',
                 }}
-                src={obj.url}
+                src={obj?.url}
                 alt={selectedImage?.alt}
                 height={60}
                 width={60}

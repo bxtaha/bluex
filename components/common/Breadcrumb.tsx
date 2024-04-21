@@ -4,7 +4,7 @@ import { BreadcrumbItem } from '@/types/products'
 
 const Breadcrumb: React.FC<{ data: BreadcrumbItem[] }> = ({ data }) => {
   return (
-    <div className='container mb-12 mt-16 flex flex-wrap gap-1 mx-auto'>
+    <div className='container mb-12 mt-0 md:mt-16 flex flex-wrap gap-1 mx-auto'>
       {data.map((b) => {
         return (
           <div className='text-gray-100' key={b.id}>
