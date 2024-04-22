@@ -1,10 +1,6 @@
 import React from 'react'
 
-type DescProps = {
-  description: string
-}
-
-const ProductDescription = ({ description }: DescProps) => {
+const ProductDescription = ({ description }) => {
   return (
     <section className='px-3'>
       <h3 className='mt-16 text-xl font-semibold text-gray-100 '>

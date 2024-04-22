@@ -1,27 +1,6 @@
-'use client'
 import { ChangeEvent, useState } from 'react'
 
-type InfoProps = {
-  info: {
-    _id: string
-    sku: string
-    name: string
-    price: string
-    stock: number
-    sale: number
-    orginal_price: string
-    ratings: number
-    shipping: number
-    seller: string
-    category: string | undefined
-    description: string
-    ratingsCount: number
-    images: string
-    props_list: [string]
-  }
-}
-
-const DetailSection = ({ info }: InfoProps) => {
+const DetailSection = ({ info }) => {
   const {
     _id,
     name,
@@ -72,7 +51,7 @@ const DetailSection = ({ info }: InfoProps) => {
 
   //   cart count
   const [cartCount, setCartCount] = useState(1)
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = () => {
     const value = Number(e.target.value)
     if (value > 1) {
       setCartCount(value)

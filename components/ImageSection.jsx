@@ -1,14 +1,9 @@
-'use client'
-
-import { ItemImgs } from '@/types/products'
 import Image from 'next/image'
 import React, { useState } from 'react'
 
-type Props = {
-  itemImgs: ItemImgs[]
-}
 
-const ImageSection = ({ itemImgs }: Props) => {
+
+const ImageSection = ({ itemImgs }) => {
   const [selectedImage, setSelectedImage] = useState(itemImgs[0])
   return (
     <div className='p-2'>
