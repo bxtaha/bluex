@@ -14,7 +14,7 @@ const Toast = ({ t, m }) => {
           <div className='ml-3 flex-1'>
             <p className='text-sm font-medium text-red-600'>{m}</p>
             <p className='mt-1 text-sm text-gray-500'>
-              Your account will be blocked, be don&apos;t try again!!
+              Your account will be blocked, be careful don&apos;t try again!!
             </p>
           </div>
         </div>
