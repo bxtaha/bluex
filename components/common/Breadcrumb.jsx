@@ -1,6 +1,5 @@
 import React from 'react'
 import Link from 'next/link'
-import { BreadcrumbItem } from '@/types/products'
 
 const Breadcrumb = ({ data }) => {
   return (
