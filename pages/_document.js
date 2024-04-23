@@ -1,4 +1,5 @@
 import Document, { Html, Head, Main, NextScript } from 'next/document'
+import { Toaster } from 'react-hot-toast'
 
 class MyDocument extends Document {
   render() {
@@ -34,6 +35,7 @@ class MyDocument extends Document {
           </noscript>
           {/* End Google Tag Manager (noscript) */}
           <Main />
+          <Toaster position='top-center' reverseOrder={true} />
           <NextScript />
         </body>
       </Html>
