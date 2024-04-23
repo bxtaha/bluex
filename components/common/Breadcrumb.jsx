@@ -2,7 +2,7 @@ import React from 'react'
 import Link from 'next/link'
 import { BreadcrumbItem } from '@/types/products'
 
-const Breadcrumb: React.FC<{ data: BreadcrumbItem[] }> = ({ data }) => {
+const Breadcrumb = ({ data }) => {
   return (
     <div className='container mb-12 mt-0 md:mt-16 flex flex-wrap gap-1 mx-auto'>
       {data.map((b) => {
