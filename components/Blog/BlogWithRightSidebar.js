@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import Link from 'next/link';
-import BlogSidebar from './BlogSidebar';
+import React, { Component } from 'react'
+import Link from 'next/link'
+import BlogSidebar from './BlogSidebar'
 
 class BlogWithRightSidebar extends Component {
   render() {
@@ -15,10 +15,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog1.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog1.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -46,10 +43,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog2.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog2.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -79,10 +73,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog3.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog3.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -110,10 +101,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog4.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog4.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -141,10 +129,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog5.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog5.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -172,10 +157,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog6.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog6.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -203,10 +185,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog7.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog7.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -234,10 +213,7 @@ class BlogWithRightSidebar extends Component {
                     <div className='post-image'>
                       <Link href='/single-blog-1'>
                         <a>
-                          <img
-                            src='../images/blog/blog8.jpg'
-                            alt='image'
-                          />
+                          <img src='../images/blog/blog8.jpg' alt='image' />
                         </a>
                       </Link>
                       <div className='date'>
@@ -303,8 +279,8 @@ class BlogWithRightSidebar extends Component {
           </div>
         </div>
       </section>
-    );
+    )
   }
 }
 
-export default BlogWithRightSidebar;
+export default BlogWithRightSidebar

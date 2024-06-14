@@ -106,9 +106,10 @@ const Navbar = ({ user, store }) => {
               <div className={classNameOne} id='navbarSupportedContent'>
                 <ul className='navbar-nav'>
                   <li className='nav-item'>
-                    <Link href='#'>
+                    <Link href='/'>
                       <a className='nav-link'>
-                        Home <i className='bx bx-chevron-down'></i>
+                        Home
+                        {/* <i className='bx bx-chevron-down'></i> */}
                       </a>
                     </Link>
                   </li>
@@ -116,7 +117,8 @@ const Navbar = ({ user, store }) => {
                   <li className='nav-item megamenu'>
                     <Link href='#'>
                       <a className='nav-link'>
-                        Shop <i className='bx bx-chevron-down'></i>
+                        Electronics
+                        {/* <i className='bx bx-chevron-down'></i> */}
                       </a>
                     </Link>
                   </li>
@@ -124,7 +126,8 @@ const Navbar = ({ user, store }) => {
                   <li className='nav-item megamenu'>
                     <Link href='#'>
                       <a className='nav-link'>
-                        Pages <i className='bx bx-chevron-down'></i>
+                        Mobile
+                        {/* <i className='bx bx-chevron-down'></i> */}
                       </a>
                     </Link>
                   </li>
@@ -132,7 +135,8 @@ const Navbar = ({ user, store }) => {
                   <li className='nav-item megamenu'>
                     <Link href='#'>
                       <a className='nav-link'>
-                        Women's <i className='bx bx-chevron-down'></i>
+                        Television (TV)
+                        {/* <i className='bx bx-chevron-down'></i> */}
                       </a>
                     </Link>
                   </li>
@@ -140,7 +144,7 @@ const Navbar = ({ user, store }) => {
                   <li className='nav-item megamenu'>
                     <Link href='#'>
                       <a className='nav-link'>
-                        Men's <i className='bx bx-chevron-down'></i>
+                        Fashion <i className='bx bx-chevron-down'></i>
                       </a>
                     </Link>
 
@@ -303,7 +307,8 @@ const Navbar = ({ user, store }) => {
                   <li className='nav-item'>
                     <Link href='#'>
                       <a className='nav-link'>
-                        Blog <i className='bx bx-chevron-down'></i>
+                        Shoes
+                        {/* <i className='bx bx-chevron-down'></i> */}
                       </a>
                     </Link>
                   </li>
