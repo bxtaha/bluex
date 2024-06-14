@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import Link from 'next/link';
+import React, { Component } from 'react'
+import Link from 'next/link'
 
 class BlogSidebar extends Component {
   render() {
@@ -185,60 +185,42 @@ class BlogSidebar extends Component {
             <li>
               <Link href='#'>
                 <a className='d-block'>
-                  <img
-                    src='../images/blog/blog1.jpg'
-                    alt='image'
-                  />
+                  <img src='../images/blog/blog1.jpg' alt='image' />
                 </a>
               </Link>
             </li>
             <li>
               <Link href='#'>
                 <a className='d-block'>
-                  <img
-                    src='../images/blog/blog2.jpg'
-                    alt='image'
-                  />
+                  <img src='../images/blog/blog2.jpg' alt='image' />
                 </a>
               </Link>
             </li>
             <li>
               <Link href='#'>
                 <a className='d-block'>
-                  <img
-                    src='../images/blog/blog3.jpg'
-                    alt='image'
-                  />
+                  <img src='../images/blog/blog3.jpg' alt='image' />
                 </a>
               </Link>
             </li>
             <li>
               <Link href='#'>
                 <a className='d-block'>
-                  <img
-                    src='../images/blog/blog4.jpg'
-                    alt='image'
-                  />
+                  <img src='../images/blog/blog4.jpg' alt='image' />
                 </a>
               </Link>
             </li>
             <li>
               <Link href='#'>
                 <a className='d-block'>
-                  <img
-                    src='../images/blog/blog5.jpg'
-                    alt='image'
-                  />
+                  <img src='../images/blog/blog5.jpg' alt='image' />
                 </a>
               </Link>
             </li>
             <li>
               <Link href='#'>
                 <a className='d-block'>
-                  <img
-                    src='../images/blog/blog6.jpg'
-                    alt='image'
-                  />
+                  <img src='../images/blog/blog6.jpg' alt='image' />
                 </a>
               </Link>
             </li>
@@ -251,12 +233,12 @@ class BlogSidebar extends Component {
               <i className='bx bx-phone-call'></i>
             </div>
             <span>Emergency</span>
-            <h4>0987-9876-8753</h4>
+            <h4>+880 1816-417387</h4>
           </div>
         </div>
       </div>
-    );
+    )
   }
 }
 
-export default BlogSidebar;
+export default BlogSidebar
