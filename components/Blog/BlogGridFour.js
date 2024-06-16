@@ -1,5 +1,5 @@
-import React, { Component } from 'react';
-import Link from 'next/link';
+import React, { Component } from 'react'
+import Link from 'next/link'
 
 class BlogGridFour extends Component {
   render() {
@@ -10,12 +10,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog1.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog1.jpg' alt='image' />
                     </a>
                   </Link>
                   <div className='date'>
@@ -26,12 +23,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Ideas</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>How many people shop online?</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -41,12 +38,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog2.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog2.jpg' alt='image' />
                     </a>
                   </Link>
                   <div className='date'>
@@ -57,12 +51,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Advice</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>The rise of shoppable posts</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -72,12 +66,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog3.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog3.jpg' alt='image' />
                     </a>
                   </Link>
                   <div className='date'>
@@ -88,12 +79,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Social</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>Social media marketing shopping</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -103,12 +94,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog4.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog4.jpg' alt='image' />
                     </a>
                   </Link>
                   <div className='date'>
@@ -119,12 +107,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Boy</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>Top 10 best eCommerce blogs</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -134,12 +122,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog5.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog5.jpg' alt='image' />
                     </a>
                   </Link>
                   <div className='date'>
@@ -150,12 +135,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Platform</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>The best eCommerce platform</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -165,12 +150,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog6.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog6.jpg' alt='image' />
                     </a>
                   </Link>
                   <div className='date'>
@@ -181,12 +163,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Shipping</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>Shipping give discounts, get a lot more</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -196,12 +178,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog7.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog7.jpg' alt='image' />
                     </a>
                   </Link>
 
@@ -213,12 +192,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Platform</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>Faster and cheaper than ever</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -228,12 +207,9 @@ class BlogGridFour extends Component {
             <div className='col-lg-3 col-md-6'>
               <div className='single-blog-post'>
                 <div className='post-image'>
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a>
-                      <img
-                        src='../images/blog/blog8.jpg'
-                        alt='image'
-                      />
+                      <img src='../images/blog/blog8.jpg' alt='image' />
                     </a>
                   </Link>
 
@@ -245,12 +221,12 @@ class BlogGridFour extends Component {
                 <div className='post-content'>
                   <span className='category'>Shipping</span>
                   <h3>
-                    <Link href='/single-blog-1'>
+                    <Link href='/single-blog'>
                       <a>14 trends driving online retail in 2020</a>
                     </Link>
                   </h3>
 
-                  <Link href='/single-blog-1'>
+                  <Link href='/single-blog'>
                     <a className='details-btn'>Read Story</a>
                   </Link>
                 </div>
@@ -293,8 +269,8 @@ class BlogGridFour extends Component {
           </div>
         </div>
       </section>
-    );
+    )
   }
 }
 
-export default BlogGridFour;
+export default BlogGridFour
