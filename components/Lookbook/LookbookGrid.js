@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from 'next/link'
 
-const LookbookGrid3 = () => {
+const LookbookGrid = () => {
   return (
     <section className='lookbook-area pt-100 pb-70'>
       <div className='container'>
@@ -286,7 +286,7 @@ const LookbookGrid3 = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default LookbookGrid3;
+export default LookbookGrid

@@ -2,7 +2,7 @@ import React from 'react'
 import TopHeader from '../components/Layouts/TopHeader'
 import Navbar from '../components/Layouts/Navbar'
 import PageBanner from '../components/Common/PageBanner'
-import LookbookGrid3 from '../components/Lookbook/LookbookGrid3'
+import LookbookGrid from '../components/Lookbook/LookbookGrid'
 import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
@@ -18,7 +18,7 @@ const Lookbook1 = ({ user, store }) => {
         homePageText='Home'
         activePageText='Lookbook'
       />
-      <LookbookGrid3 />
+      <LookbookGrid />
       <FacilitySlider />
       <InstagramFeed />
       <Footer />
