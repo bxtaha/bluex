@@ -1,7 +1,11 @@
-import Link from 'next/link';
+import Link from 'next/link'
 
-const ViewProductModal = ({ viewProductDetail, active, handleViewProduct,handleActiveModal }) => {
-  console.log('view', viewProductDetail);
+const ViewProductModal = ({
+  viewProductDetail,
+  active,
+  handleViewProduct,
+  handleActiveModal,
+}) => {
   return (
     <>
       <div
@@ -25,13 +29,13 @@ const ViewProductModal = ({ viewProductDetail, active, handleViewProduct,handleA
               <div className='row align-items-center'>
                 <div className='col-lg-6'>
                   <div className='product-img'>
-                    {viewProductDetail && <img
-                      src={viewProductDetail.productImage[0]}
-                      className='main-image'
-                      alt='image'
-                    />}
-
-
+                    {viewProductDetail && (
+                      <img
+                        src={viewProductDetail.productImage[0]}
+                        className='main-image'
+                        alt='image'
+                      />
+                    )}
 
                     {viewProductDetail.onSale === 'true' && (
                       <div className='sale-tag'>Sale!</div>
@@ -43,8 +47,6 @@ const ViewProductModal = ({ viewProductDetail, active, handleViewProduct,handleA
                         {viewProductDetail.discountPercent}% OFF
                       </span>
                     )}
-
-
                   </div>
                 </div>
 
@@ -59,7 +61,9 @@ const ViewProductModal = ({ viewProductDetail, active, handleViewProduct,handleA
                           <span className='new-price'>$200</span>
                         </> */}
 
-                      <span className='new-price'>${viewProductDetail.price}</span>
+                      <span className='new-price'>
+                        ${viewProductDetail.price}
+                      </span>
                     </div>
 
                     <ul className='products-info'>
@@ -71,7 +75,6 @@ const ViewProductModal = ({ viewProductDetail, active, handleViewProduct,handleA
                           </a>
                         </Link>
                       </li>
-
                     </ul>
 
                     <ul className='products-info'>
@@ -92,7 +95,7 @@ const ViewProductModal = ({ viewProductDetail, active, handleViewProduct,handleA
         </div>
       </div>
     </>
-  );
-};
+  )
+}
 
-export default ViewProductModal;
+export default ViewProductModal
