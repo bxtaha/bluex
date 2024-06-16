@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react'
-import { useSelector } from 'react-redux'
 import { useRouter } from 'next/router'
 import Link from '../../utils/ActiveLink'
 import SearchModal from '../Modals/SearchModal'
-import ShoppingCartModal from '../Modals/ShoppingCartModal'
 import SidebarModal from '../Modals/SidebarModal'
 
 const Navbar = ({ user, store }) => {
@@ -13,9 +11,7 @@ const Navbar = ({ user, store }) => {
   const [isMounted, setIsMounted] = useState(false)
   const [searchModal, setSearchModal] = useState(false)
   const [sidebarModal, setSidebarModall] = useState(false)
-  const [shoppingCartModal, setShoppingCartModal] = useState(false)
   const [keyword, setKeyword] = useState('')
-  const cartItems = useSelector((state) => state.cartItems)
 
   const toggleNavbar = () => {
     setCollapsed(!collapsed)
@@ -39,11 +35,6 @@ const Navbar = ({ user, store }) => {
   // Search Modal
   const toggleModalSearch = () => {
     setSearchModal(!searchModal)
-  }
-
-  // Shopping Cart Modal
-  const toggleModalCart = () => {
-    setShoppingCartModal(!shoppingCartModal)
   }
 
   // Sidebar Modal
@@ -395,12 +386,6 @@ const Navbar = ({ user, store }) => {
         active={searchModal ? 'active' : ''}
         handleSearch={handleSearch}
         handleChange={handleChange}
-      />
-
-      {/* Shopping Cart Modal */}
-      <ShoppingCartModal
-        onClick={toggleModalCart}
-        active={shoppingCartModal ? 'active' : ''}
       />
 
       {/* Sidebar Modal */}
