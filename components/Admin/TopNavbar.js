@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import Link from '../../utils/ActiveLink'
-import { handleLogout } from '../../utils/auth'
 
 const TopNavbar = ({ user, store }) => {
   const [isMounted, setIsMounted] = useState(false)
@@ -89,9 +88,7 @@ const TopNavbar = ({ user, store }) => {
 
                 <li className='nav-item'>
                   <Link href='#' activeClassName='active'>
-                    <a onClick={handleLogout} className='nav-link'>
-                      Sign out
-                    </a>
+                    <a className='nav-link'>Sign out</a>
                   </Link>
                 </li>
               </ul>

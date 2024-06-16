@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import WishlistModal from '../Modals/WishlistModal'
-import { handleLogout } from '../../utils/auth'
 
 const TopHeader = ({ user }) => {
   const [wishlistModal, setWishlistModal] = useState(false)
@@ -35,7 +34,7 @@ const TopHeader = ({ user }) => {
                 <li>
                   {user ? (
                     <>
-                      <a onClick={handleLogout} className='global-pointer'>
+                      <a className='global-pointer'>
                         <i className='bx bx-log-in'></i> Logout
                       </a>
                     </>

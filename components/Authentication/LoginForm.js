@@ -1,42 +1,40 @@
-import { useState } from 'react';
-import { Alert, Spinner } from 'react-bootstrap';
-import { handleLogin } from '../../utils/auth';
-import axios from 'axios';
-import Link from 'next/link';
-import catchErrors from '../../utils/catchErrors';
-import baseUrl from '../../utils/baseUrl';
+import { useState } from 'react'
+import { Alert, Spinner } from 'react-bootstrap'
+import axios from 'axios'
+import Link from 'next/link'
+import catchErrors from '../../utils/catchErrors'
+import baseUrl from '../../utils/baseUrl'
 
 const INITIAL_USER = {
   email: '',
   password: '',
-};
+}
 
 const LoginForm = () => {
-  const [user, setUser] = useState(INITIAL_USER);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const onDismiss = () => setError(false);
+  const [user, setUser] = useState(INITIAL_USER)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const onDismiss = () => setError(false)
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setUser((prevState) => ({ ...prevState, [name]: value }));
-  };
+    const { name, value } = e.target
+    setUser((prevState) => ({ ...prevState, [name]: value }))
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      setLoading(true);
-      const url = `${baseUrl}/api/v1/auth/login`;
-      const payload = { ...user };
-      const response = await axios.post(url, payload);
-      handleLogin(response.data);
-      setLoading(false);
+      setLoading(true)
+      const url = `${baseUrl}/api/v1/auth/login`
+      const payload = { ...user }
+      const response = await axios.post(url, payload)
+      setLoading(false)
     } catch (error) {
-      catchErrors(error, setError);
+      catchErrors(error, setError)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <>
@@ -124,7 +122,7 @@ const LoginForm = () => {
         </div>
       </section>
     </>
-  );
-};
+  )
+}
 
-export default LoginForm;
+export default LoginForm
