@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import Link from 'next/link';
-import Lightbox from 'react-image-lightbox';
+import React, { Component } from 'react'
+import Link from 'next/link'
+import Lightbox from 'react-image-lightbox'
 
 const images = [
   '../images/gallery/gallery1.jpg',
@@ -15,18 +15,18 @@ const images = [
   '../images/gallery/gallery10.jpg',
   '../images/gallery/gallery11.jpg',
   '../images/gallery/gallery12.jpg',
-];
+]
 
-class GalleryFourGridFullWidth extends Component {
+class GalleryGrid extends Component {
   state = {
     photoIndex: 0,
     isOpenImage: false,
-  };
+  }
   render() {
-    const { photoIndex, isOpenImage } = this.state;
+    const { photoIndex, isOpenImage } = this.state
     return (
       <section className='gallery-area ptb-100'>
-        <div className='container-fluid'>
+        <div className='container'>
           <div className='row'>
             {isOpenImage && (
               <Lightbox
@@ -50,7 +50,7 @@ class GalleryFourGridFullWidth extends Component {
               />
             )}
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery1.jpg' alt='image' />
 
@@ -63,15 +63,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 0 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 0 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery2.jpg' alt='image' />
 
@@ -84,15 +84,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 1 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 1 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery3.jpg' alt='image' />
 
@@ -105,15 +105,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 2 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 2 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery4.jpg' alt='image' />
 
@@ -126,15 +126,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 3 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 3 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery5.jpg' alt='image' />
 
@@ -147,15 +147,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 4 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 4 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery6.jpg' alt='image' />
 
@@ -168,15 +168,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 5 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 5 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery7.jpg' alt='image' />
 
@@ -189,15 +189,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 6 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 6 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery8.jpg' alt='image' />
 
@@ -210,15 +210,15 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 7 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 7 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
                 <img src='../images/gallery/gallery9.jpg' alt='image' />
 
@@ -231,17 +231,17 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 8 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 8 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
-                <img src='../images/gallery/gallery10.jpg' alt='image' />
+                <img src='../.mages/gallery/gallery10.jpg' alt='image' />
 
                 <div className='gallery-content'>
                   <span>SHIRT</span>
@@ -252,17 +252,17 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 9 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 9 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
-                <img src='../images/gallery/gallery11.jpg' alt='image' />
+                <img src='../.mages/gallery/gallery11.jpg' alt='image' />
 
                 <div className='gallery-content'>
                   <span>T-SHIRT</span>
@@ -273,17 +273,17 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 10 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 10 })
                     }}
                   ></a>
                 </Link>
               </div>
             </div>
 
-            <div className='col-lg-3 col-md-6'>
+            <div className='col-lg-4 col-md-6'>
               <div className='single-gallery-item'>
-                <img src='../images/gallery/gallery12.jpg' alt='image' />
+                <img src='../.mages/gallery/gallery12.jpg' alt='image' />
 
                 <div className='gallery-content'>
                   <span>T-SHIRT</span>
@@ -294,8 +294,8 @@ class GalleryFourGridFullWidth extends Component {
                   <a
                     className='popup-btn'
                     onClick={(e) => {
-                      e.preventDefault();
-                      this.setState({ isOpenImage: true, photoIndex: 11 });
+                      e.preventDefault()
+                      this.setState({ isOpenImage: true, photoIndex: 11 })
                     }}
                   ></a>
                 </Link>
@@ -304,8 +304,8 @@ class GalleryFourGridFullWidth extends Component {
           </div>
         </div>
       </section>
-    );
+    )
   }
 }
 
-export default GalleryFourGridFullWidth;
+export default GalleryGrid

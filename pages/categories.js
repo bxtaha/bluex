@@ -2,12 +2,12 @@ import React from 'react'
 import TopHeader from '../components/Layouts/TopHeader'
 import Navbar from '../components/Layouts/Navbar'
 import PageBanner from '../components/Common/PageBanner'
-import CategoriesTwoGrid from '../components/Categories/CategoriesTwoGrid'
+import CategoriesTwo from '../components/Categories/CategoriesTwo'
 import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
 
-const Categories1 = ({ user, store }) => {
+const Categories = ({ user, store }) => {
   return (
     <>
       <TopHeader user={user} />
@@ -18,7 +18,7 @@ const Categories1 = ({ user, store }) => {
         homePageText='Home'
         activePageText='Categories'
       />
-      <CategoriesTwoGrid />
+      <CategoriesTwo />
       <FacilitySlider />
       <InstagramFeed />
       <Footer />
@@ -26,4 +26,4 @@ const Categories1 = ({ user, store }) => {
   )
 }
 
-export default Categories1
+export default Categories

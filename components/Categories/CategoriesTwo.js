@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from 'next/link'
 
-const CategoriesTwoGrid = () => {
+const CategoriesTwo = () => {
   return (
     <section className='categories-banner-area pt-100 pb-70'>
       <div className='container'>
@@ -120,7 +120,7 @@ const CategoriesTwoGrid = () => {
         </div>
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default CategoriesTwoGrid;
+export default CategoriesTwo
