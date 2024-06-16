@@ -80,6 +80,118 @@ class BlogSidebar extends Component {
 
             <div className='clear'></div>
           </article>
+          <article className='item'>
+            <Link href='#'>
+              <a className='thumb'>
+                <span className='fullimage cover bg1' role='img'></span>
+              </a>
+            </Link>
+
+            <div className='info'>
+              <span>June 10, 2020</span>
+              <h4 className='title usmall'>
+                <Link href='#'>
+                  <a>Top ecommerce conferences in 2020</a>
+                </Link>
+              </h4>
+            </div>
+
+            <div className='clear'></div>
+          </article>
+
+          <article className='item'>
+            <Link href='#'>
+              <a className='thumb'>
+                <span className='fullimage cover bg2' role='img'></span>
+              </a>
+            </Link>
+
+            <div className='info'>
+              <span>June 21, 2020</span>
+              <h4 className='title usmall'>
+                <Link href='#'>
+                  <a>Introducing the 2020 bigCommerce partner</a>
+                </Link>
+              </h4>
+            </div>
+
+            <div className='clear'></div>
+          </article>
+
+          <article className='item'>
+            <Link href='#'>
+              <a className='thumb'>
+                <span className='fullimage cover bg3' role='img'></span>
+              </a>
+            </Link>
+
+            <div className='info'>
+              <span>June 30, 2020</span>
+              <h4 className='title usmall'>
+                <Link href='#'>
+                  <a>Best platforms for selling your products</a>
+                </Link>
+              </h4>
+            </div>
+
+            <div className='clear'></div>
+          </article>
+          <article className='item'>
+            <Link href='#'>
+              <a className='thumb'>
+                <span className='fullimage cover bg1' role='img'></span>
+              </a>
+            </Link>
+
+            <div className='info'>
+              <span>June 10, 2020</span>
+              <h4 className='title usmall'>
+                <Link href='#'>
+                  <a>Top ecommerce conferences in 2020</a>
+                </Link>
+              </h4>
+            </div>
+
+            <div className='clear'></div>
+          </article>
+
+          <article className='item'>
+            <Link href='#'>
+              <a className='thumb'>
+                <span className='fullimage cover bg2' role='img'></span>
+              </a>
+            </Link>
+
+            <div className='info'>
+              <span>June 21, 2020</span>
+              <h4 className='title usmall'>
+                <Link href='#'>
+                  <a>Introducing the 2020 bigCommerce partner</a>
+                </Link>
+              </h4>
+            </div>
+
+            <div className='clear'></div>
+          </article>
+
+          <article className='item'>
+            <Link href='#'>
+              <a className='thumb'>
+                <span className='fullimage cover bg3' role='img'></span>
+              </a>
+            </Link>
+
+            <div className='info'>
+              <span>June 30, 2020</span>
+              <h4 className='title usmall'>
+                <Link href='#'>
+                  <a>Best platforms for selling your products</a>
+                </Link>
+              </h4>
+            </div>
+
+            <div className='clear'></div>
+          </article>
         </div>
 
         <div className='widget widget_categories'>
