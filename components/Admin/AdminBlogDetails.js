@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
-import CommentsList from './CommentsList'
-import BlogSidebar from '../Blog/BlogSidebar'
+// import CommentsList from './CommentsList'
 import dynamic from 'next/dynamic'
+import BlogSidebar from '../Blog/BlogSidebar'
 
 const OwlCarousel = dynamic(import('react-owl-carousel3'))
 
@@ -20,7 +20,7 @@ const options = {
   ],
 }
 
-const BlogDetailsThree = () => {
+const AdminBlogDetails = () => {
   const [display, setDisplay] = useState(false)
 
   useEffect(() => {
@@ -33,6 +33,7 @@ const BlogDetailsThree = () => {
   return (
     <section className='blog-details-area ptb-100'>
       <div className='container'>
+        <button>Back</button>
         <div className='row'>
           <div className='col-lg-8 col-md-12'>
             <div className='blog-details-desc'>
@@ -42,15 +43,24 @@ const BlogDetailsThree = () => {
                   {...options}
                 >
                   <div className='article-image'>
-                    <img src='../images/blog/blog-slider1.jpg' alt='image' />
+                    <img
+                      src='../../../images/blog/blog-slider1.jpg'
+                      alt='image'
+                    />
                   </div>
 
                   <div className='article-image'>
-                    <img src='../images/blog/blog-slider2.jpg' alt='image' />
+                    <img
+                      src='../../../images/blog/blog-slider2.jpg'
+                      alt='image'
+                    />
                   </div>
 
                   <div className='article-image'>
-                    <img src='../images/blog/blog-slider3.jpg' alt='image' />
+                    <img
+                      src='../../../images/blog/blog-slider3.jpg'
+                      alt='image'
+                    />
                   </div>
                 </OwlCarousel>
               ) : (
@@ -122,19 +132,19 @@ const BlogDetailsThree = () => {
                 <ul className='wp-block-gallery columns-3'>
                   <li className='blocks-gallery-item'>
                     <figure>
-                      <img src='../images/blog/blog1.jpg' alt='image' />
+                      <img src='../../images/blog/blog1.jpg' alt='image' />
                     </figure>
                   </li>
 
                   <li className='blocks-gallery-item'>
                     <figure>
-                      <img src='../images/blog/blog2.jpg' alt='image' />
+                      <img src='../../images/blog/blog2.jpg' alt='image' />
                     </figure>
                   </li>
 
                   <li className='blocks-gallery-item'>
                     <figure>
-                      <img src='../images/blog/blog3.jpg' alt='image' />
+                      <img src='../../images/blog/blog3.jpg' alt='image' />
                     </figure>
                   </li>
                 </ul>
@@ -238,7 +248,7 @@ const BlogDetailsThree = () => {
                 <div className='author-profile'>
                   <div className='author-profile-title'>
                     <img
-                      src='../images/user1.jpg'
+                      src='../../images/user1.jpg'
                       className='shadow-sm'
                       alt='image'
                     />
@@ -273,7 +283,7 @@ const BlogDetailsThree = () => {
                     <Link href='#'>
                       <a>
                         <span className='image-prev'>
-                          <img src='../images/blog/blog5.jpg' alt='image' />
+                          <img src='../../images/blog/blog5.jpg' alt='image' />
                           <span className='post-nav-title'>Prev</span>
                         </span>
 
@@ -304,7 +314,7 @@ const BlogDetailsThree = () => {
                         </span>
 
                         <span className='image-next'>
-                          <img src='../images/blog/blog6.jpg' alt='image' />
+                          <img src='../../images/blog/blog6.jpg' alt='image' />
                           <span className='post-nav-title'>Next</span>
                         </span>
                       </a>
@@ -314,7 +324,7 @@ const BlogDetailsThree = () => {
               </div>
 
               {/* Comments List */}
-              <CommentsList />
+              {/* <CommentsList /> */}
             </div>
           </div>
 
@@ -328,4 +338,4 @@ const BlogDetailsThree = () => {
   )
 }
 
-export default BlogDetailsThree
+export default AdminBlogDetails

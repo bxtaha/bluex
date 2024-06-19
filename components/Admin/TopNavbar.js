@@ -34,9 +34,13 @@ const TopNavbar = ({ user, store }) => {
       </div>
       <nav className='navbar navbar-expand admin-top-navbar'>
         <Link href='/admin/dashboard'>
-          <a className='navbar-brand'>
-            <img src='../../images/logo.png' a='logo' />
-          </a>
+          <span className='navbar-brand'>
+            <img
+              style={{ maxWidth: '100px' }}
+              src='../../images/logo.png'
+              a='logo'
+            />
+          </span>
         </Link>
 
         {/* Burger menu */}
