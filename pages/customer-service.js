@@ -1,16 +1,16 @@
-import TopHeader from '../components/Layouts/TopHeader';
-import Navbar from '../components/Layouts/Navbar';
-import PageBanner from '../components/Common/PageBanner';
-import FacilitySlider from '../components/Common/FacilitySlider';
-import InstagramFeed from '../components/Common/InstagramFeed';
-import Footer from '../components/Layouts/Footer';
-import Link from 'next/link';
+import TopHeader from '../components/Layouts/TopHeader'
+import Navbar from '../components/Layouts/Navbar'
+import PageBanner from '../components/Common/PageBanner'
+import FacilitySlider from '../components/Common/FacilitySlider'
+import InstagramFeed from '../components/Common/InstagramFeed'
+import Footer from '../components/Layouts/Footer'
+import Link from 'next/link'
 
-const CustomerService = ({ user,store }) => {
+const CustomerService = ({ user, store }) => {
   return (
     <>
-      <TopHeader user={user} />
-      <Navbar user={user} store={store} />
+      <TopHeader />
+      <Navbar />
       <PageBanner
         pageTitle='Customer Service'
         homePageUrl='/'
@@ -88,7 +88,7 @@ const CustomerService = ({ user,store }) => {
       <InstagramFeed />
       <Footer />
     </>
-  );
-};
+  )
+}
 
-export default CustomerService;
+export default CustomerService

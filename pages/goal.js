@@ -1,23 +1,24 @@
+import React from 'react'
 import TopHeader from '../components/Layouts/TopHeader'
 import Navbar from '../components/Layouts/Navbar'
+import PageBanner from '../components/Common/PageBanner'
+import GalleryGrid from '../components/Gallery/GalleryGrid'
 import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
-import PageBanner from '../components/Common/PageBanner'
-import BlogWithRightSidebar from '../components/Blog/BlogWithRightSidebar'
 
-const Index = ({ user, store }) => {
+const Goal = ({ user, store }) => {
   return (
     <>
       <TopHeader />
       <Navbar />
       <PageBanner
-        pageTitle='Blog Right Sidebar'
+        pageTitle='Gallery Grid (3 in Row)'
         homePageUrl='/'
         homePageText='Home'
-        activePageText='Blog Right Sidebar'
+        activePageText='Gallery'
       />
-      <BlogWithRightSidebar />
+      <GalleryGrid />
       <FacilitySlider />
       <InstagramFeed />
       <Footer />
@@ -25,4 +26,4 @@ const Index = ({ user, store }) => {
   )
 }
 
-export default Index
+export default Goal

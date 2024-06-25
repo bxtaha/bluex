@@ -1,14 +1,14 @@
-import TopHeader from '../components/Layouts/TopHeader';
-import Navbar from '../components/Layouts/Navbar';
-import PageBanner from '../components/Common/PageBanner';
-import Footer from '../components/Layouts/Footer';
-import Link from 'next/link';
+import TopHeader from '../components/Layouts/TopHeader'
+import Navbar from '../components/Layouts/Navbar'
+import PageBanner from '../components/Common/PageBanner'
+import Footer from '../components/Layouts/Footer'
+import Link from 'next/link'
 
-const Error404 = ({ user,store }) => {
+const Error404 = ({ user, store }) => {
   return (
     <>
-      <TopHeader user={user} />
-      <Navbar user={user} store={store} />
+      <TopHeader />
+      <Navbar />
       <PageBanner
         pageTitle='404 Not Found'
         homePageUrl='/'
@@ -34,7 +34,7 @@ const Error404 = ({ user,store }) => {
 
       <Footer />
     </>
-  );
-};
+  )
+}
 
-export default Error404;
+export default Error404

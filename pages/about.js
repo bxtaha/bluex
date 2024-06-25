@@ -1,18 +1,18 @@
-import TopHeader from '../components/Layouts/TopHeader';
-import Navbar from '../components/Layouts/Navbar';
-import PageBanner from '../components/Common/PageBanner';
-import OfferStyleOne from '../components/Common/OfferStyleOne';
-import Partner from '../components/Common/Partner';
-import Testimonials from '../components/Common/Testimonials';
-import FacilitySlider from '../components/Common/FacilitySlider';
-import InstagramFeed from '../components/Common/InstagramFeed';
-import Footer from '../components/Layouts/Footer';
+import TopHeader from '../components/Layouts/TopHeader'
+import Navbar from '../components/Layouts/Navbar'
+import PageBanner from '../components/Common/PageBanner'
+import OfferStyleOne from '../components/Common/OfferStyleOne'
+import Partner from '../components/Common/Partner'
+import Testimonials from '../components/Common/Testimonials'
+import FacilitySlider from '../components/Common/FacilitySlider'
+import InstagramFeed from '../components/Common/InstagramFeed'
+import Footer from '../components/Layouts/Footer'
 
-const About = ({ user,store }) => {
+const About = ({ user, store }) => {
   return (
     <>
-      <TopHeader user={user} />
-      <Navbar user={user} store={store} />
+      <TopHeader />
+      <Navbar />
       <PageBanner
         pageTitle='About Us'
         homePageUrl='/'
@@ -150,7 +150,7 @@ const About = ({ user,store }) => {
       <InstagramFeed />
       <Footer />
     </>
-  );
-};
+  )
+}
 
-export default About;
+export default About

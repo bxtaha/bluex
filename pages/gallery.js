@@ -10,8 +10,8 @@ import Footer from '../components/Layouts/Footer'
 const Gallery2 = ({ user, store }) => {
   return (
     <>
-      <TopHeader user={user} />
-      <Navbar user={user} store={store} />
+      <TopHeader />
+      <Navbar />
       <PageBanner
         pageTitle='Gallery Grid (3 in Row)'
         homePageUrl='/'

@@ -1,16 +1,16 @@
-import TopHeader from '../components/Layouts/TopHeader';
-import Navbar from '../components/Layouts/Navbar';
-import PageBanner from '../components/Common/PageBanner';
-import FaqsContent from '../components/Faqs/FaqsContent';
-import FacilitySlider from '../components/Common/FacilitySlider';
-import InstagramFeed from '../components/Common/InstagramFeed';
-import Footer from '../components/Layouts/Footer';
+import TopHeader from '../components/Layouts/TopHeader'
+import Navbar from '../components/Layouts/Navbar'
+import PageBanner from '../components/Common/PageBanner'
+import FaqsContent from '../components/Faqs/FaqsContent'
+import FacilitySlider from '../components/Common/FacilitySlider'
+import InstagramFeed from '../components/Common/InstagramFeed'
+import Footer from '../components/Layouts/Footer'
 
-const Faqs = ({ user,store }) => {
+const Faqs = ({ user, store }) => {
   return (
     <>
-      <TopHeader user={user} />
-      <Navbar user={user} store={store} />
+      <TopHeader />
+      <Navbar />
       <PageBanner
         pageTitle='Frequently Asked Question'
         homePageUrl='/'
@@ -24,7 +24,7 @@ const Faqs = ({ user,store }) => {
       <InstagramFeed />
       <Footer />
     </>
-  );
-};
+  )
+}
 
-export default Faqs;
+export default Faqs

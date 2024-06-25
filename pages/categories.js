@@ -10,8 +10,8 @@ import Footer from '../components/Layouts/Footer'
 const Categories = ({ user, store }) => {
   return (
     <>
-      <TopHeader user={user} />
-      <Navbar user={user} store={store} />
+      <TopHeader />
+      <Navbar />
       <PageBanner
         pageTitle='Categories (2 in Row)'
         homePageUrl='/'

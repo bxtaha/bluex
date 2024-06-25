@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import WishlistModal from '../Modals/WishlistModal'
 
-const TopHeader = ({ user }) => {
+const TopHeader = () => {
   const [wishlistModal, setWishlistModal] = useState(false)
 
   const toggleModalWishlist = () => {
     setWishlistModal(!wishlistModal)
   }
+
+  const user = false
 
   return (
     <>

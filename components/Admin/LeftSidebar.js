@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import Link from '../../utils/ActiveLink'
 import TopNavbar from './TopNavbar'
 
-const LeftSidebar = ({ user, store }) => {
+const LeftSidebar = () => {
   const [layoutCls, setLayoutCls] = useState(false)
 
   const handleLayoutCls = (e) => {
@@ -11,7 +11,7 @@ const LeftSidebar = ({ user, store }) => {
 
   return (
     <>
-      <TopNavbar onChangeClass={handleLayoutCls} user={user} store={store} />
+      <TopNavbar onChangeClass={handleLayoutCls} />
       <nav className={`admin-sidebar ${layoutCls ? 'active' : null}`}>
         <ul>
           <li className='nav-item'>

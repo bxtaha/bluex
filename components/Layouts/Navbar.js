@@ -4,7 +4,7 @@ import Link from '../../utils/ActiveLink'
 import SearchModal from '../Modals/SearchModal'
 import SidebarModal from '../Modals/SidebarModal'
 
-const Navbar = ({ user, store }) => {
+const Navbar = () => {
   // Navbar
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(true)
@@ -303,60 +303,6 @@ const Navbar = ({ user, store }) => {
                       </a>
                     </Link>
                   </li>
-
-                  {user && (
-                    <li className='nav-item'>
-                      <Link href='#'>
-                        <a className='nav-link'>
-                          {user && user.name}
-                          <i className='bx bx-chevron-down'></i>
-                        </a>
-                      </Link>
-
-                      <ul className='dropdown-menu'>
-                        {user.role === 'admin' ||
-                        user.role === 'super-admin' ? (
-                          <li className='nav-item'>
-                            <Link
-                              href='/admin/dashboard'
-                              activeClassName='active'
-                            >
-                              <a className='nav-link'>Dashboard</a>
-                            </Link>
-                          </li>
-                        ) : (
-                          ''
-                        )}
-
-                        <li className='nav-item'>
-                          <Link href='/profile' activeClassName='active'>
-                            <a className='nav-link'> My Profile</a>
-                          </Link>
-                        </li>
-
-                        <li className='nav-item'>
-                          <Link
-                            href='/my-orders-history'
-                            activeClassName='active'
-                          >
-                            <a className='nav-link'>My Order History</a>
-                          </Link>
-                        </li>
-                        {store && store.status === 'approved' ? (
-                          <li className='nav-item'>
-                            <Link
-                              href='/stores/dashboard'
-                              activeClassName='active'
-                            >
-                              <a className='nav-link'>Store Dashboard</a>
-                            </Link>
-                          </li>
-                        ) : (
-                          ''
-                        )}
-                      </ul>
-                    </li>
-                  )}
                 </ul>
               </div>
 
