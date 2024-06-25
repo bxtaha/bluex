@@ -6,7 +6,7 @@ import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
 import Link from 'next/link'
 
-const CustomerService = ({ user, store }) => {
+const CustomerService = () => {
   return (
     <>
       <TopHeader />

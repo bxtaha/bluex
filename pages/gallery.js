@@ -7,13 +7,13 @@ import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
 
-const Gallery2 = ({ user, store }) => {
+const Gallery2 = () => {
   return (
     <>
       <TopHeader />
       <Navbar />
       <PageBanner
-        pageTitle='Gallery Grid (3 in Row)'
+        pageTitle='Gallery Grid'
         homePageUrl='/'
         homePageText='Home'
         activePageText='Gallery'

@@ -7,7 +7,7 @@ import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
 
-const Categories = ({ user, store }) => {
+const Categories = () => {
   return (
     <>
       <TopHeader />

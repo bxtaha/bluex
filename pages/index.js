@@ -6,7 +6,7 @@ import Footer from '../components/Layouts/Footer'
 import PageBanner from '../components/Common/PageBanner'
 import BlogWithRightSidebar from '../components/Blog/BlogWithRightSidebar'
 
-const Index = ({ user, store }) => {
+const Index = () => {
   return (
     <>
       <TopHeader />

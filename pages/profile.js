@@ -4,7 +4,7 @@ import formatDate from '../utils/formatDate'
 import TopHeader from '../components/Layouts/TopHeader'
 import Navbar from '../components/Layouts/Navbar'
 
-const Profile = ({ user, store }) => {
+const Profile = () => {
   return (
     <>
       <TopHeader />

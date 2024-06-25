@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from '../../utils/ActiveLink'
 
-const TopNavbar = ({ user, store }) => {
+const TopNavbar = () => {
   const [isMounted, setIsMounted] = useState(false)
   const [active, setActive] = useState(false)
 

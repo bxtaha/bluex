@@ -4,7 +4,7 @@ import PageBanner from '../components/Common/PageBanner'
 import Footer from '../components/Layouts/Footer'
 import Link from 'next/link'
 
-const Error404 = ({ user, store }) => {
+const Error404 = () => {
   return (
     <>
       <TopHeader />

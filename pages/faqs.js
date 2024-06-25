@@ -6,7 +6,7 @@ import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
 
-const Faqs = ({ user, store }) => {
+const Faqs = () => {
   return (
     <>
       <TopHeader />

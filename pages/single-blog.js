@@ -7,7 +7,7 @@ import FacilitySlider from '../components/Common/FacilitySlider'
 import InstagramFeed from '../components/Common/InstagramFeed'
 import Footer from '../components/Layouts/Footer'
 
-const SingleBlog3 = ({ user, store }) => {
+const SingleBlog3 = () => {
   return (
     <>
       <TopHeader />
