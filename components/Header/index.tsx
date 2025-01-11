@@ -63,7 +63,7 @@ const Header = () => {
 
   useEffect(() => {
     setActiveSection(
-      activeSectionName.charAt(0).toUpperCase() + activeSectionName.slice(1),
+      activeSectionName?.charAt(0)?.toUpperCase() + activeSectionName?.slice(1),
     );
   }, [activeSectionName]);
 
