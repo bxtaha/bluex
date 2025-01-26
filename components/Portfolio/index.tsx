@@ -28,8 +28,8 @@ const Portfolio = () => {
             return (
               <div
                 key={i.id}
-                className={`inline-flex cursor-pointer items-center justify-center rounded-full px-5 py-2 text-center text-white ${
-                  selectedTabIndex === i.id ? "bg-blue-800" : ""
+                className={`inline-flex cursor-pointer items-center justify-center rounded-full px-5 py-2 text-center font-semibold dark:text-white ${
+                  selectedTabIndex === i.id ? "bg-blue-800 text-white" : ""
                 }`}
                 onClick={() => setSelectedTabIndex(i.id)}
               >
