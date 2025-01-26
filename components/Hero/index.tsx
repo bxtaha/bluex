@@ -1,4 +1,6 @@
 import Link from "next/link";
+import VideoCallIcon from "@mui/icons-material/VideoCall";
+import ContactPageIcon from "@mui/icons-material/ContactPage";
 
 const Hero = () => {
   return (
@@ -15,26 +17,26 @@ const Hero = () => {
                 data-wow-delay=".2s"
               >
                 <h1 className="mb-5 text-3xl font-bold leading-tight text-black dark:text-white sm:text-4xl sm:leading-tight md:text-5xl md:leading-tight">
-                  Start your Online business or boost with us!
+                  Grow up your business with our expert team!
                 </h1>
                 <p className="mb-12 text-base !leading-relaxed text-body-color dark:text-body-color-dark sm:text-lg md:text-xl">
-                  Startup is free Next.js template for startups and SaaS
-                  business websites comes with all the essential pages,
-                  components, and sections you need to launch a complete
-                  business website, built-with Next 13.x and Tailwind CSS.
+                  At BlueX, we specialize in transforming your vision into
+                  reality with expert video editing, graphic design, web design,
+                  and web development services. Let us help you create stunning,
+                  functional, and engaging digital experiences.
                 </p>
                 <div className="flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
                   <Link
                     href="#contact"
                     className="rounded-lg bg-primary px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out hover:bg-primary/80"
                   >
-                    👋 Contact Us
+                    <ContactPageIcon /> Contact Us
                   </Link>
                   <Link
                     href="https://github.com/NextJSTemplates/startup-nextjs"
                     className="inline-block rounded-lg bg-black px-8 py-4 text-base font-semibold text-white duration-300 ease-in-out hover:bg-black/90 dark:bg-white/10 dark:text-white dark:hover:bg-white/5"
                   >
-                    👋 Star on GitHub
+                    <VideoCallIcon /> Book a free call
                   </Link>
                 </div>
               </div>

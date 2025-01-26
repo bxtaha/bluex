@@ -14,17 +14,42 @@ const menuData: Menu[] = [
     newTab: false,
   },
   {
-    id: 33,
-    title: "Blog",
-    path: "/#blog",
+    id: 3,
+    title: "Services",
+    path: "/#services",
     newTab: false,
   },
   {
-    id: 3,
-    title: "Contact",
+    id: 4,
+    title: "Portfolio",
+    path: "/#portfolio",
+    newTab: false,
+  },
+  {
+    id: 5,
+    title: "Feedback",
+    path: "/#about",
+    newTab: false,
+  },
+  {
+    id: 6,
+    title: "Pricing",
+    path: "/#about",
+    newTab: false,
+  },
+  {
+    id: 7,
+    title: "Contact Us",
     path: "/#contact",
     newTab: false,
   },
+  {
+    id: 8,
+    title: "Book a Call",
+    path: "/#about",
+    newTab: false,
+  },
+
   // {
   //   id: 4,
   //   title: "Pages",

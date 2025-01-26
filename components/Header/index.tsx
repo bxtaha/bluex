@@ -67,6 +67,8 @@ const Header = () => {
     );
   }, [activeSectionName]);
 
+  console.log(activeSection);
+
   return (
     <>
       <header
@@ -143,7 +145,7 @@ const Header = () => {
                         <Link
                           href={menuItem.path}
                           className={`flex py-2 font-serif text-base font-semibold lg:mr-0 lg:inline-flex lg:px-0 lg:py-6 ${
-                            activeSection === menuItem.title
+                            menuItem.title.includes(activeSection)
                               ? "text-white dark:text-white"
                               : "text-dark hover:text-primary dark:text-white/70 dark:hover:text-primary"
                           }`}
