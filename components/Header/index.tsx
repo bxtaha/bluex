@@ -133,18 +133,18 @@ const Header = () => {
 
                 <nav
                   id="navbarCollapse"
-                  className={`navbar absolute right-0 z-30 w-[250px] rounded border-[.5px] border-body-color/50 bg-white px-6 py-4 duration-300 dark:border-body-color/20 dark:bg-dark lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
+                  className={`navbar absolute right-0 z-30 h-[100vh] w-1/2 border-[.5px]  border-body-color/50 bg-white px-6 py-4 duration-300 dark:border-body-color/20 dark:bg-dark md:h-auto lg:visible lg:static lg:w-auto lg:border-none lg:!bg-transparent lg:p-0 lg:opacity-100 ${
                     navbarOpen
                       ? "visibility top-full opacity-100"
-                      : "invisible top-[120%] opacity-0"
+                      : "invisible left-[120%] opacity-0"
                   }`}
                 >
-                  <ul className="block lg:flex lg:space-x-12">
+                  <ul className="block lg:flex lg:space-x-8">
                     {menuData.map((menuItem, index) => (
                       <li key={index} className="group relative">
                         <Link
                           href={menuItem.path}
-                          className={`flex py-2 font-serif text-base font-semibold lg:mr-0 lg:inline-flex lg:px-0 lg:py-6 ${
+                          className={`font- flex  py-2 text-base md:font-semibold lg:mr-0 lg:inline-flex lg:px-0 lg:py-6 ${
                             menuItem.title.includes(activeSection)
                               ? "text-white dark:text-white"
                               : "text-dark hover:text-primary dark:text-white/70 dark:hover:text-primary"
@@ -156,7 +156,7 @@ const Header = () => {
                           {menuItem.title}
                           {activeSection === menuItem.title && (
                             <motion.span
-                              className="absolute top-6 -z-10 -ms-[25%]  h-6   w-[150%] rounded-full bg-primary dark:bg-primary"
+                              className="absolute left-[15%] top-2 -z-10  -ms-[25%] h-6 w-[150%]  rounded-full bg-primary  dark:bg-primary md:left-auto md:top-6 "
                               layoutId="activeSection"
                               transition={{
                                 type: "spring",
