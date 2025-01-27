@@ -75,14 +75,12 @@ const Short = () => {
                 />
               ) : (
                 <>
-                  <div className=" absolute left-0 top-0 max-h-[500px]">
-                    <Image
-                      src={i.img}
-                      className="rounded-lg object-cover "
-                      style={{ height: "493px" }}
-                      alt=""
-                    />
-                  </div>
+                  <Image
+                    src={i.img}
+                    className="h-full rounded-lg object-cover"
+                    alt=""
+                  />
+
                   <div className="absolute inset-0 flex items-center justify-center   text-4xl ">
                     <PlayCircleOutlineIcon className="mt-40 text-6xl text-gray-400" />
                   </div>
