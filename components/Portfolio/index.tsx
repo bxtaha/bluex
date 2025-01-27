@@ -19,7 +19,7 @@ const Portfolio = () => {
       />
       {/* Tab section */}
       <div className="flex justify-center">
-        <div className="flex justify-center gap-10 rounded-full border-2 border-blue-800 p-4 text-xl">
+        <div className="flex justify-center rounded-full border-2 border-blue-800 p-1 text-sm lg:gap-10  lg:p-4 lg:text-xl">
           {[
             { id: 1, title: "Video Editing" },
             { id: 2, title: "Website" },
@@ -28,7 +28,7 @@ const Portfolio = () => {
             return (
               <div
                 key={i.id}
-                className={`inline-flex cursor-pointer items-center justify-center rounded-full px-5 py-2 text-center font-semibold dark:text-white ${
+                className={`inline-flex cursor-pointer items-center justify-center rounded-full px-2 py-2 text-center dark:text-white md:px-5 md:font-semibold ${
                   selectedTabIndex === i.id ? "bg-blue-800 text-white" : ""
                 }`}
                 onClick={() => setSelectedTabIndex(i.id)}
