@@ -54,7 +54,7 @@ const Develop = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <div className="group relative h-[400px] w-[350px] cursor-pointer overflow-hidden rounded-lg border-2 border-gray-300 shadow-lg">
+              <div className="group relative h-[400px] w-[350px] cursor-pointer overflow-hidden rounded-xl  border-4 border-blue-500 shadow-lg">
                 <div
                   className={`absolute inset-0 h-full w-full transition-transform duration-[5000ms] ease-in-out  group-hover:scale-105 ${i.translate}`}
                 >
