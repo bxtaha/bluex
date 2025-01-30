@@ -17,17 +17,17 @@ const Develop = () => {
     },
     {
       id: 2,
-      title: "Website 1",
-      url: "https://uniticexchange.com/",
-      img: img2,
-      translate: "group-hover:-translate-y-[156%]",
-    },
-    {
-      id: 3,
       title: "Website 2",
       url: "https://papaya-blini-048d15.netlify.app/",
       img: img3,
       translate: "group-hover:-translate-y-[177.5%]",
+    },
+    {
+      id: 3,
+      title: "Website 1",
+      url: "https://uniticexchange.com/",
+      img: img2,
+      translate: "group-hover:-translate-y-[156%]",
     },
     {
       id: 4,
