@@ -1,7 +1,7 @@
 import React from "react";
 
 const Design = () => {
-  return <div>Design</div>;
+  return <div>Coming Soon ...</div>;
 };
 
 export default Design;

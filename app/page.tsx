@@ -25,10 +25,10 @@ export default function Home() {
       <Hero />
       <About />
       <Services />
-      <Brands />
+      {/* <Brands /> */}
       <Portfolio />
       <AboutSectionOne />
-      <AboutSectionTwo />
+      {/* <AboutSectionTwo /> */}
       <Testimonials />
       <Pricing />
       <Contact />
