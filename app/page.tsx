@@ -9,7 +9,9 @@ export default function Home() {
 
   return (
     <KineticGrid accentColor={color}>
-      <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
+      {/* pt clears the fixed Navbar + TopBar stack, which is out of flow and
+          would otherwise sit on top of the heading */}
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 pt-44 text-center sm:pt-40">
         <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-white sm:text-7xl lg:text-8xl">
           We are always here to Grow your Business with our Expert Team!
         </h1>
