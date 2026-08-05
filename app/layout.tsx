@@ -33,9 +33,13 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      {/* h-dvh + flex column: the header takes its natural height and the page
+          content fills exactly the rest, so the two can never overlap and the
+          viewport is filled without scrolling on any device. dvh (not vh)
+          tracks mobile browser chrome as it collapses. */}
+      <body className="flex h-dvh flex-col bg-[#161618]">
         <AccentColorProvider>
-          <div className="fixed inset-x-0 top-0 z-50 flex flex-col">
+          <div id="site-header" className="relative z-50 flex shrink-0 flex-col">
             <Navbar />
             <TopBar />
           </div>
