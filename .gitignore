@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local editor config
+.claude/
+
+# generated knowledge-graph output (rebuild with /graphify)
+graphify-out/

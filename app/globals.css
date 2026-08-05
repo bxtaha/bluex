@@ -1,26 +1,937 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── AnimatedTabBar ──────────────────────────────────────────────────────── */
+
+@keyframes strok {
+  100% {
+    stroke-dashoffset: 400;
+  }
+}
+
+.svg-container {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.menu {
+  --duration: 0.5s;
+  --bgMenu: #ffffff;
+  --iconColor: #9fb0c9;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(92vw, 40em);
+  margin: 0;
+  padding: 0 1.25em;
+  font-size: clamp(14px, 3.2vw, 21px);
+  list-style: none;
+  background-color: var(--bgMenu);
+  border-radius: 0 0 1.5em 1.5em;
+  box-shadow: 0 1em 2.5em rgb(24 39 75 / 0.14);
+}
+
+.menu__item {
+  all: unset;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5em 0 0.68em;
+  border-radius: 50%;
+  cursor: pointer;
+  will-change: transform;
+  transition: transform var(--timeOut, var(--duration));
+}
+
+.menu__item::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 2.6em;
+  height: 2.6em;
+  border-radius: 50%;
+  background-color: var(--bgColorItem);
+  transform: scale(0);
+  transition: transform var(--timeOut, var(--duration));
+}
+
+.menu__item.active {
+  transform: translate3d(0, 0.9em, 0);
+}
+
+.menu__item.active::before {
+  transform: scale(1);
+}
+
+.menu__item .icon {
+  width: 1.55em;
+  height: 1.55em;
+  fill: none;
+  stroke: var(--iconColor);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 400;
+  transition: stroke var(--duration);
+}
+
+.menu__item.active .icon {
+  stroke: #ffffff;
+  animation: strok 1.5s reverse;
+}
+
+.menu__border {
+  position: absolute;
+  left: 0;
+  top: 99%;
+  width: 8.6em;
+  height: 1.93em;
+  background-color: var(--bgMenu);
+  clip-path: url(#menu-clip-path);
+  transition: transform var(--timeOut, var(--duration));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu__item,
+  .menu__item::before,
+  .menu__border {
+    transition-duration: 0.01ms;
+  }
+  .menu__item.active .icon {
+    animation: none;
+  }
+}
+
+/* ── StardustButton (top bar CTA) ────────────────────────────────────────── */
+
+.pearl-button .wrap::before,
+.pearl-button .wrap::after {
+  content: "";
+  position: absolute;
+  transition: all 0.3s ease;
+}
+
+.pearl-button .wrap::before {
+  left: -15%;
+  right: -15%;
+  bottom: 25%;
+  top: -100%;
+  border-radius: 50%;
+  background-color: rgba(64, 180, 255, 0.15);
+}
+
+.pearl-button .wrap::after {
+  left: 6%;
+  right: 6%;
+  top: 12%;
+  bottom: 40%;
+  border-radius: 22px 22px 0 0;
+  box-shadow: inset 0 10px 8px -10px rgba(129, 216, 255, 0.6);
+  background: linear-gradient(
+    180deg,
+    rgba(64, 180, 255, 0.25) 0%,
+    rgba(0, 0, 0, 0) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+.pearl-button .wrap p span:nth-child(2) {
+  display: none;
+}
+
+.pearl-button:hover .wrap p span:nth-child(1) {
+  display: none;
+}
+
+.pearl-button:hover .wrap p span:nth-child(2) {
+  display: inline-block;
+}
+
+.pearl-button:hover {
+  box-shadow:
+    inset 0 0.3rem 0.5rem rgba(129, 216, 255, 0.4),
+    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
+    inset 0 -0.4rem 0.9rem rgba(64, 180, 255, 0.6),
+    0 3rem 3rem rgba(0, 0, 0, 0.3),
+    0 1rem 1rem -0.6rem rgba(0, 0, 0, 0.8);
+}
+
+.pearl-button:hover .wrap::before {
+  transform: translateY(-5%);
+}
+
+.pearl-button:hover .wrap::after {
+  opacity: 0.4;
+  transform: translateY(5%);
+}
+
+.pearl-button:hover .wrap p {
+  transform: translateY(-4%);
+}
+
+.pearl-button:active {
+  transform: translateY(4px);
+  box-shadow:
+    inset 0 0.3rem 0.5rem rgba(129, 216, 255, 0.5),
+    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.8),
+    inset 0 -0.4rem 0.9rem rgba(64, 180, 255, 0.4),
+    0 3rem 3rem rgba(0, 0, 0, 0.3),
+    0 1rem 1rem -0.6rem rgba(0, 0, 0, 0.8);
+}
+
+/* Animated shadow that continuously orbits the button */
+.stardust-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(64, 180, 255, 0.75),
+    rgba(129, 216, 255, 0.1) 35%,
+    rgba(64, 180, 255, 0.1) 65%,
+    rgba(64, 180, 255, 0.75) 100%
+  );
+  animation: stardust-orbit 6s linear infinite;
+}
+
+@keyframes stardust-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stardust-halo {
+    animation: none;
+  }
+}
+
+/* ── BellNotify ──────────────────────────────────────────────────────────── */
+
+.bell-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+}
+
+/* universal transitions */
+.bell-root * {
+  transition: filter 0.4s ease-in-out, box-shadow 0.4s ease-in-out,
+    opacity 0.4s ease-in-out, color 0.4s ease-in-out,
+    background 0.4s ease-in-out, text-shadow 0.4s ease-in-out;
+}
+.bell-root *::before,
+.bell-root *::after {
+  transition: filter 0.4s ease-in-out, box-shadow 0.4s ease-in-out,
+    opacity 0.4s ease-in-out, color 0.4s ease-in-out,
+    background 0.4s ease-in-out, text-shadow 0.4s ease-in-out;
+}
+
+.bell-container,
+.bell-container * {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+}
+
+.bell-container {
+  width: 80em;
+  height: 80em;
+  cursor: pointer;
+  transform-origin: 50% -50vh;
+  animation: bell 5s ease-in-out infinite;
+  outline: none;
+}
+
+@keyframes bell {
+  0% {
+    rotate: calc(1deg * var(--degofrot));
+  }
+  50% {
+    rotate: calc(-1deg * var(--degofrot));
+  }
+  100% {
+    rotate: calc(1deg * var(--degofrot));
+  }
+}
+
+.rope {
+  height: 50vh;
+  width: 2em;
+  translate: 0 -52%;
+  background: linear-gradient(
+      90deg,
+      #2d54744d 0%,
+      #000b 30%,
+      transparent 100%
+    ),
+    repeating-linear-gradient(-70deg, #252525, #888 2%, #3a3a3a 3%);
+}
+
+.bell-top {
+  width: 14%;
+  height: 14%;
+  border-radius: 50%;
+  translate: 0 -28em;
+  background: var(--base-clr);
+  box-shadow: inset -1em -0.5em 2em 0.5em #fff,
+    inset 1em -1em 2em 3em #000, 0 -0.1em 0.4em 0.3em #c6eaffa8;
+}
+
+.bell-base {
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  translate: 0 -24%;
+  background: var(--base-clr);
+  box-shadow: 0 -0.1em 0.4em 0.2em #c6eaffa8;
+}
+/* left/top must be pinned: with only `position: absolute` these skirts fall
+   back to their static position, which for a pseudo-element is placed by
+   inline layout and therefore moves with inherited `text-align`. Any page
+   wrapper carrying `text-center` shifted them half the bell's width to the
+   right and tore the flank off the body. */
+.bell-base:before {
+  content: '';
+  background-image: radial-gradient(
+    circle at -80% -12%,
+    transparent 50em,
+    var(--base-clr) 50em
+  );
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -18em 20em;
+  width: 100%;
+  height: 80%;
+}
+/* Mirror of :before, written out rather than flipped with scaleX(-1):
+   a scaled radial-gradient whose centre sits far outside its own box
+   rasterises wrong at some scroll offsets (the arc is lost and the box fills
+   solid, jutting a slab out of the bell's right side). Mirroring the centre
+   by hand — -80% becomes 180% — and keeping the plain `translate` avoids
+   that, and also avoids the minifier dropping `translate` next to
+   `transform`. Arc radius must stay 50em to match :before, or the right
+   flank sits inside the dome; the #cacaca rim light runs inward from the
+   edge instead of pushing the edge in. */
+.bell-base:after {
+  content: '';
+  background-image: radial-gradient(
+    circle at 180% -12%,
+    transparent 50em,
+    #cacaca 50.2em,
+    var(--base-clr) 50.5em
+  );
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 80%;
+  translate: 18em 20em;
+}
+.bell-base:nth-of-type(3) {
+  /* second .bell-base in DOM order (after bell-top) */
+  filter: brightness(3) blur(1em);
+  scale: 0.74 0.84;
+  translate: 0em -11em;
+}
+
+.shadow-l1 {
+  width: 30em;
+  height: 42em;
+  border-radius: 50%;
+  rotate: 12deg;
+  translate: -3em -6em;
+  filter: blur(2em);
+  background: #797a80;
+}
+.shadow-l2 {
+  width: 130%;
+  height: 90%;
+  filter: blur(5em);
+  translate: -6em 9em;
+}
+.shadow-l2::before {
+  display: block;
+  content: '';
+  width: 68%;
+  height: 64%;
+  border-radius: 50%;
+  rotate: -54deg;
+  translate: -8em 2em;
+  scale: 1;
+  background: #000000;
+}
+
+.glow {
+  width: 100%;
+  height: 100%;
+  filter: brightness(2) blur(2em);
+}
+.glow::before {
+  clip-path: polygon(
+    9% 83%,
+    12% 79%,
+    15% 74%,
+    18% 68%,
+    20% 62%,
+    22% 56%,
+    23% 50%,
+    24% 43%,
+    25% 38%,
+    25% 34%,
+    26% 29%,
+    26% 26%,
+    27% 22%,
+    29% 19%,
+    30% 15%,
+    32% 13%,
+    34% 10%,
+    37% 7%,
+    41% 5%,
+    44% 4%,
+    47% 3%,
+    51% 3%,
+    55% 3%,
+    58% 5%,
+    62% 6%,
+    73% 29%,
+    72% 25%,
+    70% 20%,
+    67% 16%,
+    63% 12%,
+    60% 9%,
+    58% 8%,
+    55% 7%,
+    52% 6%,
+    48% 6%,
+    44% 8%,
+    41% 9%,
+    37% 12%,
+    36% 14%,
+    33% 16%,
+    31% 20%,
+    30% 23%,
+    29% 26%,
+    28% 31%,
+    27% 36%,
+    27% 39%,
+    26% 44%,
+    26% 48%,
+    26% 52%,
+    25% 56%,
+    23% 61%,
+    22% 65%,
+    21% 69%,
+    19% 72%,
+    17% 75%,
+    15% 78%,
+    13% 81%
+  );
+  width: 100%;
+  height: 80%;
+  translate: 0 6em;
+  scale: 0.94 0.94;
+  background: #fff3;
+  display: block;
+  content: '';
+}
+.glow2 {
+  width: 100%;
+  height: 100%;
+  filter: brightness(1) blur(0.3em);
+  opacity: 0.1;
+}
+.glow2::before {
+  clip-path: polygon(
+    9.21% 83%,
+    12.28% 79%,
+    15.35% 74%,
+    18.41% 68%,
+    20.46% 62%,
+    22.51% 56%,
+    23.53% 50%,
+    24.55% 43%,
+    25.58% 34%,
+    26.6% 29%,
+    27.62% 22%,
+    29.16% 18.5%,
+    30.95% 15.75%,
+    32.74% 13%,
+    34.78% 10%,
+    37.85% 7%,
+    41.94% 5%,
+    45.01% 4%,
+    48.08% 3%,
+    52.17% 3%,
+    56.27% 3%,
+    64.01% 6.36%,
+    55.75% 4.5%,
+    47.83% 4.75%,
+    42.84% 5.88%,
+    39.51% 7.88%,
+    36.45% 10.38%,
+    33.38% 14.88%,
+    30.69% 19%,
+    29.67% 22.5%,
+    28.8% 26.72%,
+    28.21% 31.36%,
+    26.92% 38.44%,
+    26.57% 43.67%,
+    25.51% 48.34%,
+    25% 54.34%,
+    23.4% 60.69%,
+    21.23% 65.38%,
+    18.41% 71.5%,
+    16.88% 74.75%,
+    12.28% 80.5%
+  );
+  width: 100%;
+  height: 84%;
+  translate: -1em 8.4em;
+  scale: 1;
+  background: #fff3;
+  display: block;
+  content: '';
+}
+
+.left-glow {
+  --lgc: #5d819666;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  translate: 0 -24%;
+  background: transparent;
+  box-shadow: inset 1em 0em 1em 0.2em var(--lgc);
+  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+}
+.left-glow2 {
+  --lgc2: #5d819666;
+  width: 49%;
+  height: 50%;
+  background-image: radial-gradient(
+    circle at -80% -12%,
+    transparent 50em,
+    var(--lgc2) 50.3em,
+    transparent 52em
+  );
+  position: absolute;
+  translate: -19em 10.35em;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 0 78%);
+}
+/* Mirror of .left-glow written out rather than flipped: the circle and the
+   clip are already symmetric, so only the inset shadow's x-offset flips. */
+.r-glow {
+  --lgc: #fffaf680;
+  width: 50%;
+  height: 50%;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset -1em 0em 1em 0.2em var(--lgc);
+  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
+  translate: 0 -24%;
+}
+/* Mirror of .left-glow2 with the gradient centre flipped by hand (-80% ->
+   180%) — see .bell-base:after. The old rotate(-2deg) here had no counterpart
+   on the left and tilted this rim light off the flank it lights, swinging
+   from +7px at the top to -4px at the bottom. */
+.r-glow2 {
+  --lgc2: #fffaf680;
+  width: 49%;
+  height: 50%;
+  background-image: radial-gradient(
+    circle at 180% -12%,
+    transparent 50em,
+    var(--lgc2) 50.3em,
+    transparent 52em
+  );
+  position: absolute;
+  clip-path: polygon(0 0, 100% 0, 100% 78%, 0 78%);
+  translate: 19em 10.35em;
+}
+
+.mid-ring.small {
+  translate: 0.04em -8em;
+  scale: 0.8 0.5;
+}
+.mid-ring {
+  width: 64%;
+  height: 10%;
+  border-radius: 50%;
+  translate: -0.1em 10em;
+  box-shadow: inset -0.3em 1.3em 0.4em -1em #fff5,
+    -0.2em -1.2em 0.4em -0.4em #505050,
+    -0.1em -1.8em 0.4em -0.4em #fff5, 0 -2.5em 0.4em -1em #000000;
+  mix-blend-mode: hard-light;
+  filter: brightness(0.8);
+  /* keep the end caps below from spilling past the ring and notching the
+     bell's outline (only visible on the lit right side) */
+  overflow: hidden;
+}
+.mid-ring::before,
+.mid-ring::after {
+  content: '';
+  display: block;
+  background: #000;
+  width: 2em;
+  height: 2em;
+  top: 10%;
+  border-radius: 50%;
+  position: absolute;
+}
+.mid-ring::after {
+  right: -2%;
+}
+.mid-ring::before {
+  left: -2%;
+}
+
+.bell-buff-t {
+  background: #fff2;
+  width: 72%;
+  height: 12%;
+  border-radius: 50%;
+  translate: 0 16em;
+  filter: blur(1em);
+}
+.bell-buff {
+  background: linear-gradient(90deg, black 40%, var(--base-clr) 90%);
+  width: 88%;
+  height: 20%;
+  border-radius: 50% 50% 50% 50% / 50% 50% 30% 30%;
+  translate: 0 20em;
+  box-shadow: inset 1em 0 2em -1em #5d819666,
+    inset -1em 0 2em -1em #fff;
+}
+.bell-btm {
+  width: 88%;
+  height: 18%;
+  border-radius: 50%;
+  translate: 0 23em;
+  background: linear-gradient(90deg, black 40%, var(--base-clr) 90%);
+}
+.bell-btm2 {
+  width: 74%;
+  height: 12%;
+  border-radius: 50%;
+  translate: 0 24em;
+  background: #fffff6;
+  box-shadow: 0 0 1em 0.6em #ffe9d4, -0.8em 0.2em 2em 1em #cca37f,
+      -5.4em -0.6em 3em -1em #ce6e1abb, 6em -0.6em 3em -1em #ce6e1abb,
+      inset 0em 30.3em 0.3em -30em #c7962d, inset 0 -2em 2em -2em #ffe9d4,
+      inset 0em -1em 2em 1em #ce6e1a66;
+  filter: brightness(1);
+}
+.off .bell-btm2 {
+  filter: brightness(0.02);
+}
+
+.bell-ring-container {
+  width: 74%;
+  height: 24%;
+  border-radius: 50% 50% 50% 50% / 25% 25% 0% 0%;
+  translate: 0 29.2em;
+  overflow: hidden;
+}
+.bell-ring {
+  width: 12em;
+  height: 12em;
+  background: #fff;
+  border-radius: 50%;
+  translate: 0 -6em;
+  box-shadow: 0 0.8em 1em -0.3em #f8e1d0,
+    inset 0 -6em 4em -4em #e3b695, inset 0 1em 3em 1em #fff4,
+    inset 0 2em 3em 1em #fff, inset 0 100em 0 100em #2c2c2c;
+}
+.off .bell-ring {
+  background: #000;
+  box-shadow: 0 0.8em 1em -0.3em #0000,
+    inset 0 -6em 4em -4em #e3b69500, inset 0 1em 3em 1em #fff0,
+    inset 0 -2em 3em 1em #fff2, inset 0 100em 0 100em #000;
+}
+
+.bell-rays {
+  mix-blend-mode: soft-light;
+  box-shadow: inset 0 -21em 4em -20em #000;
+  width: 100%;
+  height: 140%;
+  translate: 0 -4em;
+  border-radius: 50%;
+}
+.bell-rays::before {
+  content: '';
+  display: block;
+  width: 100em;
+  height: 100em;
+  transform-origin: 50% 50%;
+  position: absolute;
+  left: -21em;
+  top: -77em;
+  border-radius: 100%;
+  filter: blur(0.6em);
+  background: repeating-conic-gradient(
+    at 50% 50%,
+    #fff2 0%,
+    transparent 0.6%,
+    #fff2 0.8%
+  );
+  animation: radiate 1s linear infinite;
+}
+.off .bell-rays {
+  opacity: 0;
+}
+@keyframes radiate {
+  0% {
+    rotate: 0deg;
+  }
+  100% {
+    rotate: 6deg;
+  }
+}
+
+.volumetric {
+  width: 98%;
+  height: 224%;
+  translate: 0 124em;
+  opacity: 0.2;
+}
+.volumetric .vl {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 20em;
+  rotate: 22deg;
+  box-shadow: inset 40em 0 20em -20em #fff1;
+}
+.volumetric .vr {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 20em;
+  rotate: -22deg;
+  box-shadow: inset -40em 0 20em -20em #fff1;
+}
+.off .volumetric {
+  opacity: 0;
+}
+
+.bell-root .button {
+  position: relative;
+  font-size: 6em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  background: #000;
+  top: 8em;
+  width: fit-content;
+  height: fit-content;
+  color: #000;
+  cursor: pointer;
+  padding: 0.4em 1.2em;
+  border-radius: 0.4em;
+  text-shadow: 0 -1px 3px #fff0;
+  box-shadow: inset 0 0.04em 0.06em 0 #fff, inset 0 1em 1em 0 #fff5,
+    inset 0 0.2em 0.2em 0 #e3b695;
+  animation: lumenbtn 5s ease-in-out infinite;
+  border: none;
+}
+.bell-root .button:hover,
+.bell-root .button:focus-visible {
+  color: #fff;
+  text-shadow: 0 -1px 3px #fff;
+  outline: none;
+}
+.bell-root .button::before,
+.bell-root .button::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 54%;
+  position: absolute;
+  top: 6em;
+  left: 0;
+  right: 0;
+}
+.bell-root .button::before {
+  background: #e3b695;
+  transform: scale(2);
+  z-index: -2;
+  filter: blur(12px);
+  border-radius: 100%;
+  animation: lumen 5s ease-in-out infinite;
+}
+.bell-root .button::after {
+  background: #000c;
+  z-index: -1;
+  filter: blur(0.3em);
+  border-radius: 30%;
+}
+@keyframes lumenbtn {
+  0% {
+    box-shadow: inset 0 0.04em 0.06em 0 #fff,
+      inset calc(-0.2em * var(--degofrot)) 1em 1em 0 #fff5,
+      inset calc(-0.2em * var(--degofrot)) 0.2em 0.4em 0 #e3b695;
+  }
+  50% {
+    box-shadow: inset 0 0.04em 0.06em 0 #fff,
+      inset calc(0.2em * var(--degofrot)) 1em 1em 0 #fff5,
+      inset calc(0.2em * var(--degofrot)) 0.2em 0.4em 0 #e3b695;
+  }
+  100% {
+    box-shadow: inset 0 0.04em 0.06em 0 #fff,
+      inset calc(-0.2em * var(--degofrot)) 1em 1em 0 #fff5,
+      inset calc(-0.2em * var(--degofrot)) 0.2em 0.4em 0 #e3b695;
+  }
+}
+@keyframes lumen {
+  0% {
+    translate: calc(-0.8em * var(--degofrot));
+  }
+  50% {
+    translate: calc(0.8em * var(--degofrot));
+  }
+  100% {
+    translate: calc(-0.8em * var(--degofrot));
+  }
+}
+
+/* hide CTA when bell is "off" (matches original off + sibling behavior) */
+.bell-root .hidden-button {
+  opacity: 0;
+  pointer-events: none;
 }
