@@ -394,7 +394,7 @@
 }
 
 .rope {
-  height: 50vh;
+  height: 60vh;
   width: 2em;
   translate: 0 -52%;
   background: linear-gradient(
@@ -758,7 +758,7 @@
       -5.4em -0.6em 3em -1em #ce6e1abb, 6em -0.6em 3em -1em #ce6e1abb,
       inset 0em 30.3em 0.3em -30em #c7962d, inset 0 -2em 2em -2em #ffe9d4,
       inset 0em -1em 2em 1em #ce6e1a66;
-  filter: brightness(1);
+  filter: brightness(1.45);
 }
 .off .bell-btm2 {
   filter: brightness(0.02);
@@ -831,7 +831,7 @@
   width: 98%;
   height: 224%;
   translate: 0 124em;
-  opacity: 0.2;
+  opacity: 0.27;
 }
 .volumetric .vl {
   width: 100%;
@@ -853,11 +853,12 @@
 
 .bell-root .button {
   position: relative;
-  font-size: 6em;
+  font-size: 3.4em;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     'Liberation Mono', 'Courier New', monospace;
   background: #000;
-  top: 8em;
+  top: 24em;
+  white-space: nowrap;
   width: fit-content;
   height: fit-content;
   color: #000;

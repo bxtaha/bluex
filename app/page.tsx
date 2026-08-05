@@ -10,13 +10,16 @@ export default function Home() {
   return (
     <KineticGrid accentColor={color}>
       <div className="flex min-h-screen flex-col items-center justify-center px-6 text-center">
-        <h1 className="max-w-2xl font-semibold tracking-t font-semibold tracking-tight text-white sm:text-6xl">
+        <h1 className="max-w-5xl text-4xl font-semibold tracking-tight text-white sm:text-7xl lg:text-8xl">
           We are always here to Grow your Business with our Expert Team!
         </h1>
 
         <div className="pointer-events-none mt-12 h-[420px] w-full">
           <div className="pointer-events-auto h-full w-full">
-            <BellNotify size={300} buttonLabel="Notify Me" />
+            <BellNotify
+              size={300}
+              buttonLabel="Get a Free Call Within 5 Minutes"
+            />
           </div>
         </div>
       </div>
