@@ -18,7 +18,7 @@ export default function Home() {
           <div className="pointer-events-auto h-full w-full">
             <BellNotify
               size={300}
-              buttonLabel="Get a Free Call Within 5 Minutes"
+              buttonLabel="Get a Call Within 5 Minutes"
             />
           </div>
         </div>

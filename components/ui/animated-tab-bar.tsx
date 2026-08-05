@@ -22,8 +22,9 @@ export const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
   const [activeIndex, setActiveIndex] = useState(defaultIndex);
   // Frozen at mount: the flare's resting `left` must never change after the
   // first paint, or the browser would jump it there instead of animating the
-  // `transform` (only `transform` is transitioned).
-  const initialIndexRef = useRef(defaultIndex);
+  // `transform` (only `transform` is transitioned). State rather than a ref
+  // because it is read during render.
+  const [initialIndex] = useState(defaultIndex);
   const menuRef = useRef<HTMLMenuElement>(null);
   const menuBorderRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -123,7 +124,7 @@ export const AnimatedTabBar: React.FC<AnimatedTabBarProps> = ({
           ref={menuBorderRef}
           style={{
             left: `calc(${
-              ((initialIndexRef.current + 0.5) * 100) / items.length
+              ((initialIndex + 0.5) * 100) / items.length
             }% - (var(--menu-border-w, 8.6em) / 2))`,
           }}
         ></div>

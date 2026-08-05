@@ -936,3 +936,186 @@
   opacity: 0;
   pointer-events: none;
 }
+
+/* ── Rainbow button ──────────────────────────────────────────────────────── */
+
+@keyframes rainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+.animate-rainbow {
+  animation: rainbow 2s linear infinite;
+}
+
+.before\:animate-rainbow::before {
+  animation: rainbow 2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rainbow,
+  .before\:animate-rainbow::before {
+    animation: none;
+  }
+}
+
+/* ── GlassButton (glass surface + animated rainbow border) ───────────────── */
+
+.glass-button-wrap {
+  position: relative;
+  isolation: isolate;
+}
+
+/* Animated rainbow border. Sits behind the button and bleeds 2px past it on
+   every side, so the visible ring is the gradient showing around the edge. */
+.glass-button-wrap::before,
+.glass-button-wrap::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  top: -2px;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  border-radius: inherit;
+  background: linear-gradient(
+    45deg,
+    #fb0094,
+    #0000ff,
+    #00ff00,
+    #ffff00,
+    #ff0000,
+    #fb0094,
+    #0000ff,
+    #00ff00,
+    #ffff00,
+    #ff0000
+  );
+  background-size: 400%;
+  z-index: -1;
+  animation: rainbow-border 20s linear infinite;
+}
+
+/* Punch out the centre so only a 2px ring of gradient remains, instead of a
+   solid block showing through the translucent glass. */
+.glass-button-wrap::before {
+  padding: 2px;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+
+/* Second copy, blurred, for the outer glow. Left unmasked - it sits behind
+   the button and reads as a halo, not a fill. */
+.glass-button-wrap::after {
+  filter: blur(18px);
+  opacity: 0.55;
+}
+
+@keyframes rainbow-border {
+  0% {
+    background-position: 0 0;
+  }
+  50% {
+    background-position: 400% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+
+/* Frosted-glass surface. */
+.glass-button {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 55%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.4),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.12),
+    inset 0 0 18px rgba(255, 255, 255, 0.04);
+  color: #fff;
+}
+
+/* Bright, high-contrast label with a shimmer sweeping across the letters. */
+.glass-button-text {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  background: linear-gradient(
+    100deg,
+    #ffffff 0%,
+    #ffffff 38%,
+    #bfe9ff 47%,
+    #ffffff 56%,
+    #ffffff 100%
+  );
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: glass-text-shimmer 4.5s linear infinite;
+  /* Drop-shadow (not text-shadow) so the glow follows the glyph outlines,
+     which text-shadow cannot do once the fill is transparent. */
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 10px rgba(180, 225, 255, 0.45));
+}
+
+@keyframes glass-text-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-button-text {
+    animation: none;
+  }
+}
+
+.glass-button-wrap:hover .glass-button {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.05) 55%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+}
+
+.glass-button-wrap:active .glass-button {
+  transform: translateY(1px);
+}
+
+/* Contact shadow under the button. */
+.glass-button-shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -6px;
+  height: 40%;
+  z-index: -2;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(10px);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-button-wrap::before,
+  .glass-button-wrap::after {
+    animation: none;
+  }
+}

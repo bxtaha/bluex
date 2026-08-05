@@ -1,19 +1,21 @@
 import Image from "next/image";
-import { StardustButton } from "@/components/ui/stardust-button";
+import { GlassButton } from "@/components/ui/glass-button";
 
 export function TopBar() {
   return (
-    <header className="flex w-full items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6">
-      <Image
-        src="/bluex-logo.png"
-        alt="BlueX"
-        width={525}
-        height={271}
-        priority
-        className="h-16 w-auto sm:h-20"
-      />
+    <header className="w-full py-3">
+      <div className="mx-auto flex items-center justify-between gap-3 px-6 sm:gap-4 sm:px-10 lg:px-20">
+        <Image
+          src="/bluex-logo.png"
+          alt="BlueX"
+          width={525}
+          height={271}
+          priority
+          className="h-16 w-auto sm:h-20"
+        />
 
-      <StardustButton>Get a free Call within 5 minutes</StardustButton>
+        <GlassButton>Get a Call Within 5 Minutes</GlassButton>
+      </div>
     </header>
   );
 }

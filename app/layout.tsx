@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/navbar";
 import { TopBar } from "@/components/topbar";
 import { Copyright } from "@/components/copyright";
+import StarOnGithub from "@/components/ui/button-github";
 import { AccentColorProvider } from "@/components/accent-provider";
 import "./globals.css";
 
@@ -40,6 +41,9 @@ export default function RootLayout({
           </div>
           {children}
           <Copyright />
+          <div className="fixed bottom-6 left-6 z-50">
+            <StarOnGithub />
+          </div>
         </AccentColorProvider>
       </body>
     </html>
