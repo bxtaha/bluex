@@ -55,7 +55,7 @@ export function FinalCta() {
 
             {/* Last thing in the section, under the bell — the closing action
                 someone reaches after the whole page. */}
-            <Reveal index={2} className="mt-2 flex justify-center">
+            <Reveal index={2} className="mt-24 flex justify-center sm:mt-32">
               <CallCta />
             </Reveal>
           </div>
