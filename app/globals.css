@@ -1408,7 +1408,8 @@
 .back-to-top {
   position: fixed;
   right: clamp(1rem, 3vw, 2.5rem);
-  bottom: clamp(1rem, 3vw, 2.5rem);
+  /* Cleared above the 2px progress bar pinned to the very bottom edge. */
+  bottom: clamp(1.25rem, 3vw, 2.5rem);
   z-index: 40;
   display: grid;
   place-items: center;
@@ -1420,29 +1421,22 @@
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
   backdrop-filter: blur(10px);
   color: var(--color-ink);
-  opacity: 0;
-  transform: translateY(12px);
-  /* Not clickable while invisible, so it cannot swallow clicks in the corner
-     before it has appeared. */
-  pointer-events: none;
   transition:
-    opacity 0.4s var(--ease-reveal),
-    transform 0.4s var(--ease-reveal),
+    transform 0.3s var(--ease-reveal),
     background-color 0.3s ease,
     box-shadow 0.3s ease;
 }
 
-.back-to-top[data-visible="true"] {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
-
 @media (hover: hover) {
-  .back-to-top[data-visible="true"]:hover {
+  .back-to-top:hover {
     background: rgb(255 255 255 / 12%);
     box-shadow: inset 0 0 0 1px rgb(255 255 255 / 26%);
+    transform: translateY(-2px);
   }
+}
+
+.back-to-top:active {
+  transform: translateY(0) scale(0.96);
 }
 
 .back-to-top:focus-visible {
