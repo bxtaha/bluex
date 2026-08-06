@@ -34,3 +34,24 @@ export function scrollToTop() {
   }
   window.scrollTo({ top: 0, behavior: "auto" });
 }
+
+/** Height of the fixed header, mirroring `scroll-padding-top` in globals.css. */
+export const HEADER_OFFSET = 88;
+
+/**
+ * Scrolls a section into view under the fixed header.
+ *
+ * Lenis takes the offset explicitly because it drives scroll itself and never
+ * sees `scroll-padding-top`; the native fallback does honour that property, so
+ * it needs no offset of its own.
+ */
+export function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  if (instance) {
+    instance.scrollTo(el, { offset: -HEADER_OFFSET });
+    return;
+  }
+  el.scrollIntoView({ behavior: "auto", block: "start" });
+}

@@ -3,10 +3,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { setLenis } from "@/lib/lenis";
-
-/** Clearance for the fixed header so anchored sections aren't tucked under it. */
-const HEADER_OFFSET = 88;
+import { HEADER_OFFSET, setLenis } from "@/lib/lenis";
 
 /**
  * Lenis and ScrollTrigger both want to own the scroll position. Left alone they

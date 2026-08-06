@@ -10,7 +10,7 @@ export function FinalCta() {
   const sectionRef = useRef<HTMLElement>(null);
 
   return (
-    <section ref={sectionRef} className="relative">
+    <section ref={sectionRef} id="contact" className="relative">
       {/* Same shape as the how-it-works section: a container taller than the
           viewport gives the scroll budget, and a sticky child holds the
           content still while that budget is spent — which is what turns

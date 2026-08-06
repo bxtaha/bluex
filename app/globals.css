@@ -1545,3 +1545,178 @@
     display: none !important;
   }
 }
+
+/* ── Section rail ────────────────────────────────────────────────────────────
+   The bluex_v2 tab bar, stood on its end against the right edge. Its spacing
+   rhythm (1.55em icon inside a 2.73em cell), its 0.5s timing and its stroke
+   animation are the original's; the solid white background is not — this one
+   is transparent glass and takes its colour from the page behind it. */
+
+.rail {
+  --duration: 0.5s;
+  /* The source's cell: 0.5em above the icon, 1.55em of icon, 0.68em below. */
+  --rail-cell: 2.73em;
+  --rail-icon: #8a909c;
+
+  position: fixed;
+  right: clamp(1rem, 2.2vw, 1.75rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+
+  /* Everything below is em-based, so this one value scales the rail. Capped
+     below the source's 21px: a column of eight is read at a glance, not
+     tapped, and a full-size one crowds the right third of the page. */
+  font-size: clamp(13px, 1.05vw, 16px);
+  padding: 0.55em;
+
+  border-radius: 999px;
+  background: rgb(255 255 255 / 5%);
+  /* Unprefixed only. Lightning CSS collapses a prefixed twin onto this one
+     declaration and keeps the prefixed spelling, which current Chrome rejects
+     outright — the rail then renders with no blur at all. */
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 12%);
+  /* Light catching the top lip, then the shadow that lifts it off the page. */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%),
+    0 10px 34px rgb(0 0 0 / 40%);
+}
+
+.rail__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail__pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--rail-cell);
+  height: var(--rail-cell);
+  border-radius: 50%;
+  /* A translate percentage resolves against this element's own height, which
+     is one cell — so the offset is the active index, unitless, and stays
+     correct at any font-size without being recomputed. */
+  transform: translate3d(0, calc(var(--rail-active, 0) * 100%), 0);
+  transition: transform var(--timeOut, var(--duration))
+    cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(
+    180deg,
+    var(--color-electric-glow),
+    var(--color-electric)
+  );
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%),
+    0 4px 16px rgb(46 107 255 / 45%);
+}
+
+.rail__item {
+  all: unset;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: var(--rail-cell);
+  height: var(--rail-cell);
+  border-radius: 50%;
+  cursor: pointer;
+  will-change: transform;
+  transition: transform var(--timeOut, var(--duration));
+}
+
+.rail__item .icon {
+  width: 1.55em;
+  height: 1.55em;
+  fill: none;
+  stroke: var(--rail-icon);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* Long enough to cover any of these paths, so the dash offset animation
+     draws the whole icon rather than a fragment of it. */
+  stroke-dasharray: 400;
+  transition: stroke var(--duration);
+}
+
+.rail__item[aria-current] .icon {
+  stroke: #fff;
+  animation: strok 1.5s reverse;
+}
+
+@keyframes strok {
+  100% {
+    stroke-dashoffset: 400;
+  }
+}
+
+/* The source nudges the active item toward its indicator. Here the indicator
+   sits behind the item and moving it would pull the two apart, so the nudge
+   becomes the hover response instead — outward, away from the screen edge. */
+@media (hover: hover) {
+  .rail__item:hover {
+    transform: translate3d(-0.22em, 0, 0);
+  }
+
+  .rail__item:hover .icon {
+    stroke: var(--color-ink);
+  }
+}
+
+.rail__item:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+/* Icon-only items, so the name is on the button and this is the visible echo
+   of it. Opens inward: the rail is already against the right edge, and a
+   tooltip going the other way would push the document wider. */
+.rail__label {
+  position: absolute;
+  right: calc(100% + 0.7em);
+  top: 50%;
+  translate: 0 -50%;
+  white-space: nowrap;
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  color: var(--color-ink);
+  background: rgb(255 255 255 / 8%);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, translate 0.18s ease;
+}
+
+.rail__item:hover .rail__label,
+.rail__item:focus-visible .rail__label {
+  opacity: 1;
+}
+
+/* Below lg the rail would eat into a layout that is already using the full
+   width, and there is a header nav for those sizes. The height condition
+   guards the back-to-top button: the rail is eight 2.73em cells plus padding
+   — about 370px at its largest — and being centred, a viewport over 640px
+   tall leaves at least 135px clear at the bottom, well past that button's
+   44px and its own bottom offset. Shorter than that and they would meet. */
+@media (max-width: 1023px), (max-height: 640px) {
+  .rail {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail__pill,
+  .rail__item,
+  .rail__item .icon {
+    transition-duration: 0.01ms;
+  }
+
+  .rail__item[aria-current] .icon {
+    animation: none;
+  }
+}
