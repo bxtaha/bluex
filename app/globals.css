@@ -2035,10 +2035,12 @@
 /* Below the width where four labels fit beside the logo and the CTA, the links
    collapse and the menu button takes over — it opens the dock's panel, which is
    the navigation at these sizes. */
-/* Below the width where the pill clears the logo and the call button either
-   side of it, the links collapse and the menu button takes over — it opens the
-   dock's panel, which is the navigation at these sizes. */
-@media (max-width: 899px) {
+/* Eight links come to 700px. Measured against the logo on one side and the
+   call button on the other, that clears down to about 1100px and collides at
+   1024; the cutoff sits above the collision with room to spare rather than on
+   top of it. Below it the links collapse and the menu button takes over — it
+   opens the dock's panel, which is the navigation at these sizes. */
+@media (max-width: 1149px) {
   .site-header__pill {
     display: none;
   }
@@ -2055,7 +2057,7 @@
   }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1150px) {
   .site-header__menu {
     display: none;
   }

@@ -10,16 +10,23 @@ import {
 import { CallCta } from "@/components/ui/call-cta";
 
 /**
- * The nav's own labels rather than the section list's: "Services" reads better
- * across the top of the page than "What we build" does. Only the ids are
- * shared, and the `SectionId` annotation is what stops one being listed here
- * that the observer does not watch.
+ * Every section the dock lists, in the same order — the two navigations offer
+ * the same places to go, not overlapping subsets of them.
+ *
+ * The labels are the nav's own, and shorter: eight of the dock's phrasings
+ * across the top of the page would push the pill into the logo well before a
+ * laptop runs out of width. The `SectionId` annotation is what stops an id
+ * being listed here that the observer does not watch.
  */
 const LINKS: readonly { id: SectionId; label: string }[] = [
+  { id: "top", label: "Home" },
   { id: "services", label: "Services" },
   { id: "how-it-works", label: "How it works" },
+  { id: "experience", label: "Try it" },
   { id: "why-bluex", label: "Why BlueX" },
   { id: "process", label: "Process" },
+  { id: "outcomes", label: "Outcomes" },
+  { id: "contact", label: "Contact" },
 ];
 
 /** Scroll distance after which the pill contracts and lifts. */
@@ -30,10 +37,10 @@ const CONTRACT_AT = 24;
  * the side dock — both read their surface from the `--glass-*` tokens, so
  * neither can be restyled without the other following.
  *
- * It carries only four of the eight sections; the dock carries all of them.
- * When the reader is in one the header does not list, the indicator fades out
- * where it stands rather than jumping somewhere arbitrary or picking a nearest
- * neighbour that would be a lie.
+ * The indicator still handles a section it has no entry for by fading out where
+ * it stands, rather than jumping somewhere arbitrary. Nothing reaches that
+ * branch while the two lists match, but the day one is trimmed it is the
+ * difference between an indicator that steps aside and one that lies.
  */
 export function SiteHeader() {
   const { activeId, navOpen, setNavOpen } = useSections();
