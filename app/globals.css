@@ -1356,11 +1356,18 @@
 
 /* ── Back to top ─────────────────────────────────────────────────────────── */
 
+/* The button doubles as a progress vessel: the water inside rises with page
+   scroll. `overflow: hidden` clips the water to the circle and `isolation`
+   keeps the stacking contained, so the water can sit behind the arrow without
+   a z-index that competes with the rest of the page. */
 .back-to-top {
-  position: fixed;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   right: clamp(1rem, 3vw, 2.5rem);
   /* Cleared above the 2px progress bar pinned to the very bottom edge. */
   bottom: clamp(1.25rem, 3vw, 2.5rem);
+  position: fixed;
   z-index: 40;
   display: grid;
   place-items: center;
@@ -1390,6 +1397,60 @@
   pointer-events: auto;
 }
 
+/* Twice the button's height and parked fully below it, so a translate of half
+   its own height brings the surface from the bottom edge to the top. Wider than
+   the button so the wave blobs never expose a corner. */
+.back-to-top__water {
+  position: absolute;
+  left: -50%;
+  width: 200%;
+  top: 100%;
+  height: 200%;
+  z-index: 0;
+  will-change: transform;
+  pointer-events: none;
+}
+
+.back-to-top__water::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    var(--color-electric-glow),
+    var(--color-electric)
+  );
+}
+
+/* Two off-round blobs straddling the surface line. Rotating a shape whose
+   border-radius is not 50% makes its outline swell and dip, which is what
+   reads as a moving water surface — cheaper and smoother than animating a
+   path. Counter-rotation stops the two forming a repeating pattern. */
+.back-to-top__wave {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 120%;
+  aspect-ratio: 1;
+  border-radius: 43%;
+  background: var(--color-electric-glow);
+  animation: liquid-button-wave 7s linear infinite;
+}
+
+.back-to-top__wave--alt {
+  width: 130%;
+  border-radius: 47%;
+  background: color-mix(in oklab, var(--color-electric) 70%, transparent);
+  animation: liquid-button-wave 5s linear infinite reverse;
+}
+
+/* Above the water, and given its own colour so it stays legible once the
+   vessel has filled behind it. */
+.back-to-top__icon {
+  position: relative;
+  z-index: 1;
+}
+
 @media (hover: hover) {
   .back-to-top[data-visible="true"]:hover {
     background: rgb(255 255 255 / 12%);
@@ -1410,5 +1471,11 @@
 @media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none !important;
+  }
+
+  /* The water level still tracks scroll — it is information, not decoration —
+     but the surface stops churning. */
+  .back-to-top__wave {
+    animation: none !important;
   }
 }
