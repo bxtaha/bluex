@@ -166,6 +166,12 @@
   --glass-blur-lifted: blur(22px) saturate(150%);
   --glass-shadow-size-lifted: 54px;
   --glass-shadow-tint-lifted: rgb(0 0 0 / 58%);
+
+  /* The lit edge. Worn by the header's current section and by the section pill
+     against the right edge, so the two things that say "you are here" say it
+     the same way. Shared for the same reason the glass values are. */
+  --edge-lit: inset 0 0 0 1px rgb(77 139 255 / 70%);
+  --edge-lit-glow: 0 8px 22px -10px rgb(46 107 255 / 80%);
 }
 
 @layer base {
@@ -543,6 +549,11 @@
    Sits inside the word mask above, so the entrance and the roll share one
    clipping edge and cannot disagree about where a word ends. The entrance
    moves .bx-word__inner; this moves the characters within it. */
+
+/* The heading responds to the pointer, so the pointer says so. */
+.bx-rolltext {
+  cursor: pointer;
+}
 
 .bx-roll {
   position: relative;
@@ -1703,9 +1714,12 @@
   display: block;
   background: var(--glass-tint);
   backdrop-filter: var(--glass-blur);
-  /* Highlight on the top-left arc and the shadow thrown inward, because this
-     one sits against the right edge. The values are shared; the directions are
-     this component's own. */
+}
+
+/* The panel keeps the glass edge: a highlight on its top-left arc and the
+   shadow thrown inward, because it sits against the right edge. The values are
+   shared; the directions are this component's own. */
+.nav-goo__panel {
   box-shadow: inset 1px 1px 0 var(--glass-edge),
     -10px 0 var(--glass-shadow-size) var(--glass-shadow-tint);
 }
@@ -1757,7 +1771,11 @@
    out. Returning, it waits for the panel to be visibly on its way back before
    fading in, so it reads as the pill re-forming out of the panel rather than
    the two being on screen together. */
+/* The pill takes the header's lit edge instead of the glass one. It marks the
+   section you are in, which is the same job the header's indicator does, so it
+   is drawn the same way. */
 .nav-goo__pill {
+  box-shadow: var(--edge-lit), var(--edge-lit-glow);
   opacity: 1;
   transition: opacity 220ms ease 120ms;
 }
@@ -2040,8 +2058,7 @@
   width: 0;
   border-radius: 999px;
   background: transparent;
-  box-shadow: inset 0 0 0 1px rgb(77 139 255 / 70%),
-    0 8px 22px -10px rgb(46 107 255 / 80%);
+  box-shadow: var(--edge-lit), var(--edge-lit-glow);
   opacity: 0;
   pointer-events: none;
   transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
