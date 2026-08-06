@@ -418,18 +418,6 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
         aria-expanded={open}
         onClick={() => toggle(!open)}
       >
-        {/* Traces the pill's own curved edge rather than a circle drawn over
-            it, and `pathLength` normalises the arc to 1 so the dash offset is
-            the progress value directly, with nothing to measure. */}
-        <svg className="nav-pill__ring" viewBox="0 0 44 52" aria-hidden>
-          <path
-            d="M44 1 A 43 25 0 0 0 44 51"
-            pathLength={1}
-            fill="none"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-
         {/* Every icon is mounted and only the active one is opaque, so the
             change is a crossfade between two of them rather than one icon
             being swapped out under a fade. */}

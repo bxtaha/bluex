@@ -1793,25 +1793,6 @@
   outline-offset: 2px;
 }
 
-.nav-pill__ring {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-.nav-pill__ring path {
-  stroke: var(--color-electric-glow);
-  stroke-width: 2;
-  stroke-linecap: round;
-  /* pathLength normalises the arc to 1, so the offset is the progress value
-     itself and nothing has to be measured at runtime. */
-  stroke-dasharray: 1;
-  stroke-dashoffset: calc(1 - var(--nav-progress, 0));
-  filter: drop-shadow(0 0 4px rgb(77 139 255 / 55%));
-}
-
 /* Every icon is stacked in the same cell and only the active one is opaque, so
    a change is a crossfade between two icons rather than a swap under a fade. */
 .nav-pill__icons {
@@ -1970,12 +1951,6 @@
 
 @media (max-width: 1023px), (max-height: 640px) {
   .nav-rail {
-    display: none;
-  }
-
-  /* The pill's ring is the progress indicator at these sizes, and two of them
-     saying the same thing is one too many. */
-  .scroll-progress {
     display: none;
   }
 }
