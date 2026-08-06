@@ -4,34 +4,65 @@ import { useEffect, useRef, useState } from "react";
 import { scrollToTop } from "@/lib/lenis";
 
 /**
- * Fixed bottom-right control that returns the page to the top.
+ * Fixed bottom-right control that returns the page to the top, with an
+ * animated water fill for a background.
  *
- * It doubles as a progress vessel: the water inside rises as the page is
- * scrolled down and drains as it is scrolled back up, so the control shows how
- * far through the page you are as well as offering the way back.
+ * The level tracks page scroll and eases toward it, so it settles a beat after
+ * scrolling stops. The surface is two wave layers that slide continuously, and
+ * scrolling quickly slops them higher before they calm again.
  *
- * Hidden while the hero is on screen, where it would point at where the reader
- * already is. Keyed to the hero element rather than a pixel threshold: the hero
- * is `min-h-dvh` and grows with its content, so any fixed number would be wrong
- * on some viewport.
- *
- * The scroll goes through Lenis rather than `window.scrollTo`, which would
- * fight it while it owns the scroll position. With reduced motion Lenis never
- * starts and the helper falls back to an instant jump, which is wanted there.
+ * Everything is written straight to `style.transform` from one rAF loop —
+ * never through React state, which would re-render the tree on every frame —
+ * and only transform is touched, so no frame triggers layout.
  */
 
-/** Fraction of the remaining distance covered per frame. Lower = heavier. */
-const EASING = 0.1;
+/** Per-frame approach rate for the water level. Lower = more lag. */
+const LEVEL_EASING = 0.08;
+
+/** Per-frame approach rate for the wave height. */
+const SLOSH_EASING = 0.12;
+
+/** Smoothing on raw scroll delta before it drives the slosh. */
+const VELOCITY_EASING = 0.25;
+
+/** Scroll px per frame that produces full slosh. */
+const VELOCITY_AT_FULL_SLOSH = 26;
+
+/** Extra wave height at full slosh, as a multiple of the calm baseline. */
+const MAX_SLOSH = 1.5;
+
+/** One wave tile, repeated twice across the SVG so a -50% slide is seamless. */
+const WAVE_PATH =
+  "M0,10 C16.7,0 33.3,0 50,10 C66.7,20 83.3,20 100,10 " +
+  "C116.7,0 133.3,0 150,10 C166.7,20 183.3,20 200,10 L200,24 L0,24 Z";
+
+function WaveLayer({ className }: { className: string }) {
+  return (
+    <span className={className}>
+      <span className="btt-wave__slide">
+        <svg
+          viewBox="0 0 200 24"
+          preserveAspectRatio="none"
+          className="btt-wave__svg"
+          aria-hidden
+        >
+          <path d={WAVE_PATH} fill="currentColor" />
+        </svg>
+      </span>
+    </span>
+  );
+}
 
 export function BackToTop() {
   const [visible, setVisible] = useState(false);
   const waterRef = useRef<HTMLSpanElement>(null);
+  const backRef = useRef<HTMLSpanElement>(null);
+  const frontRef = useRef<HTMLSpanElement>(null);
 
+  // Show/hide keyed to the hero, unchanged.
   useEffect(() => {
     const hero = document.getElementById("top");
 
-    // No hero on the page: nothing to hide behind, so just show it. Deferred
-    // because a synchronous setState in an effect body cascades a render.
     if (!hero) {
       const frame = requestAnimationFrame(() => setVisible(true));
       return () => cancelAnimationFrame(frame);
@@ -42,18 +73,16 @@ export function BackToTop() {
       { threshold: 0 },
     );
     observer.observe(hero);
-
     return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
     const water = waterRef.current;
-    if (!water) return;
+    const back = backRef.current;
+    const front = frontRef.current;
+    if (!water || !back || !front) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    let current = 0;
-    let frame = 0;
 
     const readProgress = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -61,15 +90,61 @@ export function BackToTop() {
       return Math.min(1, Math.max(0, window.scrollY / max));
     };
 
-    const tick = () => {
-      const target = readProgress();
-      current = reduced ? target : current + (target - current) * EASING;
-      if (Math.abs(target - current) < 0.0005) current = target;
+    // The water block is twice the button's height and parked fully below it,
+    // so travelling half its own height raises the surface from the bottom
+    // edge to the top.
+    const applyLevel = (value: number) =>
+      `translate3d(0, ${-value * 50}%, 0)`;
 
-      // The water block is twice the button's height and starts fully below it,
-      // so travelling half its own height raises the surface from the bottom
-      // edge to the top.
-      water.style.transform = `translate3d(0, ${-current * 50}%, 0)`;
+    if (reduced) {
+      // Flat surface, no easing: the level is set once and on each scroll,
+      // straight to its target.
+      const set = () => {
+        water.style.transform = applyLevel(readProgress());
+      };
+      set();
+      window.addEventListener("scroll", set, { passive: true });
+      window.addEventListener("resize", set, { passive: true });
+      return () => {
+        window.removeEventListener("scroll", set);
+        window.removeEventListener("resize", set);
+      };
+    }
+
+    let level = 0;
+    let velocity = 0;
+    let slosh = 1;
+    let lastY = window.scrollY;
+    let frame = 0;
+
+    const tick = () => {
+      const y = window.scrollY;
+      const delta = Math.abs(y - lastY);
+      lastY = y;
+
+      // Smooth the raw per-frame delta first, or a single fast wheel tick
+      // spikes the waves and drops them again within a few frames.
+      velocity += (delta - velocity) * VELOCITY_EASING;
+
+      // The ratio is clamped to 1 before scaling, not to MAX_SLOSH — clamping
+      // afterwards would let a fast scroll reach 1 + MAX_SLOSH² and throw the
+      // crest well past the top of the button.
+      const ratio = Math.min(1, velocity / VELOCITY_AT_FULL_SLOSH);
+      const targetSlosh = 1 + ratio * MAX_SLOSH;
+      slosh += (targetSlosh - slosh) * SLOSH_EASING;
+
+      const target = readProgress();
+      level += (target - level) * LEVEL_EASING;
+      if (Math.abs(target - level) < 0.0005) level = target;
+
+      water.style.transform = applyLevel(level);
+
+      // Amplitude is scaleY on the layer that holds the sliding tile, never on
+      // the tile itself — that one carries the CSS slide animation, and a
+      // transform written here would overwrite it every frame.
+      back.style.transform = `scaleY(${slosh * 1.25})`;
+      front.style.transform = `scaleY(${slosh})`;
+
       frame = requestAnimationFrame(tick);
     };
 
@@ -83,19 +158,21 @@ export function BackToTop() {
       onClick={scrollToTop}
       className="back-to-top"
       data-visible={visible}
-      // Out of the tab order and hidden from assistive tech while off screen,
-      // rather than a focus stop pointing at something the user cannot see.
       tabIndex={visible ? 0 : -1}
       aria-hidden={!visible}
       aria-label="Back to top"
       title="Back to top"
     >
-      <span ref={waterRef} className="back-to-top__water" aria-hidden>
-        <span className="back-to-top__wave" />
-        <span className="back-to-top__wave back-to-top__wave--alt" />
+      <span ref={waterRef} className="btt-water" aria-hidden>
+        <span ref={backRef} className="btt-wave btt-wave--back">
+          <WaveLayer className="btt-wave__body" />
+        </span>
+        <span ref={frontRef} className="btt-wave btt-wave--front">
+          <WaveLayer className="btt-wave__body" />
+        </span>
       </span>
 
-      <svg viewBox="0 0 24 24" fill="none" className="back-to-top__icon size-4" aria-hidden>
+      <svg viewBox="0 0 24 24" fill="none" className="btt-icon size-4" aria-hidden>
         <path
           d="M12 19V5m0 0-6 6m6-6 6 6"
           stroke="currentColor"
