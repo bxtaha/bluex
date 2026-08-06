@@ -464,6 +464,53 @@
   animation: bx-wave 1.8s ease-in-out infinite;
 }
 
+/* ── Marquee ─────────────────────────────────────────────────────────────── */
+
+.bx-marquee {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 8%,
+    #000 92%,
+    transparent
+  );
+}
+
+.bx-marquee__track {
+  display: flex;
+  width: max-content;
+  animation: bx-marquee 38s linear infinite;
+  will-change: transform;
+}
+
+.bx-marquee:hover .bx-marquee__track {
+  animation-play-state: paused;
+}
+
+.bx-marquee__group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+/* Exactly -50% because the track holds two identical groups: at the end of the
+   cycle group two sits precisely where group one began, so the reset is
+   invisible. Any other distance would visibly jump. */
+@keyframes bx-marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
 /* ── Motion safety ───────────────────────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
@@ -478,5 +525,23 @@
 
   .bx-atmosphere::after {
     display: none;
+  }
+
+  /* The blanket rule above lands every animation on its final keyframe, which
+     would leave the marquee translated and the waveform bars collapsed to 40%.
+     Both are pinned back to their resting state instead, and the marquee
+     becomes manually scrollable so its content stays reachable. */
+  .bx-marquee__track {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .bx-marquee {
+    overflow-x: auto;
+  }
+
+  .bx-wave-bar {
+    animation: none !important;
+    transform: none !important;
   }
 }

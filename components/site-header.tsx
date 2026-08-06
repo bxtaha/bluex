@@ -7,6 +7,8 @@ import { CallCta } from "@/components/ui/call-cta";
 const LINKS = [
   { label: "Services", href: "#services" },
   { label: "How it works", href: "#how-it-works" },
+  { label: "Why BlueX", href: "#why-bluex" },
+  { label: "Process", href: "#process" },
 ];
 
 /**
