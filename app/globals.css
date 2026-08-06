@@ -1547,10 +1547,10 @@
 }
 
 /* ── Section navigation ──────────────────────────────────────────────────────
-   A crescent rail against the right edge on desktop; a scroll-tracking pill
-   that unfolds into a panel everywhere else. Both are always in the markup and
-   CSS chooses — the query below is duplicated in section-nav.tsx, which gates
-   the behaviour, and the two must agree. */
+   One scroll-tracking pill against the right edge that unfolds into a panel,
+   the same at every viewport size. There is no wide-screen variant: a single
+   control that behaves identically everywhere is one thing to learn and one
+   thing to maintain. */
 
 .nav-defs {
   position: absolute;
@@ -1559,8 +1559,8 @@
   overflow: hidden;
 }
 
-/* Shared by every icon in both forms. Colour is a transition, never a swap:
-   the active item warms up over 300ms rather than snapping. */
+/* Colour is a transition, never a swap: the active item warms up over 300ms
+   rather than snapping. */
 .nav-icon {
   width: 1.55em;
   height: 1.55em;
@@ -1571,136 +1571,9 @@
   transition: color 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Desktop rail ───────────────────────────────────────────────────────── */
+/* ── The pill and the panel it unfolds into ─────────────────────────────── */
 
-.nav-rail {
-  --duration: 0.5s;
-  /* The cell carried over from the bluex_v2 bar: 0.5em of air, a 1.55em icon,
-     0.68em of air. */
-  --nav-cell: 2.73em;
-
-  position: fixed;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 40;
-
-  /* Everything below is em-based, so this one value scales the rail. */
-  font-size: clamp(13px, 1.05vw, 16px);
-  /* Asymmetric: the left side carries the bulge, the right sits on the screen
-     edge and only needs the icons off it. */
-  padding: 1.7rem 0.6rem 1.7rem 1.15rem;
-
-  /* Straight against the viewport on the right, bowed out on the left — a
-     segment of a circle. The radius is large enough that the arc runs past the
-     first and last cells, so the column inside stays straight and rectangular. */
-  border-radius: 3.5rem 0 0 3.5rem;
-
-  background: rgb(255 255 255 / 4%);
-  backdrop-filter: blur(16px) saturate(140%);
-  /* A hairline of light along the top-left arc only, as if lit from above and
-     in front, plus the shadow that lifts the shape off the page. */
-  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 16%),
-    -10px 0 40px rgb(0 0 0 / 45%);
-}
-
-.nav-rail__list {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nav-rail__pill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--nav-cell);
-  height: var(--nav-cell);
-  border-radius: 50%;
-  /* A translate percentage resolves against this element's own height, which
-     is one cell — so the offset is the active index, unitless, and stays
-     correct at any font-size without ever being recomputed. */
-  transform: translate3d(0, calc(var(--nav-active, 0) * 100%), 0);
-  transition: transform var(--nav-timeout, var(--duration))
-    cubic-bezier(0.16, 1, 0.3, 1);
-  background: linear-gradient(
-    180deg,
-    var(--color-electric-glow),
-    var(--color-electric)
-  );
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%),
-    0 4px 16px rgb(46 107 255 / 45%);
-}
-
-.nav-rail__item {
-  all: unset;
-  position: relative;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: var(--nav-cell);
-  height: var(--nav-cell);
-  border-radius: 50%;
-  cursor: pointer;
-  color: var(--color-ink-muted);
-  transition: transform var(--nav-timeout, var(--duration)),
-    color 300ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.nav-rail__item[aria-current] {
-  color: #fff;
-}
-
-@media (hover: hover) {
-  /* The source bar nudges the active item toward its indicator. Here the
-     indicator sits behind the item and moving it would pull the two apart, so
-     the nudge becomes the hover response — outward, away from the edge. */
-  .nav-rail__item:hover {
-    transform: translate3d(-0.22em, 0, 0);
-  }
-
-  .nav-rail__item:not([aria-current]):hover {
-    color: var(--color-ink);
-  }
-}
-
-.nav-rail__item:focus-visible {
-  outline: 2px solid var(--color-electric-glow);
-  outline-offset: 3px;
-}
-
-/* Icon-only items, so the name lives on the button and this is its visible
-   echo. Opens inward: the rail is already on the right edge. */
-.nav-rail__tip {
-  position: absolute;
-  right: calc(100% + 0.7em);
-  top: 50%;
-  translate: 0 -50%;
-  white-space: nowrap;
-  padding: 0.3rem 0.55rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
-  line-height: 1.2;
-  color: var(--color-ink);
-  background: rgb(255 255 255 / 8%);
-  backdrop-filter: blur(10px);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.18s ease;
-}
-
-.nav-rail__item:hover .nav-rail__tip,
-.nav-rail__item:focus-visible .nav-rail__tip {
-  opacity: 1;
-}
-
-/* ── Mobile pill and panel ──────────────────────────────────────────────── */
-
-.nav-mobile {
+.nav-dock {
   /* The pill's travel. Equal insets top and bottom keep the container centred
      on the viewport, which is what lets the panel inside it centre too. The
      7rem clears the 85px header above and, below, the back-to-top button — a
@@ -1737,7 +1610,7 @@
 /* On only while a toggle is in flight. At rest the shapes keep their crisp
    edges and their backdrop blur, both of which an SVG filter over the same
    subtree would take away. */
-.nav-mobile[data-morphing="true"] .nav-goo {
+.nav-dock[data-morphing="true"] .nav-goo {
   filter: url(#nav-goo);
 }
 
@@ -1783,7 +1656,7 @@
 
 /* The pill's own surface is drawn by the shape layer beneath it, so only its
    contents belong here. */
-.nav-mobile[data-open="true"] .nav-pill {
+.nav-dock[data-open="true"] .nav-pill {
   opacity: 0;
   pointer-events: none;
 }
@@ -1841,20 +1714,24 @@
   display: flex;
   flex-direction: column;
   padding: 0.85rem 0.75rem 0.85rem 0.9rem;
-  overflow-y: auto;
+  /* Both axes stated. Setting only `overflow-y` leaves `overflow-x` at
+     `visible`, which CSS then computes to `auto` — and a stray horizontal
+     scrollbar there is both visible and 15px of height the shape layer behind
+     the panel would copy but never fill. */
+  overflow: hidden auto;
   /* A short viewport can make the list scroll; that must not chain out to the
      page underneath. */
   overscroll-behavior: contain;
   pointer-events: none;
 }
 
-.nav-mobile[data-open="true"] .nav-goo__panel,
-.nav-mobile[data-open="true"] .nav-panel {
+.nav-dock[data-open="true"] .nav-goo__panel,
+.nav-dock[data-open="true"] .nav-panel {
   transform: translateY(-50%) scale(1);
   opacity: 1;
 }
 
-.nav-mobile[data-open="true"] .nav-panel {
+.nav-dock[data-open="true"] .nav-panel {
   pointer-events: auto;
 }
 
@@ -1901,7 +1778,7 @@
   transition: opacity 260ms ease, transform 340ms var(--nav-spring);
 }
 
-.nav-mobile[data-open="true"] .nav-panel__row {
+.nav-dock[data-open="true"] .nav-panel__row {
   opacity: 1;
   transform: none;
   transition-delay: calc(var(--nav-i, 0) * 45ms);
@@ -1941,24 +1818,8 @@
   outline-offset: -2px;
 }
 
-/* ── Which form is on screen ────────────────────────────────────────────── */
-
-@media (min-width: 1024px) and (min-height: 641px) {
-  .nav-mobile {
-    display: none;
-  }
-}
-
-@media (max-width: 1023px), (max-height: 640px) {
-  .nav-rail {
-    display: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .nav-icon,
-  .nav-rail__pill,
-  .nav-rail__item,
   .nav-pill,
   .nav-pill__icon,
   .nav-goo__panel,
@@ -1980,8 +1841,8 @@
     visibility: hidden;
   }
 
-  .nav-mobile[data-open="true"] .nav-goo__panel,
-  .nav-mobile[data-open="true"] .nav-panel {
+  .nav-dock[data-open="true"] .nav-goo__panel,
+  .nav-dock[data-open="true"] .nav-panel {
     visibility: visible;
   }
 }

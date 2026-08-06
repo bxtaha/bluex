@@ -22,16 +22,13 @@ import {
 import { scrollToSection } from "@/lib/lenis";
 
 /**
- * Section navigation against the right edge of the viewport.
+ * Section navigation: one pill against the right edge that rides the scroll
+ * position and unfolds into a panel when tapped.
  *
- * Two forms of the same thing. Where there is room it is a crescent rail,
- * always open. Where there is not it collapses to a single pill that rides the
- * scrollbar's path and unfolds into a panel when tapped.
- *
- * Both are rendered on every request and one is hidden in CSS, so the correct
- * form is on screen in the first paint rather than after hydration decides.
- * The JavaScript behind each is gated on the same media query, so only the one
- * being shown does any work.
+ * The same at every size. There is no wide-screen variant — a single control
+ * that behaves identically everywhere is one thing to learn and one thing to
+ * maintain, and it leaves the page itself as the only thing changing between
+ * a phone and a desktop.
  *
  * Items must stay in document order: the active item is the topmost section
  * crossing the middle of the viewport, which relies on index order matching
@@ -56,13 +53,6 @@ const SECTIONS = [
  */
 const ROOT_MARGIN = "-45% 0px -45% 0px";
 
-/**
- * The rail needs width to sit beside the content and height to stay clear of
- * the back-to-top button in the corner. Anywhere else gets the pill. This
- * string is duplicated in globals.css, which owns visibility — they must agree.
- */
-const RAIL_QUERY = "(min-width: 1024px) and (min-height: 641px)";
-
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
 /** Fraction of the distance left to the target the pill covers each frame. */
@@ -74,7 +64,7 @@ const PILL_EPSILON = 0.0004;
 /** How long the goo filter stays applied after a toggle. Matches the CSS. */
 const MORPH_MS = 560;
 
-/* ── Shared hooks ─────────────────────────────────────────────────────────── */
+/* ── Hooks ────────────────────────────────────────────────────────────────── */
 
 function useMediaQuery(query: string) {
   const subscribe = useCallback(
@@ -86,9 +76,9 @@ function useMediaQuery(query: string) {
     [query],
   );
 
-  // The server cannot know, and guessing would swap the markup out from under
+  // The server cannot know, and guessing would swap behaviour out from under
   // the user on hydration. It reports false and the real value arrives with the
-  // first client render; CSS has already hidden the wrong form by then.
+  // first client render.
   return useSyncExternalStore(
     subscribe,
     () => window.matchMedia(query).matches,
@@ -131,68 +121,37 @@ function useActiveSection() {
   return activeIndex;
 }
 
-/* ── Desktop: the crescent rail ───────────────────────────────────────────── */
+/* ── Filter ───────────────────────────────────────────────────────────────── */
 
-function Rail({ activeIndex }: { activeIndex: number }) {
-  const listRef = useRef<HTMLUListElement>(null);
-
-  // Resizing rescales the rail, so the indicator's resting place moves and it
-  // would glide there over half a second, chasing the drag.
-  useEffect(() => {
-    const onResize = () =>
-      listRef.current?.style.setProperty("--nav-timeout", "none");
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
-
-  // The indicator is not moved optimistically on click. The smooth scroll takes
-  // about a second and the observer reports each section as it passes, so
-  // letting it ride that shows where the page actually is — jumping ahead would
-  // claim an arrival that has not happened yet.
-  const go = (id: string) => {
-    listRef.current?.style.removeProperty("--nav-timeout");
-    scrollToSection(id);
-  };
-
+/**
+ * Blur, then push alpha far past its own range and pull it back down. Partly
+ * transparent edges either round up to solid or fall to nothing, so two blurred
+ * shapes that overlap read as one surface with a single continuous outline.
+ */
+function GooFilter() {
   return (
-    <nav className="nav-rail" aria-label="Sections">
-      <ul
-        ref={listRef}
-        className="nav-rail__list"
-        style={{ "--nav-active": activeIndex } as CSSProperties}
-      >
-        {/* One sliding element rather than a marker per item. Cells are
-            identical squares, so its offset is exactly the active index times
-            its own height — nothing to measure, and it re-derives itself when
-            the em-based sizing changes with the viewport. */}
-        <li className="nav-rail__pill" aria-hidden />
-
-        {SECTIONS.map((section, i) => (
-          <li key={section.id}>
-            <button
-              type="button"
-              className="nav-rail__item"
-              aria-label={section.label}
-              aria-current={activeIndex === i ? "true" : undefined}
-              onClick={() => go(section.id)}
-            >
-              <section.Icon className="nav-icon" strokeWidth={1.6} aria-hidden />
-              {/* The name is on the button, so this is the visible echo of it:
-                  exposing both would read it out twice. */}
-              <span className="nav-rail__tip" aria-hidden>
-                {section.label}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <svg className="nav-defs" aria-hidden focusable="false">
+      <defs>
+        <filter id="nav-goo" colorInterpolationFilters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
+          <feColorMatrix
+            in="blur"
+            type="matrix"
+            values="1 0 0 0 0
+                    0 1 0 0 0
+                    0 0 1 0 0
+                    0 0 0 22 -11"
+          />
+        </filter>
+      </defs>
+    </svg>
   );
 }
 
-/* ── Mobile: the pill, and the panel it unfolds into ──────────────────────── */
+/* ── The dock ─────────────────────────────────────────────────────────────── */
 
-function MobileNav({ activeIndex }: { activeIndex: number }) {
+export function SectionNav() {
+  const activeIndex = useActiveSection();
   const [open, setOpen] = useState(false);
   const [morphing, setMorphing] = useState(false);
 
@@ -200,21 +159,18 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
   const pillRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const isRail = useMediaQuery(RAIL_QUERY);
   const reduced = useMediaQuery(REDUCED_QUERY);
   const active = SECTIONS[activeIndex];
 
-  /* Scroll progress drives both the pill's position and its ring. Written to
-     the root as a custom property so the shape layer and the content layer
-     read the same number and stay welded together. */
+  /* Scroll progress drives the pill's position. Written to the root as a custom
+     property so the shape layer and the content layer read the same number and
+     stay welded together. */
   useEffect(() => {
-    if (isRail) return;
     const root = rootRef.current;
     if (!root) return;
 
     const target = () => {
-      const max =
-        document.documentElement.scrollHeight - window.innerHeight;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
       if (max <= 0) return 0;
       return Math.min(1, Math.max(0, window.scrollY / max));
     };
@@ -268,7 +224,7 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
       window.removeEventListener("resize", onScroll);
       cancelAnimationFrame(frame);
     };
-  }, [isRail, reduced]);
+  }, [reduced]);
 
   /* The shape layer mirrors the panel, and an empty element has no content to
      take its height from — left alone it collapses to nothing and the panel
@@ -281,8 +237,8 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
 
     const observer = new ResizeObserver(() => {
       // The border box, not the content box: the shape has to cover the
-      // panel's padding too. Layout values, so the panel's own scale transform
-      // does not feed back into them.
+      // panel's padding too. A layout value, so the panel's own scale transform
+      // does not feed back into it.
       root.style.setProperty("--nav-panel-h", `${panel.offsetHeight}px`);
     });
 
@@ -324,7 +280,7 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
     return () => window.clearTimeout(timer);
   }, [morphing]);
 
-  /* Escape, a tap outside, and a focus loop — the three things a panel that
+  /* Escape, a click outside, and a focus loop — the three things a panel that
      covers the page owes the person using it. */
   useEffect(() => {
     if (!open) return;
@@ -342,6 +298,7 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
       if (event.key === "Escape") {
         event.preventDefault();
         toggle(false);
+        pillRef.current?.focus();
         return;
       }
       if (event.key !== "Tab") return;
@@ -396,126 +353,91 @@ function MobileNav({ activeIndex }: { activeIndex: number }) {
   };
 
   return (
-    <div
-      ref={rootRef}
-      className="nav-mobile"
-      data-open={open}
-      data-morphing={morphing}
-    >
-      {/* Shape layer. Nothing here has content — it exists to be blurred and
-          re-contrasted into a single liquid mass by the goo filter, which the
-          icons and labels above it never touch. */}
-      <div className="nav-goo" aria-hidden>
-        <span className="nav-goo__pill" />
-        <span className="nav-goo__panel" />
-      </div>
-
-      <button
-        ref={pillRef}
-        type="button"
-        className="nav-pill"
-        aria-label={`Sections — currently ${active.label}`}
-        aria-expanded={open}
-        onClick={() => toggle(!open)}
-      >
-        {/* Every icon is mounted and only the active one is opaque, so the
-            change is a crossfade between two of them rather than one icon
-            being swapped out under a fade. */}
-        <span className="nav-pill__icons">
-          {SECTIONS.map((section, i) => (
-            <section.Icon
-              key={section.id}
-              className="nav-icon nav-pill__icon"
-              strokeWidth={1.6}
-              data-active={i === activeIndex ? "true" : undefined}
-              aria-hidden
-            />
-          ))}
-        </span>
-      </button>
-
-      <div
-        ref={panelRef}
-        className="nav-panel"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Sections"
-        // Hidden from assistive tech and from tabbing while collapsed. The
-        // element stays mounted so the unfold has something to animate.
-        inert={!open}
-      >
-        <button
-          type="button"
-          className="nav-panel__close"
-          aria-label="Close navigation"
-          onClick={close}
-        >
-          <X className="nav-icon" strokeWidth={1.7} aria-hidden />
-        </button>
-
-        <ul className="nav-panel__list">
-          {SECTIONS.map((section, i) => (
-            <li
-              key={section.id}
-              className="nav-panel__row"
-              style={{ "--nav-i": i } as CSSProperties}
-            >
-              <button
-                type="button"
-                className="nav-panel__item"
-                aria-current={i === activeIndex ? "true" : undefined}
-                onClick={() => go(section.id)}
-              >
-                <section.Icon
-                  className="nav-icon"
-                  strokeWidth={1.6}
-                  aria-hidden
-                />
-                <span>{section.label}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-/* ── Filter ───────────────────────────────────────────────────────────────── */
-
-/**
- * Blur, then push alpha far past its own range and pull it back down. Partly
- * transparent edges either round up to solid or fall to nothing, so two blurred
- * shapes that overlap read as one surface with a single continuous outline.
- */
-function GooFilter() {
-  return (
-    <svg className="nav-defs" aria-hidden focusable="false">
-      <defs>
-        <filter id="nav-goo" colorInterpolationFilters="sRGB">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="9" result="blur" />
-          <feColorMatrix
-            in="blur"
-            type="matrix"
-            values="1 0 0 0 0
-                    0 1 0 0 0
-                    0 0 1 0 0
-                    0 0 0 22 -11"
-          />
-        </filter>
-      </defs>
-    </svg>
-  );
-}
-
-export function SectionNav() {
-  const activeIndex = useActiveSection();
-
-  return (
     <>
       <GooFilter />
-      <Rail activeIndex={activeIndex} />
-      <MobileNav activeIndex={activeIndex} />
+
+      <div
+        ref={rootRef}
+        className="nav-dock"
+        data-open={open}
+        data-morphing={morphing}
+      >
+        {/* Shape layer. Nothing here has content — it exists to be blurred and
+            re-contrasted into a single liquid mass by the goo filter, which the
+            icons and labels above it never touch. */}
+        <div className="nav-goo" aria-hidden>
+          <span className="nav-goo__pill" />
+          <span className="nav-goo__panel" />
+        </div>
+
+        <button
+          ref={pillRef}
+          type="button"
+          className="nav-pill"
+          aria-label={`Sections — currently ${active.label}`}
+          aria-expanded={open}
+          onClick={() => toggle(!open)}
+        >
+          {/* Every icon is mounted and only the active one is opaque, so the
+              change is a crossfade between two of them rather than one icon
+              being swapped out under a fade. */}
+          <span className="nav-pill__icons">
+            {SECTIONS.map((section, i) => (
+              <section.Icon
+                key={section.id}
+                className="nav-icon nav-pill__icon"
+                strokeWidth={1.6}
+                data-active={i === activeIndex ? "true" : undefined}
+                aria-hidden
+              />
+            ))}
+          </span>
+        </button>
+
+        <div
+          ref={panelRef}
+          className="nav-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Sections"
+          // Hidden from assistive tech and from tabbing while collapsed. The
+          // element stays mounted so the unfold has something to animate.
+          inert={!open}
+        >
+          <button
+            type="button"
+            className="nav-panel__close"
+            aria-label="Close navigation"
+            onClick={close}
+          >
+            <X className="nav-icon" strokeWidth={1.7} aria-hidden />
+          </button>
+
+          <ul className="nav-panel__list">
+            {SECTIONS.map((section, i) => (
+              <li
+                key={section.id}
+                className="nav-panel__row"
+                style={{ "--nav-i": i } as CSSProperties}
+              >
+                <button
+                  type="button"
+                  className="nav-panel__item"
+                  aria-current={i === activeIndex ? "true" : undefined}
+                  onClick={() => go(section.id)}
+                >
+                  <section.Icon
+                    className="nav-icon"
+                    strokeWidth={1.6}
+                    aria-hidden
+                  />
+                  <span>{section.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </>
   );
 }
