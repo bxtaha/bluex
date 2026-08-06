@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 
 const PHASES = [
   {
@@ -32,55 +31,30 @@ const PHASES = [
 ];
 
 export function Process() {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const ctx = gsap.matchMedia();
-
-    ctx.add(MOTION_QUERIES.motion, () => {
-      const tween = gsap.from(el.querySelectorAll("[data-phase]"), {
-        opacity: 0,
-        y: 30,
-        duration: 0.7,
-        ease: "power3.out",
-        stagger: 0.12,
-        scrollTrigger: { trigger: el, start: "top 75%", once: true },
-      });
-
-      return () => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-      };
-    });
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <section
-      ref={ref}
       id="process"
       className="relative border-y border-white/8 bg-white/[0.015]"
     >
       <div className="mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16">
         <div className="max-w-2xl">
-          <p className="bx-eyebrow">Process</p>
-          <RevealText
+          <Reveal as="p" className="bx-eyebrow">
+            Process
+          </Reveal>
+          <SplitText
             as="h2"
             className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
           >
             Five weeks, start to live.
-          </RevealText>
+          </SplitText>
         </div>
 
         <ol className="mt-14 grid gap-px overflow-hidden rounded-2xl bg-white/8 sm:grid-cols-2 lg:grid-cols-4">
-          {PHASES.map((phase) => (
-            <li
+          {PHASES.map((phase, i) => (
+            <Reveal
+              as="li"
               key={phase.step}
-              data-phase
+              index={i + 1}
               className="flex flex-col bg-void p-7 lg:p-8"
             >
               <div className="flex items-baseline justify-between gap-3">
@@ -95,7 +69,7 @@ export function Process() {
               <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">
                 {phase.body}
               </p>
-            </li>
+            </Reveal>
           ))}
         </ol>
       </div>

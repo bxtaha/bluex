@@ -1,6 +1,7 @@
 "use client";
 
-import { RevealText } from "@/components/ui/reveal-text";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
 
 export function FinalCta() {
@@ -18,20 +19,26 @@ export function FinalCta() {
       />
 
       <div className="mx-auto max-w-3xl text-center">
-        <p className="bx-eyebrow">Ready when you are</p>
-        <RevealText
+        <Reveal as="p" className="bx-eyebrow">
+          Ready when you are
+        </Reveal>
+        <SplitText
           as="h2"
           className="bx-display mt-4 text-[clamp(2.25rem,6.5vw,5rem)] text-ink"
         >
           Let the agent call you first.
-        </RevealText>
-        <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-ink-muted sm:text-lg">
-          Leave your number and you&rsquo;ll hear the whole thing working within
-          five minutes. That is the pitch and the demo at the same time.
-        </p>
-        <div className="mt-10 flex justify-center">
+        </SplitText>
+        <Reveal
+          as="p"
+          index={1}
+          className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-ink-muted sm:text-lg"
+        >
+          Leave your number and you’ll hear the whole thing working within five
+          minutes. That is the pitch and the demo at the same time.
+        </Reveal>
+        <Reveal index={2} className="mt-10 flex justify-center">
           <CallCta />
-        </div>
+        </Reveal>
       </div>
     </section>
   );

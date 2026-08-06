@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { gsap, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 import { validateLead, type LeadErrors } from "@/lib/lead";
 
 type Status = "idle" | "sending" | "done" | "error";
@@ -27,28 +27,6 @@ export function ExperienceIt() {
   const [message, setMessage] = useState("");
   const [dispatched, setDispatched] = useState(false);
   const [stage, setStage] = useState(0);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const ctx = gsap.matchMedia();
-
-    ctx.add(MOTION_QUERIES.motion, () => {
-      const tween = gsap.from(el.querySelector("[data-widget]"), {
-        opacity: 0,
-        y: 30,
-        duration: 0.8,
-        ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 75%", once: true },
-      });
-      return () => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-      };
-    });
-
-    return () => ctx.revert();
-  }, []);
 
   // Steps the visible stage list while the request is in flight. These describe
   // our own handoff, not the state of a live phone call — we get no callback
@@ -107,21 +85,27 @@ export function ExperienceIt() {
     >
       <div className="mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="bx-eyebrow">Experience it</p>
-          <RevealText
+          <Reveal as="p" className="bx-eyebrow">
+            Experience it
+          </Reveal>
+          <SplitText
             as="h2"
             className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
           >
-            Don&rsquo;t take our word for it.
-          </RevealText>
-          <p className="mt-5 text-base leading-relaxed text-ink-muted">
+            Don’t take our word for it.
+          </SplitText>
+          <Reveal
+            as="p"
+            index={1}
+            className="mt-5 text-base leading-relaxed text-ink-muted"
+          >
             This is the same agent your leads would get. Put your number in and
             it will call you — the demo and the product are the same thing.
-          </p>
+          </Reveal>
         </div>
 
-        <div
-          data-widget
+        <Reveal
+          index={2}
           className="bx-card bx-hairline mx-auto mt-12 max-w-2xl p-7 sm:p-9"
         >
           {status === "done" ? (
@@ -259,7 +243,7 @@ export function ExperienceIt() {
               )}
             </form>
           )}
-        </div>
+        </Reveal>
       </div>
     </section>
   );

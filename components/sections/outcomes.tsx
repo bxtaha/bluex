@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 
 /**
  * Outcome framing rather than performance claims.
@@ -36,59 +35,38 @@ const OUTCOMES = [
 ];
 
 export function Outcomes() {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const ctx = gsap.matchMedia();
-
-    ctx.add(MOTION_QUERIES.motion, () => {
-      const tween = gsap.from(el.querySelectorAll("[data-outcome]"), {
-        opacity: 0,
-        y: 30,
-        duration: 0.7,
-        ease: "power3.out",
-        stagger: 0.1,
-        scrollTrigger: { trigger: el, start: "top 75%", once: true },
-      });
-
-      return () => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-      };
-    });
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <section
-      ref={ref}
       id="outcomes"
       className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16"
     >
       <div className="max-w-2xl">
-        <p className="bx-eyebrow">What you get</p>
-        <RevealText
+        <Reveal as="p" className="bx-eyebrow">
+          What you get
+        </Reveal>
+        <SplitText
           as="h2"
           className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
         >
           Your site stops being a brochure.
-        </RevealText>
-        <p className="mt-5 text-base leading-relaxed text-ink-muted">
+        </SplitText>
+        <Reveal
+          as="p"
+          index={1}
+          className="mt-5 text-base leading-relaxed text-ink-muted"
+        >
           It becomes the thing that answers, qualifies and books — the best
           salesperson you have, working every hour you are not.
-        </p>
+        </Reveal>
       </div>
 
       <div className="mt-14 grid gap-5 sm:grid-cols-2">
-        {OUTCOMES.map((outcome) => (
-          <article
+        {OUTCOMES.map((outcome, i) => (
+          <Reveal
+            as="div"
             key={outcome.title}
-            data-outcome
-            className="bx-card bx-hairline p-7 sm:p-8"
+            index={i + 2}
+            className="bx-card bx-hairline bx-lift p-7 sm:p-8"
           >
             <p className="bx-display text-2xl text-electric sm:text-3xl">
               {outcome.stat}
@@ -99,7 +77,7 @@ export function Outcomes() {
             <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">
               {outcome.body}
             </p>
-          </article>
+          </Reveal>
         ))}
       </div>
     </section>

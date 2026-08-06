@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { usePinProgress } from "@/components/motion/use-pin-progress";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 
 const STEPS = [
   {
     time: "0 min",
     title: "The lead submits",
-    body: "Someone fills in your form, at any hour. The agent picks it up immediately — no queue, no inbox, nobody to be available.",
+    body: "Someone fills in your form, at any hour. The agent picks it up immediately — no queue, no inbox, nobody who has to be available.",
   },
   {
     time: "4 min",
@@ -28,122 +28,91 @@ const STEPS = [
 ];
 
 export function HowItWorks() {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const ctx = gsap.matchMedia();
-
-    ctx.add(MOTION_QUERIES.motion, () => {
-      const steps = gsap.utils.toArray<HTMLElement>("[data-step]", el);
-
-      const tweens = steps.map((step) =>
-        gsap.from(step, {
-          opacity: 0,
-          y: 32,
-          duration: 0.7,
-          ease: "power3.out",
-          scrollTrigger: { trigger: step, start: "top 82%", once: true },
-        }),
-      );
-
-      // The rail fills as the steps are read, so the sequence has a visible
-      // through-line rather than four disconnected cards.
-      const rail = el.querySelector("[data-rail]");
-      const railTween =
-        rail &&
-        gsap.fromTo(
-          rail,
-          { scaleY: 0 },
-          {
-            scaleY: 1,
-            ease: "none",
-            transformOrigin: "top",
-            scrollTrigger: {
-              trigger: el.querySelector("[data-steps]"),
-              start: "top 70%",
-              end: "bottom 75%",
-              scrub: 0.5,
-            },
-          },
-        );
-
-      return () => {
-        tweens.forEach((t) => {
-          t.scrollTrigger?.kill();
-          t.kill();
-        });
-        railTween?.scrollTrigger?.kill();
-        railTween?.kill();
-      };
-    });
-
-    return () => ctx.revert();
-  }, []);
+  const { containerRef, activeStep, progress } = usePinProgress(STEPS.length);
 
   return (
-    <section
-      ref={ref}
-      id="how-it-works"
-      className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16"
-    >
-      <div className="max-w-2xl">
-        <p className="bx-eyebrow">How the agent works</p>
-        <RevealText
-          as="h2"
-          className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
-        >
-          Nine minutes from form to booked meeting.
-        </RevealText>
-        <p className="mt-5 text-base leading-relaxed text-ink-muted">
-          Speed is the whole advantage. A lead who hears from you first has
-          usually stopped shopping by the time anyone else replies — and most
-          businesses take hours.
-        </p>
-      </div>
+    <section id="how-it-works" className="relative">
+      {/* Outer container is taller than the viewport; the child sticks to the
+          top and the extra height becomes the scroll budget for stepping
+          through. Pinning is desktop-only — on a phone four expanded steps do
+          not fit in 100vh, so it falls back to a normal stack. */}
+      <div ref={containerRef} className="md:h-[280vh]">
+        <div className="md:sticky md:top-0 md:flex md:h-dvh md:items-center">
+          <div className="mx-auto w-full max-w-[100rem] px-6 py-24 sm:px-10 md:py-0 lg:px-16">
+            <div className="md:grid md:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] md:items-center md:gap-16 lg:gap-24">
+              <div>
+                <p className="bx-eyebrow">How the agent works</p>
+                <SplitText
+                  as="h2"
+                  className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
+                >
+                  Nine minutes from form to booked meeting.
+                </SplitText>
+                <Reveal
+                  as="p"
+                  index={1}
+                  className="mt-5 max-w-md text-base leading-relaxed text-ink-muted"
+                >
+                  Speed is the whole advantage. A lead who hears from you first
+                  has usually stopped shopping by the time anyone else replies —
+                  and most businesses take hours.
+                </Reveal>
 
-      <div data-steps className="relative mt-16 md:mt-20">
-        {/* Rail sits behind the markers, hidden on mobile where the layout is
-            a simple stack. */}
-        <div
-          className="absolute left-[7.5rem] top-2 bottom-2 hidden w-px bg-white/10 md:block"
-          aria-hidden
-        >
-          <div
-            data-rail
-            className="h-full w-full origin-top bg-gradient-to-b from-electric to-electric-glow"
-          />
-        </div>
-
-        <ol className="space-y-10 md:space-y-14">
-          {STEPS.map((step) => (
-            <li
-              key={step.time}
-              data-step
-              className="relative md:grid md:grid-cols-[7.5rem_auto_1fr] md:items-start md:gap-x-8"
-            >
-              <span className="bx-display block text-sm text-electric md:pt-1 md:text-right md:text-base">
-                {step.time}
-              </span>
-
-              <span
-                className="absolute left-0 top-8 hidden size-2.5 -translate-x-[calc(50%-7.5rem)] rounded-full bg-electric-glow ring-4 ring-void md:block"
-                aria-hidden
-              />
-
-              <div className="mt-2 md:col-start-3 md:mt-0">
-                <h3 className="bx-display text-xl text-ink sm:text-2xl">
-                  {step.title}
-                </h3>
-                <p className="mt-2.5 max-w-xl text-sm leading-relaxed text-ink-muted sm:text-base">
-                  {step.body}
-                </p>
+                {/* Progress readout, desktop only: it is the affordance that
+                    explains why the page stopped scrolling. */}
+                <div
+                  className="mt-10 hidden h-px w-full max-w-md bg-white/10 md:block"
+                  aria-hidden
+                >
+                  <div
+                    className="h-full origin-left bg-electric transition-transform duration-300 ease-out"
+                    style={{ transform: `scaleX(${progress})` }}
+                  />
+                </div>
               </div>
-            </li>
-          ))}
-        </ol>
+
+              <ol className="mt-14 space-y-3 md:mt-0 md:space-y-4">
+                {STEPS.map((step, i) => {
+                  const isActive = i === activeStep;
+                  return (
+                    <li
+                      key={step.time}
+                      // Inactive steps dim on desktop where one is always
+                      // active. On mobile every step stays fully legible.
+                      className={`border-l-2 pl-5 transition-[opacity,border-color] duration-500 md:pl-6 ${
+                        isActive
+                          ? "border-electric md:opacity-100"
+                          : "border-white/12 md:opacity-40"
+                      }`}
+                      aria-current={isActive ? "step" : undefined}
+                    >
+                      <span className="bx-display text-sm text-electric">
+                        {step.time}
+                      </span>
+                      <h3 className="bx-display mt-1 text-xl text-ink sm:text-2xl">
+                        {step.title}
+                      </h3>
+
+                      {/* Descriptions always occupy their space and only their
+                          opacity changes. Collapsing them would animate
+                          layout, which shifts every step below and is exactly
+                          what the "transform and opacity only" rule exists to
+                          prevent. The step reads as opening because it
+                          brightens, not because the box grows. */}
+                      <p
+                        className={`pt-2.5 text-sm leading-relaxed text-ink-muted transition-opacity duration-500 ease-out sm:text-base ${
+                          isActive ? "md:opacity-100" : "md:opacity-0"
+                        }`}
+                      >
+                        {step.body}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

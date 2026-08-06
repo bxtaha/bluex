@@ -56,5 +56,11 @@ export function Magnetic({
     };
   }, [strength]);
 
-  return React.cloneElement(children, { ref });
+  // Marks the element so the CSS hover-lift can stand down. GSAP writes an
+  // inline transform here, which would beat the stylesheet rule anyway — this
+  // makes that an explicit contract rather than a silent collision.
+  return React.cloneElement(children, {
+    ref,
+    "data-magnetic": "",
+  } as React.HTMLAttributes<HTMLElement> & { ref: React.Ref<HTMLElement> });
 }

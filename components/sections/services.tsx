@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { gsap, ScrollTrigger, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
 
 /** Breathing room left after the final panel when the track is fully scrolled. */
@@ -155,13 +156,15 @@ export function Services() {
     >
       <div className="md:flex md:h-full md:flex-col md:justify-center">
         <div className="mx-auto mb-12 w-full max-w-[100rem] px-6 sm:px-10 md:mb-14 lg:px-16">
-          <p className="bx-eyebrow">What we build</p>
-          <RevealText
+          <Reveal as="p" className="bx-eyebrow">
+            What we build
+          </Reveal>
+          <SplitText
             as="h2"
             className="bx-display mt-3 max-w-2xl text-[clamp(2rem,5vw,3.75rem)] text-ink"
           >
             Two things, both done properly.
-          </RevealText>
+          </SplitText>
         </div>
 
         <div className="md:pl-[max(1.5rem,calc((100vw-100rem)/2+4rem))]">
@@ -169,7 +172,7 @@ export function Services() {
             {SERVICES.map((service) => (
               <article
                 key={service.index}
-                className="bx-card bx-hairline flex flex-col overflow-hidden p-7 sm:p-9 md:flex-row md:items-center md:gap-10 md:p-11"
+                className="bx-card bx-hairline bx-lift flex flex-col overflow-hidden p-7 sm:p-9 md:flex-row md:items-center md:gap-10 md:p-11"
               >
                 <div className="md:flex-1">
                   <span className="bx-eyebrow text-electric">{service.index}</span>
@@ -212,7 +215,7 @@ export function Services() {
                 screens — two panels alone fit inside a large desktop viewport
                 and the pin would have nothing to scrub — and puts a conversion
                 point at the moment someone has just read both offers. */}
-            <article className="bx-card bx-hairline flex flex-col justify-center p-7 text-center sm:p-9 md:p-11">
+            <article className="bx-card bx-hairline bx-lift flex flex-col justify-center p-7 text-center sm:p-9 md:p-11">
               <p className="bx-eyebrow">Not sure which?</p>
               <h3 className="bx-display mt-3 text-[clamp(1.6rem,3.4vw,2.6rem)] text-ink">
                 Ask the agent yourself.

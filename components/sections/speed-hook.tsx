@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { gsap, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { observeOnce } from "@/lib/reveal";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
 
 /**
@@ -42,6 +43,8 @@ export function SpeedHook() {
     const counter = counterRef.current;
     if (!el || !counter) return;
 
+    const TARGET_SECONDS = 300;
+
     const format = (totalSeconds: number) => {
       const clamped = Math.max(0, Math.round(totalSeconds));
       const minutes = Math.floor(clamped / 60);
@@ -49,54 +52,36 @@ export function SpeedHook() {
       return `${minutes}:${String(seconds).padStart(2, "0")}`;
     };
 
-    const ctx = gsap.matchMedia();
+    // A number readout is the one thing here that is neither transform nor
+    // opacity, so it cannot be a CSS transition — it counts on rAF instead.
+    // Written straight to textContent, never through state, so a 60fps count
+    // does not queue 144 React renders.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      counter.textContent = format(TARGET_SECONDS);
+      return;
+    }
 
-    ctx.add(MOTION_QUERIES.motion, () => {
-      // Tween a plain object and write the formatted value out, rather than
-      // animating text directly — GSAP cannot interpolate "0:00" as a number,
-      // and the padded seconds have to be recomputed on every tick.
-      const clock = { seconds: 0 };
+    let frame = 0;
 
-      const countUp = gsap.to(clock, {
-        seconds: 300,
-        duration: 2.4,
-        ease: "power2.out",
-        onUpdate: () => {
-          counter.textContent = format(clock.seconds);
-        },
-        scrollTrigger: { trigger: el, start: "top 70%", once: true },
-      });
+    const stop = observeOnce(el, () => {
+      const started = performance.now();
+      const DURATION = 2400;
 
-      const marks = gsap.from(el.querySelectorAll("[data-mark]"), {
-        opacity: 0,
-        y: 20,
-        duration: 0.6,
-        ease: "power3.out",
-        stagger: 0.15,
-        scrollTrigger: { trigger: el, start: "top 70%", once: true },
-      });
-
-      const bar = gsap.from(el.querySelector("[data-bar-fill]"), {
-        scaleX: 0,
-        duration: 1.6,
-        ease: "power2.out",
-        scrollTrigger: { trigger: el, start: "top 70%", once: true },
-      });
-
-      return () => {
-        [countUp, marks, bar].forEach((tween) => {
-          tween.scrollTrigger?.kill();
-          tween.kill();
-        });
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - started) / DURATION);
+        // Matches the house ease-out shape: fast départ, long settle.
+        const eased = 1 - Math.pow(1 - t, 3);
+        counter.textContent = format(eased * TARGET_SECONDS);
+        if (t < 1) frame = requestAnimationFrame(tick);
       };
+
+      frame = requestAnimationFrame(tick);
     });
 
-    // Reduced motion: show the finished value rather than a stuck 0:00.
-    ctx.add(MOTION_QUERIES.reduced, () => {
-      counter.textContent = format(300);
-    });
-
-    return () => ctx.revert();
+    return () => {
+      stop();
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (
@@ -107,24 +92,30 @@ export function SpeedHook() {
     >
       <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-20">
         <div>
-          <p className="bx-eyebrow">Speed to lead</p>
-          <RevealText
+          <Reveal as="p" index={0} className="bx-eyebrow">
+            Speed to lead
+          </Reveal>
+          <SplitText
             as="h2"
             className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
           >
             The first five minutes decide it.
-          </RevealText>
+          </SplitText>
 
-          <p className="mt-5 max-w-lg text-base leading-relaxed text-ink-muted">
+          <Reveal
+            as="p"
+            index={1}
+            className="mt-5 max-w-lg text-base leading-relaxed text-ink-muted"
+          >
             A lead who fills in your form is comparing you against three other
             businesses right now. Whoever reaches them while the problem is
             still on their mind gets the conversation — everyone else gets
             voicemail. Most companies take hours to reply. That gap is where the
             money leaks out.
-          </p>
+          </Reveal>
 
           {SOURCED_STAT && (
-            <div className="mt-8 border-l-2 border-electric pl-5">
+            <Reveal index={2} className="mt-8 border-l-2 border-electric pl-5">
               <p className="bx-display text-4xl text-ink sm:text-5xl">
                 {SOURCED_STAT.value}
               </p>
@@ -134,15 +125,15 @@ export function SpeedHook() {
               <p className="mt-2 text-xs text-ink-muted/70">
                 {SOURCED_STAT.source}
               </p>
-            </div>
+            </Reveal>
           )}
 
-          <div className="mt-9">
+          <Reveal index={3} className="mt-9">
             <CallCta>See how fast it is</CallCta>
-          </div>
+          </Reveal>
         </div>
 
-        <div className="bx-card bx-hairline p-8 sm:p-10">
+        <Reveal index={2} className="bx-card bx-hairline p-8 sm:p-10">
           <p className="bx-eyebrow">Your response time</p>
 
           {/* tabular-nums keeps the clock from reflowing as digits change */}
@@ -158,15 +149,13 @@ export function SpeedHook() {
 
           <div className="mt-10">
             <div className="relative h-1.5 overflow-hidden rounded-full bg-white/8">
-              <div
-                data-bar-fill
-                className="h-full origin-left rounded-full bg-gradient-to-r from-signal via-electric to-electric-glow"
-              />
+              {/* Scales in from the card's own reveal — see .bx-bar-fill */}
+              <div className="bx-bar-fill h-full origin-left rounded-full bg-gradient-to-r from-signal via-electric to-electric-glow" />
             </div>
 
             <ol className="mt-5 flex justify-between gap-2">
-              {TIMELINE.map((point) => (
-                <li key={point.at} data-mark className="min-w-0">
+              {TIMELINE.map((point, i) => (
+                <Reveal as="li" key={point.at} index={i + 1} className="min-w-0">
                   <span
                     className={`bx-display block text-sm ${
                       point.tone === "signal" ? "text-signal" : "text-electric"
@@ -177,7 +166,7 @@ export function SpeedHook() {
                   <span className="mt-1 block truncate text-xs text-ink-muted">
                     {point.label}
                   </span>
-                </li>
+                </Reveal>
               ))}
             </ol>
           </div>
@@ -186,7 +175,7 @@ export function SpeedHook() {
             The agent does not get busy, forget, or go home. It answers the 2am
             enquiry exactly as fast as the 2pm one.
           </p>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

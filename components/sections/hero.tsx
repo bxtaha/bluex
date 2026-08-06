@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import KineticGrid from "@/components/ui/kinetic-grid";
-import { RevealText } from "@/components/ui/reveal-text";
+import { SplitText } from "@/components/motion/split-text";
+import { Reveal } from "@/components/motion/reveal";
 import { CallCta } from "@/components/ui/call-cta";
 import { gsap, MOTION_QUERIES } from "@/lib/gsap";
 
@@ -21,36 +22,26 @@ export function Hero() {
 
     const ctx = gsap.matchMedia();
 
+    // Entrance is handled by the shared reveal system. GSAP is kept here only
+    // for the scroll-linked drift, which needs a scrubbed timeline the CSS
+    // reveal system has no equivalent for.
     ctx.add(MOTION_QUERIES.motion, () => {
-      const timeline = gsap.timeline({ delay: 0.35 });
+      const drift = gsap.to(el.querySelector("[data-hero-content]"), {
+        y: -60,
+        opacity: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: el,
+          start: "bottom 90%",
+          end: "bottom 25%",
+          scrub: true,
+        },
+      });
 
-      timeline
-        .from(el.querySelectorAll("[data-hero-fade]"), {
-          y: 24,
-          opacity: 0,
-          duration: 0.8,
-          ease: "power3.out",
-          stagger: 0.12,
-        })
-        // Drifts the hero content up and fades it as the next section arrives,
-        // so the hero recedes rather than simply scrolling away.
-        .to(
-          el.querySelector("[data-hero-content]"),
-          {
-            y: -60,
-            opacity: 0,
-            ease: "none",
-            scrollTrigger: {
-              trigger: el,
-              start: "bottom 90%",
-              end: "bottom 25%",
-              scrub: true,
-            },
-          },
-          0,
-        );
-
-      return () => timeline.kill();
+      return () => {
+        drift.scrollTrigger?.kill();
+        drift.kill();
+      };
     });
 
     return () => ctx.revert();
@@ -72,46 +63,46 @@ export function Hero() {
         data-hero-content
         className="relative z-10 mx-auto w-full max-w-5xl text-center"
       >
-        <div
-          data-hero-fade
-          className="mx-auto inline-flex items-center gap-2.5 rounded-full bg-white/5 px-4 py-1.5 text-xs text-ink-muted ring-1 ring-white/10 backdrop-blur-sm"
-        >
+        <Reveal className="mx-auto inline-flex items-center gap-2.5 rounded-full bg-white/5 px-4 py-1.5 text-xs text-ink-muted ring-1 ring-white/10 backdrop-blur-sm">
           <span className="relative flex size-1.5">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-electric opacity-75" />
             <span className="relative inline-flex size-1.5 rounded-full bg-electric-glow" />
           </span>
           AI voice agents · Web &amp; e-commerce
-        </div>
+        </Reveal>
 
-        <RevealText
+        <SplitText
           as="h1"
-          immediate
-          delay={0.15}
+          delay={150}
           className="bx-display mt-7 text-[clamp(2.5rem,8vw,6.5rem)] text-ink"
         >
           Every lead called back in five minutes.
-        </RevealText>
+        </SplitText>
 
-        <p
-          data-hero-fade
+        {/* Indices resume after the headline's seven words so the subheading
+            lands at ~540ms, once the last word is on its way up. */}
+        <Reveal
+          as="p"
+          index={6}
           className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg"
         >
           We build the websites that bring you leads and the AI voice agents that
           call them before your competitors even open the email.
-        </p>
+        </Reveal>
 
-        <div
-          data-hero-fade
+        <Reveal
+          index={7}
           className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
           <CallCta />
-          <a href="#services" className="bx-btn bx-btn--ghost">
+          <a href="#services" className="bx-btn bx-btn--ghost bx-lift">
             See what we build
           </a>
-        </div>
+        </Reveal>
 
-        <dl
-          data-hero-fade
+        <Reveal
+          as="dl"
+          index={8}
           className="mx-auto mt-14 grid max-w-lg grid-cols-3 gap-4 border-t border-white/8 pt-7"
         >
           {STATS.map((stat) => (
@@ -127,7 +118,7 @@ export function Hero() {
               </dd>
             </div>
           ))}
-        </dl>
+        </Reveal>
       </div>
     </section>
   );

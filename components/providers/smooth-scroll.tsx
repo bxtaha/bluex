@@ -4,6 +4,9 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
+/** Clearance for the fixed header so anchored sections aren't tucked under it. */
+const HEADER_OFFSET = 88;
+
 /**
  * Lenis and ScrollTrigger both want to own the scroll position. Left alone they
  * run on separate clocks and drift, which shows up as pinned sections lagging a
@@ -37,7 +40,34 @@ export function SmoothScroll() {
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
+    // Lenis owns the scroll position, so the browser's native hash jump lands
+    // at a location Lenis does not know about and gets immediately overridden.
+    // Anchor clicks are intercepted and handed to Lenis instead.
+    const onAnchorClick = (event: MouseEvent) => {
+      // Let modified clicks (new tab, download, middle-click) behave natively.
+      if (event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const anchor = (event.target as Element | null)?.closest?.("a");
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href?.startsWith("#") || href === "#") return;
+
+      const target = document.querySelector(href);
+      if (!target) return;
+
+      event.preventDefault();
+      lenis.scrollTo(target as HTMLElement, { offset: -HEADER_OFFSET });
+      // Keep the URL in step so the link is still shareable and the back
+      // button behaves, without triggering the native jump we just prevented.
+      window.history.pushState(null, "", href);
+    };
+
+    document.addEventListener("click", onAnchorClick);
+
     return () => {
+      document.removeEventListener("click", onAnchorClick);
       gsap.ticker.remove(raf);
       gsap.ticker.lagSmoothing(500, 33); // restore GSAP's default
       lenis.destroy();

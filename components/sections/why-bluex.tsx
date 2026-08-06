@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap, MOTION_QUERIES } from "@/lib/gsap";
-import { RevealText } from "@/components/ui/reveal-text";
+import { Reveal } from "@/components/motion/reveal";
+import { SplitText } from "@/components/motion/split-text";
 
 const REASONS = [
   {
@@ -55,55 +54,30 @@ const REASONS = [
 ];
 
 export function WhyBluex() {
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const ctx = gsap.matchMedia();
-
-    ctx.add(MOTION_QUERIES.motion, () => {
-      const tween = gsap.from(el.querySelectorAll("[data-reason]"), {
-        opacity: 0,
-        y: 30,
-        duration: 0.7,
-        ease: "power3.out",
-        stagger: 0.1,
-        scrollTrigger: { trigger: el, start: "top 75%", once: true },
-      });
-
-      return () => {
-        tween.scrollTrigger?.kill();
-        tween.kill();
-      };
-    });
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <section
-      ref={ref}
       id="why-bluex"
       className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16"
     >
       <div className="max-w-2xl">
-        <p className="bx-eyebrow">Why BlueX</p>
-        <RevealText
+        <Reveal as="p" className="bx-eyebrow">
+          Why BlueX
+        </Reveal>
+        <SplitText
           as="h2"
           className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
         >
           Four reasons this works.
-        </RevealText>
+        </SplitText>
       </div>
 
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {REASONS.map((reason) => (
-          <article
+        {REASONS.map((reason, i) => (
+          <Reveal
+            as="div"
             key={reason.title}
-            data-reason
-            className="bx-card bx-hairline flex flex-col p-7"
+            index={i + 1}
+            className="bx-card bx-hairline bx-lift flex flex-col p-7"
           >
             <span
               className="flex size-11 items-center justify-center rounded-xl bg-electric/12 text-electric ring-1 ring-electric/20"
@@ -119,7 +93,7 @@ export function WhyBluex() {
             <p className="mt-3 text-sm leading-relaxed text-ink-muted">
               {reason.body}
             </p>
-          </article>
+          </Reveal>
         ))}
       </div>
     </section>

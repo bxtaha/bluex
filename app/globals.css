@@ -161,6 +161,10 @@
   html {
     @apply font-sans;
     background: var(--color-void);
+    /* Clears the fixed header when an anchor is reached by native jump — the
+       path taken with reduced motion, where Lenis never initialises and cannot
+       apply its own offset. */
+    scroll-padding-top: 88px;
   }
   ::selection {
     background: color-mix(in oklab, var(--color-electric) 40%, transparent);
@@ -244,6 +248,15 @@
     box-shadow 0.35s ease,
     background-color 0.3s ease,
     color 0.3s ease;
+}
+
+/* Buttons get the house lift by default — the hover interaction is the same
+   everywhere, so it belongs on the base class rather than being opted into
+   per instance. */
+@media (hover: hover) {
+  .bx-btn:not([data-magnetic]):hover {
+    transform: translate3d(0, -2px, 0);
+  }
 }
 
 .bx-btn:focus-visible {
@@ -464,6 +477,108 @@
   animation: bx-wave 1.8s ease-in-out infinite;
 }
 
+/* ── Scroll animation system ─────────────────────────────────────────────────
+   House values live here as tokens so every reveal on the site moves the same
+   way. Changing the feel is a change to these five lines, not a sweep through
+   the components. */
+
+:root {
+  --ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  --reveal-duration: 0.8s;
+  --reveal-stagger: 90ms;
+  --reveal-travel: 26px;
+  --hover-duration: 0.35s;
+}
+
+/* The hidden state is gated on `scripting: enabled` rather than a class added
+   by JS. With JS off — or if the bundle fails — the media query never matches,
+   the rules never apply, and the content is simply visible. Content is never
+   hidden by something that needs JS to undo it.
+
+   Browsers without the `scripting` feature also fall through to visible, so
+   the failure mode is always "no animation", never "no content". */
+@media (scripting: enabled) {
+  [data-reveal] {
+    opacity: 0;
+    transform: translate3d(0, var(--reveal-travel), 0);
+    transition:
+      opacity var(--reveal-duration) var(--ease-reveal),
+      transform var(--reveal-duration) var(--ease-reveal);
+    transition-delay: calc(var(--reveal-i, 0) * var(--reveal-stagger));
+  }
+
+  [data-reveal][data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Masked word reveal ──────────────────────────────────────────────────── */
+
+.bx-split {
+  /* Words are inline-block, so the element needs its own line-height rather
+     than inheriting one meant for plain text. */
+  display: block;
+}
+
+.bx-word {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  /* overflow:hidden would otherwise clip descenders (g, y, p). The padding
+     opens room for them and the negative margin takes the space back out of
+     the layout, so line spacing is unchanged. */
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+.bx-word__inner {
+  display: inline-block;
+}
+
+@media (scripting: enabled) {
+  .bx-word__inner {
+    transform: translate3d(0, 110%, 0);
+    transition: transform var(--reveal-duration) var(--ease-reveal);
+    transition-delay: calc(
+      var(--split-delay, 0ms) + var(--word-i, 0) * 80ms
+    );
+  }
+
+  .bx-split[data-revealed="true"] .bx-word__inner {
+    transform: none;
+  }
+}
+
+/* A bar that draws itself in when its revealing ancestor fires. Scale rather
+   than width, so it stays on the transform/opacity path. */
+@media (scripting: enabled) {
+  .bx-bar-fill {
+    transform: scaleX(0);
+    transition: transform 1.6s var(--ease-reveal);
+    transition-delay: 240ms;
+  }
+
+  [data-revealed="true"] .bx-bar-fill {
+    transform: scaleX(1);
+  }
+}
+
+/* ── Hover micro-interactions ────────────────────────────────────────────── */
+
+.bx-lift {
+  transition:
+    transform var(--hover-duration) var(--ease-reveal),
+    box-shadow var(--hover-duration) var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-lift:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow: 0 18px 40px -20px rgb(0 0 0 / 65%);
+  }
+}
+
 /* ── Marquee ─────────────────────────────────────────────────────────────── */
 
 .bx-marquee {
@@ -487,8 +602,12 @@
 .bx-marquee__track {
   display: flex;
   width: max-content;
-  animation: bx-marquee 38s linear infinite;
+  animation: bx-marquee var(--marquee-duration, 34s) linear infinite;
   will-change: transform;
+}
+
+.bx-marquee__item {
+  flex-shrink: 0;
 }
 
 .bx-marquee:hover .bx-marquee__track {
@@ -543,5 +662,32 @@
   .bx-wave-bar {
     animation: none !important;
     transform: none !important;
+  }
+
+  /* The reveal system is opt-out, not opt-in: these rules must win against the
+     `scripting: enabled` block regardless of source order, so every reveal
+     lands at its final state immediately. Getting this wrong leaves a
+     reduced-motion visitor looking at an empty page, which is why it is stated
+     explicitly rather than relying on the blanket transition-duration override
+     above. */
+  [data-reveal],
+  [data-reveal][data-revealed="true"] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .bx-word__inner {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .bx-lift:hover {
+    transform: none !important;
+  }
+
+  .bx-bar-fill {
+    transform: none !important;
+    transition: none !important;
   }
 }
