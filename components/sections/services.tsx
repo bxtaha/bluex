@@ -153,7 +153,12 @@ export function Services() {
     <section
       ref={sectionRef}
       id="services"
-      className="relative h-dvh overflow-visible"
+      /* The track is far wider than the viewport by design — it is scrubbed
+         sideways. Without clipping, that width becomes document overflow: the
+         page scrolls horizontally on desktop, and mobile browsers zoom out to
+         fit, shrinking the whole site. `clip` rather than `hidden` so this
+         does not become a scroll container, which would fight the pin. */
+      className="relative h-dvh overflow-x-clip"
     >
       <div className="flex h-full flex-col justify-center">
         <div className="mx-auto mb-8 w-full max-w-[100rem] px-6 sm:px-10 md:mb-14 lg:px-16">
@@ -206,9 +211,11 @@ export function Services() {
                   </ul>
                 </div>
 
-                {/* Shorter on a phone: the panel now has to fit a viewport
-                    height rather than growing down the page. */}
-                <div className="mt-5 h-24 shrink-0 sm:mt-8 sm:h-40 md:mt-0 md:h-56 md:w-72">
+                {/* Small on a phone: panels are equal height, so the tallest
+                    one sets the box and the longest copy was being clipped by
+                    the card's own overflow. The decorative visual is what
+                    gives way, not the text. */}
+                <div className="mt-4 h-16 shrink-0 sm:mt-8 sm:h-40 md:mt-0 md:h-56 md:w-72">
                   {service.visual === "voice" ? <VoiceVisual /> : <WebVisual />}
                 </div>
               </article>

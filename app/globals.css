@@ -1246,8 +1246,19 @@
   pointer-events: none;
 }
 
-.scroll-bell .bell-root {
-  font-size: 1.55px;
+/* BellNotify writes font-size inline from its `size` prop, which beats any
+   rule here — the scene's scale is set by that prop, not by CSS. */
+
+/* The rope is 60vh tall and hangs upward out of the bell. On a phone the
+   headline and copy sit directly above, so the full-length rope draws a line
+   straight through them. Shortened and faded out at the top, so it still reads
+   as hanging from somewhere above without crossing the text. */
+@media (max-width: 767px) {
+  .scroll-bell .rope {
+    height: 11rem;
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 55%);
+    mask-image: linear-gradient(180deg, transparent, #000 55%);
+  }
 }
 
 /* The wrapper is a large empty box that would otherwise swallow clicks meant
@@ -1262,17 +1273,11 @@
   .scroll-bell {
     height: 300px;
   }
-  .scroll-bell .bell-root {
-    font-size: 1.95px;
-  }
 }
 
 @media (min-width: 1024px) {
   .scroll-bell {
     height: 340px;
-  }
-  .scroll-bell .bell-root {
-    font-size: 2.3px;
   }
 }
 
