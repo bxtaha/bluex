@@ -1240,22 +1240,25 @@
   margin: 0 auto;
   width: 100%;
   max-width: 44rem;
-  height: 240px;
+  /* Every part of the bell is sized in em against this, so it is the one
+     number that scales the scene. A phone gets a smaller bell: at the desktop
+     scale it dominates the screen and crowds the copy above and the button
+     below. The box is the bell's own height (80em) plus a little air. */
+  --bell-size: 220px;
+  height: 190px;
   opacity: 0;
   will-change: transform, opacity;
   pointer-events: none;
 }
 
-/* BellNotify writes font-size inline from its `size` prop, which beats any
-   rule here — the scene's scale is set by that prop, not by CSS. */
-
 /* The rope is 60vh tall and hangs upward out of the bell. On a phone the
    headline and copy sit directly above, so the full-length rope draws a line
    straight through them. Shortened and faded out at the top, so it still reads
-   as hanging from somewhere above without crossing the text. */
+   as hanging from somewhere above without crossing the text. In em rather than
+   rem so it keeps its proportion to whatever `--bell-size` is. */
 @media (max-width: 767px) {
   .scroll-bell .rope {
-    height: 11rem;
+    height: 58em;
     -webkit-mask-image: linear-gradient(180deg, transparent, #000 55%);
     mask-image: linear-gradient(180deg, transparent, #000 55%);
   }
@@ -1271,6 +1274,7 @@
 
 @media (min-width: 640px) {
   .scroll-bell {
+    --bell-size: 300px;
     height: 300px;
   }
 }

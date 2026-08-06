@@ -131,6 +131,8 @@ export function ScrollBell({
       {/* Interactive, as on bluex_v2: clicking the bell turns its light on and
           off. It was made inert only while it served as a decorative rail
           thumb, which it no longer is. */}
+      {/* `size` is only the fallback: the real scale comes from `--bell-size`
+          on .scroll-bell, which shrinks the bell on phones. */}
       <BellNotify size={300} action={action} />
     </div>
   );

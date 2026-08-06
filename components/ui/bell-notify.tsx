@@ -49,10 +49,14 @@ function BellNotify({
 
   const rootStyle = useMemo<React.CSSProperties>(() => {
     return {
-      // font-size drives the scene (1em = size/100)
-      fontSize: `calc(${size}px * 0.01)`,
+      // font-size drives the scene (1em = size/100). Routed through a custom
+      // property so a stylesheet can rescale the whole bell per breakpoint:
+      // this is an inline style, and a plain `font-size` rule could never
+      // outrank it without `!important`. `--bell-size` inherits, so setting it
+      // on any ancestor feeds straight into this calc.
+      fontSize: `calc(var(--bell-size, ${size}px) * 0.01)`,
       // expose size for potential downstream tweaks (kept from original var name)
-      ['--_size' as string]: `${size}px`,
+      ['--_size' as string]: `var(--bell-size, ${size}px)`,
       ['--base-clr' as string]: baseColor,
       ['--degofrot' as string]: rotationAmplitude,
     } as React.CSSProperties;
