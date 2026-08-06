@@ -65,7 +65,13 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <CallCta size="sm" magnetic={false} className="hidden sm:inline-flex">
+        {/* Shown at every width. Tightened on the smallest screens so it still
+            fits beside the logo rather than being hidden there. */}
+        <CallCta
+          size="sm"
+          magnetic={false}
+          className="h-9 shrink-0 px-3 text-xs sm:h-10 sm:px-4 sm:text-[0.8125rem]"
+        >
           Get a call
         </CallCta>
       </div>

@@ -94,10 +94,11 @@ export function Services() {
 
     const ctx = gsap.matchMedia();
 
-    // Desktop only. Pinning and scrubbing x on touch fights the browser's own
-    // scrolling and feels broken; below this width the same markup is a native
-    // scroll-snap carousel handled entirely by CSS.
-    ctx.add(MOTION_QUERIES.desktop, () => {
+    // Every width, not just desktop. Vertical scrolling drives the track
+    // sideways on a phone exactly as it does on a laptop — the alternative was
+    // a swipe carousel, which hid the later panels behind a gesture nobody
+    // knows to make.
+    ctx.add(MOTION_QUERIES.motion, () => {
       // `offsetLeft` and `scrollWidth` are layout values, unaffected by the
       // transform this tween is applying — reading getBoundingClientRect here
       // would feed the tween's own output back into its input on refresh.
@@ -152,10 +153,10 @@ export function Services() {
     <section
       ref={sectionRef}
       id="services"
-      className="relative overflow-hidden py-24 md:py-0 md:h-dvh md:overflow-visible"
+      className="relative h-dvh overflow-visible"
     >
-      <div className="md:flex md:h-full md:flex-col md:justify-center">
-        <div className="mx-auto mb-12 w-full max-w-[100rem] px-6 sm:px-10 md:mb-14 lg:px-16">
+      <div className="flex h-full flex-col justify-center">
+        <div className="mx-auto mb-8 w-full max-w-[100rem] px-6 sm:px-10 md:mb-14 lg:px-16">
           <Reveal as="p" className="bx-eyebrow">
             What we build
           </Reveal>
@@ -167,22 +168,22 @@ export function Services() {
           </SplitText>
         </div>
 
-        <div className="md:pl-[max(1.5rem,calc((100vw-100rem)/2+4rem))]">
+        <div className="pl-6 sm:pl-10 md:pl-[max(1.5rem,calc((100vw-100rem)/2+4rem))]">
           <div ref={trackRef} className="bx-track">
             {SERVICES.map((service) => (
               <article
                 key={service.index}
-                className="bx-card bx-hairline bx-lift flex flex-col overflow-hidden p-7 sm:p-9 md:flex-row md:items-center md:gap-10 md:p-11"
+                className="bx-card bx-hairline bx-lift flex flex-col overflow-hidden p-6 sm:p-9 md:flex-row md:items-center md:gap-10 md:p-11"
               >
                 <div className="md:flex-1">
                   <span className="bx-eyebrow text-electric">{service.index}</span>
-                  <h3 className="bx-display mt-3 text-[clamp(1.6rem,3.4vw,2.6rem)] text-ink">
+                  <h3 className="bx-display mt-2 text-[clamp(1.5rem,3.4vw,2.6rem)] text-ink sm:mt-3">
                     {service.title}
                   </h3>
-                  <p className="mt-3.5 max-w-md text-sm leading-relaxed text-ink-muted sm:text-base">
+                  <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted sm:text-base">
                     {service.summary}
                   </p>
-                  <ul className="mt-6 space-y-2.5">
+                  <ul className="mt-4 space-y-2 sm:mt-6 sm:space-y-2.5">
                     {service.points.map((point) => (
                       <li key={point} className="flex items-start gap-2.5 text-sm text-ink">
                         <svg
@@ -205,7 +206,9 @@ export function Services() {
                   </ul>
                 </div>
 
-                <div className="mt-8 h-40 shrink-0 md:mt-0 md:h-56 md:w-72">
+                {/* Shorter on a phone: the panel now has to fit a viewport
+                    height rather than growing down the page. */}
+                <div className="mt-5 h-24 shrink-0 sm:mt-8 sm:h-40 md:mt-0 md:h-56 md:w-72">
                   {service.visual === "voice" ? <VoiceVisual /> : <WebVisual />}
                 </div>
               </article>

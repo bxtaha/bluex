@@ -403,30 +403,19 @@
 .bx-track {
   display: flex;
   gap: 1.25rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding-left: 1.5rem;
-  padding-inline: 1.5rem;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.bx-track::-webkit-scrollbar {
-  display: none;
+  /* Driven by ScrollTrigger at every width, so the track is never a scroll
+     container of its own — the page's vertical scroll moves it sideways. */
+  overflow: visible;
+  will-change: transform;
 }
 
 .bx-track > * {
-  scroll-snap-align: center;
-  flex: 0 0 min(85vw, 30rem);
+  flex: 0 0 min(86vw, 30rem);
 }
 
 @media (min-width: 768px) {
   .bx-track {
-    overflow: visible;
-    scroll-snap-type: none;
     gap: 2rem;
-    padding-inline: 0;
-    will-change: transform;
   }
 
   .bx-track > * {
