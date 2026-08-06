@@ -12,7 +12,7 @@ const COLUMNS = [
   {
     heading: "Contact",
     links: [
-      { label: "hello@bluex.dev", href: "mailto:hello@bluex.dev" },
+      { label: "hey@bluex.agency", href: "mailto:hey@bluex.agency" },
       { label: "Book a call", href: "#top" },
     ],
   },
