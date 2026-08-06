@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { clashDisplay, generalSans } from "@/lib/fonts";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import { LeadFormProvider } from "@/components/providers/lead-form-provider";
-import { CustomCursor } from "@/components/ui/custom-cursor";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { BackToTop } from "@/components/ui/back-to-top";
 import { SiteHeader } from "@/components/site-header";
@@ -31,7 +30,6 @@ export default function RootLayout({
         <div className="bx-atmosphere" aria-hidden />
 
         <SmoothScroll />
-        <CustomCursor />
 
         <LeadFormProvider>
           <SiteHeader />

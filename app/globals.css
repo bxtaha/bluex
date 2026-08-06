@@ -396,55 +396,6 @@
   color: var(--color-ink-muted);
 }
 
-/* ── Custom cursor ───────────────────────────────────────────────────────── */
-
-.bx-cursor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-  pointer-events: none;
-  border-radius: 999px;
-  will-change: transform;
-}
-
-.bx-cursor--dot {
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  background: var(--color-signal);
-}
-
-.bx-cursor--ring {
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border: 1px solid rgb(245 241 232 / 45%);
-  transition:
-    width 0.3s ease,
-    height 0.3s ease,
-    margin 0.3s ease,
-    background-color 0.3s ease,
-    border-color 0.3s ease;
-}
-
-.bx-cursor--ring[data-hovering="true"] {
-  width: 56px;
-  height: 56px;
-  margin: -28px 0 0 -28px;
-  background: rgb(245 241 232 / 10%);
-  border-color: rgb(245 241 232 / 70%);
-}
-
-/* The OS cursor is hidden only where the custom one actually renders, so
-   touch and coarse-pointer devices keep their native behaviour. */
-@media (pointer: fine) {
-  html.bx-has-cursor,
-  html.bx-has-cursor * {
-    cursor: none !important;
-  }
-}
-
 /* ── Horizontal services track ───────────────────────────────────────────── */
 
 /* Below the pin breakpoint the track is a native snap carousel — pinning and
