@@ -7,9 +7,18 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-general-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-clash-display), var(--font-general-sans), sans-serif;
+  --font-heading: var(--font-clash-display), sans-serif;
+
+  /* BlueX palette. Named to avoid colliding with the shadcn tokens above
+     (--color-accent / --color-muted are already taken by that scale). */
+  --color-void: #0a0b0f;
+  --color-electric: #2e6bff;
+  --color-electric-glow: #4d8bff;
+  --color-signal: #f5f1e8;
+  --color-ink: #f5f7fa;
+  --color-ink-muted: #8a909c;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -117,892 +126,221 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* The site is dark-only, so the shadcn light scale above is overridden at the
+   root rather than behind a .dark class — there is no light mode to toggle. */
+:root {
+  --background: #0a0b0f;
+  --foreground: #f5f7fa;
+  --card: #101219;
+  --card-foreground: #f5f7fa;
+  --popover: #101219;
+  --popover-foreground: #f5f7fa;
+  --primary: #2e6bff;
+  --primary-foreground: #ffffff;
+  --secondary: #171a23;
+  --secondary-foreground: #f5f7fa;
+  --muted: #171a23;
+  --muted-foreground: #8a909c;
+  --accent: #171a23;
+  --accent-foreground: #f5f7fa;
+  --border: rgb(255 255 255 / 10%);
+  --input: rgb(255 255 255 / 14%);
+  --ring: #2e6bff;
+  --radius: 0.75rem;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    /* Lenis drives scrolling; native smooth would fight it. */
+    scroll-behavior: auto;
   }
   html {
     @apply font-sans;
+    background: var(--color-void);
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-electric) 40%, transparent);
+    color: #fff;
   }
 }
 
-/* ── AnimatedTabBar ──────────────────────────────────────────────────────── */
+/* ── Page texture ────────────────────────────────────────────────────────────
+   A flat near-black reads as cheap. Two fixed layers sit behind everything:
+   a wide blue-tinted radial wash, and a fine grain built from an inline SVG
+   fractal-noise turbulence (no image request, no extra bytes over the wire). */
 
-@keyframes strok {
-  100% {
-    stroke-dashoffset: 400;
-  }
-}
-
-.svg-container {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
-.menu {
-  --duration: 0.5s;
-  --bgMenu: #ffffff;
-  --iconColor: #9fb0c9;
-
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(92vw, 40em);
-  margin: 0;
-  padding: 0 1.25em;
-  font-size: clamp(14px, 3.2vw, 21px);
-  list-style: none;
-  background-color: var(--bgMenu);
-  border-radius: 0 0 1.5em 1.5em;
-  box-shadow: 0 1em 2.5em rgb(24 39 75 / 0.14);
-}
-
-.menu__item {
-  all: unset;
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-grow: 1;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5em 0 0.68em;
-  border-radius: 50%;
-  cursor: pointer;
-  will-change: transform;
-  transition: transform var(--timeOut, var(--duration));
-}
-
-.menu__item::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  width: 2.6em;
-  height: 2.6em;
-  border-radius: 50%;
-  background-color: var(--bgColorItem);
-  transform: scale(0);
-  transition: transform var(--timeOut, var(--duration));
-}
-
-.menu__item.active {
-  transform: translate3d(0, 0.9em, 0);
-}
-
-.menu__item.active::before {
-  transform: scale(1);
-}
-
-.menu__item .icon {
-  width: 1.55em;
-  height: 1.55em;
-  fill: none;
-  stroke: var(--iconColor);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 400;
-  transition: stroke var(--duration);
-}
-
-.menu__item.active .icon {
-  stroke: #ffffff;
-  animation: strok 1.5s reverse;
-}
-
-.menu__border {
-  position: absolute;
-  left: 0;
-  top: 99%;
-  width: 8.6em;
-  height: 1.93em;
-  background-color: var(--bgMenu);
-  clip-path: url(#menu-clip-path);
-  transition: transform var(--timeOut, var(--duration));
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .menu__item,
-  .menu__item::before,
-  .menu__border {
-    transition-duration: 0.01ms;
-  }
-  .menu__item.active .icon {
-    animation: none;
-  }
-}
-
-/* ── StardustButton (top bar CTA) ────────────────────────────────────────── */
-
-.pearl-button .wrap::before,
-.pearl-button .wrap::after {
-  content: "";
-  position: absolute;
-  transition: all 0.3s ease;
-}
-
-.pearl-button .wrap::before {
-  left: -15%;
-  right: -15%;
-  bottom: 25%;
-  top: -100%;
-  border-radius: 50%;
-  background-color: rgba(64, 180, 255, 0.15);
-}
-
-.pearl-button .wrap::after {
-  left: 6%;
-  right: 6%;
-  top: 12%;
-  bottom: 40%;
-  border-radius: 22px 22px 0 0;
-  box-shadow: inset 0 10px 8px -10px rgba(129, 216, 255, 0.6);
-  background: linear-gradient(
-    180deg,
-    rgba(64, 180, 255, 0.25) 0%,
-    rgba(0, 0, 0, 0) 50%,
-    rgba(0, 0, 0, 0) 100%
-  );
-}
-
-.pearl-button .wrap p span:nth-child(2) {
-  display: none;
-}
-
-.pearl-button:hover .wrap p span:nth-child(1) {
-  display: none;
-}
-
-.pearl-button:hover .wrap p span:nth-child(2) {
-  display: inline-block;
-}
-
-.pearl-button:hover {
-  box-shadow:
-    inset 0 0.3rem 0.5rem rgba(129, 216, 255, 0.4),
-    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.7),
-    inset 0 -0.4rem 0.9rem rgba(64, 180, 255, 0.6),
-    0 3rem 3rem rgba(0, 0, 0, 0.3),
-    0 1rem 1rem -0.6rem rgba(0, 0, 0, 0.8);
-}
-
-.pearl-button:hover .wrap::before {
-  transform: translateY(-5%);
-}
-
-.pearl-button:hover .wrap::after {
-  opacity: 0.4;
-  transform: translateY(5%);
-}
-
-.pearl-button:hover .wrap p {
-  transform: translateY(-4%);
-}
-
-.pearl-button:active {
-  transform: translateY(4px);
-  box-shadow:
-    inset 0 0.3rem 0.5rem rgba(129, 216, 255, 0.5),
-    inset 0 -0.1rem 0.3rem rgba(0, 0, 0, 0.8),
-    inset 0 -0.4rem 0.9rem rgba(64, 180, 255, 0.4),
-    0 3rem 3rem rgba(0, 0, 0, 0.3),
-    0 1rem 1rem -0.6rem rgba(0, 0, 0, 0.8);
-}
-
-/* Animated shadow that continuously orbits the button */
-.stardust-halo {
-  background: conic-gradient(
-    from 0deg,
-    rgba(64, 180, 255, 0.75),
-    rgba(129, 216, 255, 0.1) 35%,
-    rgba(64, 180, 255, 0.1) 65%,
-    rgba(64, 180, 255, 0.75) 100%
-  );
-  animation: stardust-orbit 6s linear infinite;
-}
-
-@keyframes stardust-orbit {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .stardust-halo {
-    animation: none;
-  }
-}
-
-/* ── BellNotify ──────────────────────────────────────────────────────────── */
-
-.bell-root {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  background: transparent;
-}
-
-/* universal transitions */
-.bell-root * {
-  transition: filter 0.4s ease-in-out, box-shadow 0.4s ease-in-out,
-    opacity 0.4s ease-in-out, color 0.4s ease-in-out,
-    background 0.4s ease-in-out, text-shadow 0.4s ease-in-out;
-}
-.bell-root *::before,
-.bell-root *::after {
-  transition: filter 0.4s ease-in-out, box-shadow 0.4s ease-in-out,
-    opacity 0.4s ease-in-out, color 0.4s ease-in-out,
-    background 0.4s ease-in-out, text-shadow 0.4s ease-in-out;
-}
-
-.bell-container,
-.bell-container * {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  margin: auto;
-}
-
-.bell-container {
-  width: 80em;
-  height: 80em;
-  cursor: pointer;
-  transform-origin: 50% -50vh;
-  animation: bell 5s ease-in-out infinite;
-  outline: none;
-}
-
-@keyframes bell {
-  0% {
-    rotate: calc(1deg * var(--degofrot));
-  }
-  50% {
-    rotate: calc(-1deg * var(--degofrot));
-  }
-  100% {
-    rotate: calc(1deg * var(--degofrot));
-  }
-}
-
-.rope {
-  height: 60vh;
-  width: 2em;
-  translate: 0 -52%;
-  background: linear-gradient(
-      90deg,
-      #2d54744d 0%,
-      #000b 30%,
-      transparent 100%
-    ),
-    repeating-linear-gradient(-70deg, #252525, #888 2%, #3a3a3a 3%);
-}
-
-.bell-top {
-  width: 14%;
-  height: 14%;
-  border-radius: 50%;
-  translate: 0 -28em;
-  background: var(--base-clr);
-  box-shadow: inset -1em -0.5em 2em 0.5em #fff,
-    inset 1em -1em 2em 3em #000, 0 -0.1em 0.4em 0.3em #c6eaffa8;
-}
-
-.bell-base {
-  width: 50%;
-  height: 50%;
-  border-radius: 50%;
-  translate: 0 -24%;
-  background: var(--base-clr);
-  box-shadow: 0 -0.1em 0.4em 0.2em #c6eaffa8;
-}
-/* left/top must be pinned: with only `position: absolute` these skirts fall
-   back to their static position, which for a pseudo-element is placed by
-   inline layout and therefore moves with inherited `text-align`. Any page
-   wrapper carrying `text-center` shifted them half the bell's width to the
-   right and tore the flank off the body. */
-.bell-base:before {
-  content: '';
-  background-image: radial-gradient(
-    circle at -80% -12%,
-    transparent 50em,
-    var(--base-clr) 50em
-  );
-  position: absolute;
-  left: 0;
-  top: 0;
-  translate: -18em 20em;
-  width: 100%;
-  height: 80%;
-}
-/* Mirror of :before, written out rather than flipped with scaleX(-1):
-   a scaled radial-gradient whose centre sits far outside its own box
-   rasterises wrong at some scroll offsets (the arc is lost and the box fills
-   solid, jutting a slab out of the bell's right side). Mirroring the centre
-   by hand — -80% becomes 180% — and keeping the plain `translate` avoids
-   that, and also avoids the minifier dropping `translate` next to
-   `transform`. Arc radius must stay 50em to match :before, or the right
-   flank sits inside the dome; the #cacaca rim light runs inward from the
-   edge instead of pushing the edge in. */
-.bell-base:after {
-  content: '';
-  background-image: radial-gradient(
-    circle at 180% -12%,
-    transparent 50em,
-    #cacaca 50.2em,
-    var(--base-clr) 50.5em
-  );
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 80%;
-  translate: 18em 20em;
-}
-.bell-base:nth-of-type(3) {
-  /* second .bell-base in DOM order (after bell-top) */
-  filter: brightness(3) blur(1em);
-  scale: 0.74 0.84;
-  translate: 0em -11em;
-}
-
-.shadow-l1 {
-  width: 30em;
-  height: 42em;
-  border-radius: 50%;
-  rotate: 12deg;
-  translate: -3em -6em;
-  filter: blur(2em);
-  background: #797a80;
-}
-.shadow-l2 {
-  width: 130%;
-  height: 90%;
-  filter: blur(5em);
-  translate: -6em 9em;
-}
-.shadow-l2::before {
-  display: block;
-  content: '';
-  width: 68%;
-  height: 64%;
-  border-radius: 50%;
-  rotate: -54deg;
-  translate: -8em 2em;
-  scale: 1;
-  background: #000000;
-}
-
-.glow {
-  width: 100%;
-  height: 100%;
-  filter: brightness(2) blur(2em);
-}
-.glow::before {
-  clip-path: polygon(
-    9% 83%,
-    12% 79%,
-    15% 74%,
-    18% 68%,
-    20% 62%,
-    22% 56%,
-    23% 50%,
-    24% 43%,
-    25% 38%,
-    25% 34%,
-    26% 29%,
-    26% 26%,
-    27% 22%,
-    29% 19%,
-    30% 15%,
-    32% 13%,
-    34% 10%,
-    37% 7%,
-    41% 5%,
-    44% 4%,
-    47% 3%,
-    51% 3%,
-    55% 3%,
-    58% 5%,
-    62% 6%,
-    73% 29%,
-    72% 25%,
-    70% 20%,
-    67% 16%,
-    63% 12%,
-    60% 9%,
-    58% 8%,
-    55% 7%,
-    52% 6%,
-    48% 6%,
-    44% 8%,
-    41% 9%,
-    37% 12%,
-    36% 14%,
-    33% 16%,
-    31% 20%,
-    30% 23%,
-    29% 26%,
-    28% 31%,
-    27% 36%,
-    27% 39%,
-    26% 44%,
-    26% 48%,
-    26% 52%,
-    25% 56%,
-    23% 61%,
-    22% 65%,
-    21% 69%,
-    19% 72%,
-    17% 75%,
-    15% 78%,
-    13% 81%
-  );
-  width: 100%;
-  height: 80%;
-  translate: 0 6em;
-  scale: 0.94 0.94;
-  background: #fff3;
-  display: block;
-  content: '';
-}
-.glow2 {
-  width: 100%;
-  height: 100%;
-  filter: brightness(1) blur(0.3em);
-  opacity: 0.1;
-}
-.glow2::before {
-  clip-path: polygon(
-    9.21% 83%,
-    12.28% 79%,
-    15.35% 74%,
-    18.41% 68%,
-    20.46% 62%,
-    22.51% 56%,
-    23.53% 50%,
-    24.55% 43%,
-    25.58% 34%,
-    26.6% 29%,
-    27.62% 22%,
-    29.16% 18.5%,
-    30.95% 15.75%,
-    32.74% 13%,
-    34.78% 10%,
-    37.85% 7%,
-    41.94% 5%,
-    45.01% 4%,
-    48.08% 3%,
-    52.17% 3%,
-    56.27% 3%,
-    64.01% 6.36%,
-    55.75% 4.5%,
-    47.83% 4.75%,
-    42.84% 5.88%,
-    39.51% 7.88%,
-    36.45% 10.38%,
-    33.38% 14.88%,
-    30.69% 19%,
-    29.67% 22.5%,
-    28.8% 26.72%,
-    28.21% 31.36%,
-    26.92% 38.44%,
-    26.57% 43.67%,
-    25.51% 48.34%,
-    25% 54.34%,
-    23.4% 60.69%,
-    21.23% 65.38%,
-    18.41% 71.5%,
-    16.88% 74.75%,
-    12.28% 80.5%
-  );
-  width: 100%;
-  height: 84%;
-  translate: -1em 8.4em;
-  scale: 1;
-  background: #fff3;
-  display: block;
-  content: '';
-}
-
-.left-glow {
-  --lgc: #5d819666;
-  width: 50%;
-  height: 50%;
-  border-radius: 50%;
-  translate: 0 -24%;
-  background: transparent;
-  box-shadow: inset 1em 0em 1em 0.2em var(--lgc);
-  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
-}
-.left-glow2 {
-  --lgc2: #5d819666;
-  width: 49%;
-  height: 50%;
-  background-image: radial-gradient(
-    circle at -80% -12%,
-    transparent 50em,
-    var(--lgc2) 50.3em,
-    transparent 52em
-  );
-  position: absolute;
-  translate: -19em 10.35em;
-  clip-path: polygon(0 0, 100% 0, 100% 78%, 0 78%);
-}
-/* Mirror of .left-glow written out rather than flipped: the circle and the
-   clip are already symmetric, so only the inset shadow's x-offset flips. */
-.r-glow {
-  --lgc: #fffaf680;
-  width: 50%;
-  height: 50%;
-  border-radius: 50%;
-  background: transparent;
-  box-shadow: inset -1em 0em 1em 0.2em var(--lgc);
-  clip-path: polygon(0 0, 100% 0, 100% 50%, 0 50%);
-  translate: 0 -24%;
-}
-/* Mirror of .left-glow2 with the gradient centre flipped by hand (-80% ->
-   180%) — see .bell-base:after. The old rotate(-2deg) here had no counterpart
-   on the left and tilted this rim light off the flank it lights, swinging
-   from +7px at the top to -4px at the bottom. */
-.r-glow2 {
-  --lgc2: #fffaf680;
-  width: 49%;
-  height: 50%;
-  background-image: radial-gradient(
-    circle at 180% -12%,
-    transparent 50em,
-    var(--lgc2) 50.3em,
-    transparent 52em
-  );
-  position: absolute;
-  clip-path: polygon(0 0, 100% 0, 100% 78%, 0 78%);
-  translate: 19em 10.35em;
-}
-
-.mid-ring.small {
-  translate: 0.04em -8em;
-  scale: 0.8 0.5;
-}
-.mid-ring {
-  width: 64%;
-  height: 10%;
-  border-radius: 50%;
-  translate: -0.1em 10em;
-  box-shadow: inset -0.3em 1.3em 0.4em -1em #fff5,
-    -0.2em -1.2em 0.4em -0.4em #505050,
-    -0.1em -1.8em 0.4em -0.4em #fff5, 0 -2.5em 0.4em -1em #000000;
-  mix-blend-mode: hard-light;
-  filter: brightness(0.8);
-  /* keep the end caps below from spilling past the ring and notching the
-     bell's outline (only visible on the lit right side) */
-  overflow: hidden;
-}
-.mid-ring::before,
-.mid-ring::after {
-  content: '';
-  display: block;
-  background: #000;
-  width: 2em;
-  height: 2em;
-  top: 10%;
-  border-radius: 50%;
-  position: absolute;
-}
-.mid-ring::after {
-  right: -2%;
-}
-.mid-ring::before {
-  left: -2%;
-}
-
-.bell-buff-t {
-  background: #fff2;
-  width: 72%;
-  height: 12%;
-  border-radius: 50%;
-  translate: 0 16em;
-  filter: blur(1em);
-}
-.bell-buff {
-  background: linear-gradient(90deg, black 40%, var(--base-clr) 90%);
-  width: 88%;
-  height: 20%;
-  border-radius: 50% 50% 50% 50% / 50% 50% 30% 30%;
-  translate: 0 20em;
-  box-shadow: inset 1em 0 2em -1em #5d819666,
-    inset -1em 0 2em -1em #fff;
-}
-.bell-btm {
-  width: 88%;
-  height: 18%;
-  border-radius: 50%;
-  translate: 0 23em;
-  background: linear-gradient(90deg, black 40%, var(--base-clr) 90%);
-}
-.bell-btm2 {
-  width: 74%;
-  height: 12%;
-  border-radius: 50%;
-  translate: 0 24em;
-  background: #fffff6;
-  box-shadow: 0 0 1em 0.6em #ffe9d4, -0.8em 0.2em 2em 1em #cca37f,
-      -5.4em -0.6em 3em -1em #ce6e1abb, 6em -0.6em 3em -1em #ce6e1abb,
-      inset 0em 30.3em 0.3em -30em #c7962d, inset 0 -2em 2em -2em #ffe9d4,
-      inset 0em -1em 2em 1em #ce6e1a66;
-  filter: brightness(1.45);
-}
-.off .bell-btm2 {
-  filter: brightness(0.02);
-}
-
-.bell-ring-container {
-  width: 74%;
-  height: 24%;
-  border-radius: 50% 50% 50% 50% / 25% 25% 0% 0%;
-  translate: 0 29.2em;
-  overflow: hidden;
-}
-.bell-ring {
-  width: 12em;
-  height: 12em;
-  background: #fff;
-  border-radius: 50%;
-  translate: 0 -6em;
-  box-shadow: 0 0.8em 1em -0.3em #f8e1d0,
-    inset 0 -6em 4em -4em #e3b695, inset 0 1em 3em 1em #fff4,
-    inset 0 2em 3em 1em #fff, inset 0 100em 0 100em #2c2c2c;
-}
-.off .bell-ring {
-  background: #000;
-  box-shadow: 0 0.8em 1em -0.3em #0000,
-    inset 0 -6em 4em -4em #e3b69500, inset 0 1em 3em 1em #fff0,
-    inset 0 -2em 3em 1em #fff2, inset 0 100em 0 100em #000;
-}
-
-.bell-rays {
-  mix-blend-mode: soft-light;
-  box-shadow: inset 0 -21em 4em -20em #000;
-  width: 100%;
-  height: 140%;
-  translate: 0 -4em;
-  border-radius: 50%;
-}
-.bell-rays::before {
-  content: '';
-  display: block;
-  width: 100em;
-  height: 100em;
-  transform-origin: 50% 50%;
-  position: absolute;
-  left: -21em;
-  top: -77em;
-  border-radius: 100%;
-  filter: blur(0.6em);
-  background: repeating-conic-gradient(
-    at 50% 50%,
-    #fff2 0%,
-    transparent 0.6%,
-    #fff2 0.8%
-  );
-  animation: radiate 1s linear infinite;
-}
-.off .bell-rays {
-  opacity: 0;
-}
-@keyframes radiate {
-  0% {
-    rotate: 0deg;
-  }
-  100% {
-    rotate: 6deg;
-  }
-}
-
-.volumetric {
-  width: 98%;
-  height: 224%;
-  translate: 0 124em;
-  opacity: 0.27;
-}
-.volumetric .vl {
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 20em;
-  rotate: 22deg;
-  box-shadow: inset 40em 0 20em -20em #fff1;
-}
-.volumetric .vr {
-  width: 100%;
-  height: 100%;
-  transform-origin: 50% 20em;
-  rotate: -22deg;
-  box-shadow: inset -40em 0 20em -20em #fff1;
-}
-.off .volumetric {
-  opacity: 0;
-}
-
-.bell-root .button {
-  position: relative;
-  font-size: 3.4em;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
-  background: #000;
-  top: 24em;
-  white-space: nowrap;
-  width: fit-content;
-  height: fit-content;
-  color: #000;
-  cursor: pointer;
-  padding: 0.4em 1.2em;
-  border-radius: 0.4em;
-  text-shadow: 0 -1px 3px #fff0;
-  box-shadow: inset 0 0.04em 0.06em 0 #fff, inset 0 1em 1em 0 #fff5,
-    inset 0 0.2em 0.2em 0 #e3b695;
-  animation: lumenbtn 5s ease-in-out infinite;
-  border: none;
-}
-.bell-root .button:hover,
-.bell-root .button:focus-visible {
-  color: #fff;
-  text-shadow: 0 -1px 3px #fff;
-  outline: none;
-}
-.bell-root .button::before,
-.bell-root .button::after {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 54%;
-  position: absolute;
-  top: 6em;
-  left: 0;
-  right: 0;
-}
-.bell-root .button::before {
-  background: #e3b695;
-  transform: scale(2);
-  z-index: -2;
-  filter: blur(12px);
-  border-radius: 100%;
-  animation: lumen 5s ease-in-out infinite;
-}
-.bell-root .button::after {
-  background: #000c;
-  z-index: -1;
-  filter: blur(0.3em);
-  border-radius: 30%;
-}
-@keyframes lumenbtn {
-  0% {
-    box-shadow: inset 0 0.04em 0.06em 0 #fff,
-      inset calc(-0.2em * var(--degofrot)) 1em 1em 0 #fff5,
-      inset calc(-0.2em * var(--degofrot)) 0.2em 0.4em 0 #e3b695;
-  }
-  50% {
-    box-shadow: inset 0 0.04em 0.06em 0 #fff,
-      inset calc(0.2em * var(--degofrot)) 1em 1em 0 #fff5,
-      inset calc(0.2em * var(--degofrot)) 0.2em 0.4em 0 #e3b695;
-  }
-  100% {
-    box-shadow: inset 0 0.04em 0.06em 0 #fff,
-      inset calc(-0.2em * var(--degofrot)) 1em 1em 0 #fff5,
-      inset calc(-0.2em * var(--degofrot)) 0.2em 0.4em 0 #e3b695;
-  }
-}
-@keyframes lumen {
-  0% {
-    translate: calc(-0.8em * var(--degofrot));
-  }
-  50% {
-    translate: calc(0.8em * var(--degofrot));
-  }
-  100% {
-    translate: calc(-0.8em * var(--degofrot));
-  }
-}
-
-/* hide CTA when bell is "off" (matches original off + sibling behavior) */
-.bell-root .hidden-button {
-  opacity: 0;
+.bx-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
 }
 
-/* ── Rainbow button ──────────────────────────────────────────────────────── */
-
-@keyframes rainbow {
-  0% {
-    background-position: 0% 50%;
-  }
-  100% {
-    background-position: 200% 50%;
-  }
-}
-
-.animate-rainbow {
-  animation: rainbow 2s linear infinite;
-}
-
-.before\:animate-rainbow::before {
-  animation: rainbow 2s linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-rainbow,
-  .before\:animate-rainbow::before {
-    animation: none;
-  }
-}
-
-/* ── GlassButton (glass surface + animated rainbow border) ───────────────── */
-
-.glass-button-wrap {
-  position: relative;
-  isolation: isolate;
-}
-
-/* Animated rainbow border. Sits behind the button and bleeds 2px past it on
-   every side, so the visible ring is the gradient showing around the edge. */
-.glass-button-wrap::before,
-.glass-button-wrap::after {
+.bx-atmosphere::before {
   content: "";
   position: absolute;
-  left: -2px;
-  top: -2px;
-  width: calc(100% + 4px);
-  height: calc(100% + 4px);
-  border-radius: inherit;
-  background: linear-gradient(
-    45deg,
-    #fb0094,
-    #0000ff,
-    #00ff00,
-    #ffff00,
-    #ff0000,
-    #fb0094,
-    #0000ff,
-    #00ff00,
-    #ffff00,
-    #ff0000
-  );
-  background-size: 400%;
-  z-index: -1;
-  animation: rainbow-border 20s linear infinite;
+  inset: 0;
+  background:
+    radial-gradient(
+      60rem 40rem at 15% -10%,
+      color-mix(in oklab, var(--color-electric) 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50rem 35rem at 85% 10%,
+      color-mix(in oklab, var(--color-electric-glow) 10%, transparent),
+      transparent 70%
+    );
 }
 
-/* Punch out the centre so only a 2px ring of gradient remains, instead of a
-   solid block showing through the translucent glass. */
-.glass-button-wrap::before {
-  padding: 2px;
+.bx-atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  opacity: 0.032;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Type ────────────────────────────────────────────────────────────────── */
+
+.bx-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* Each line of a SplitText heading gets a clipping parent so the line can
+   translate up from behind its own edge rather than sliding over neighbours. */
+.bx-line-mask {
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.bx-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  isolation: isolate;
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.bx-btn:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+/* Primary: the warm signal colour. Reserved for the single most important
+   action on a screen so it is the only non-blue element competing for the eye. */
+.bx-btn--signal {
+  background: var(--color-signal);
+  color: #0a0b0f;
+  padding: 1.05rem 1.9rem;
+  font-size: 1rem;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 8%),
+    0 10px 40px -12px rgb(245 241 232 / 45%);
+}
+
+.bx-btn--signal:hover {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 14%),
+    0 16px 55px -10px rgb(245 241 232 / 60%);
+}
+
+/* The pulse ring reads as "live" without animating the button itself, which
+   would fight the magnetic transform applied to the same element by GSAP. */
+.bx-btn--signal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid var(--color-signal);
+  opacity: 0;
+  z-index: -1;
+  animation: bx-pulse 3s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes bx-pulse {
+  0% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+.bx-btn--ghost {
+  background: rgb(255 255 255 / 4%);
+  color: var(--color-ink);
+  padding: 1.05rem 1.9rem;
+  font-size: 1rem;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  backdrop-filter: blur(10px);
+}
+
+.bx-btn--ghost:hover {
+  background: rgb(255 255 255 / 8%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%);
+}
+
+.bx-btn--sm {
+  padding: 0.7rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+/* ── Surfaces ────────────────────────────────────────────────────────────── */
+
+.bx-card {
+  position: relative;
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    160deg,
+    rgb(255 255 255 / 6%),
+    rgb(255 255 255 / 2%) 45%,
+    rgb(255 255 255 / 4%)
+  );
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+  backdrop-filter: blur(12px);
+}
+
+/* Hairline that brightens toward the top edge, the way a real bevel catches
+   light. Masked to the border box so only the 1px ring is painted. */
+.bx-hairline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 28%),
+    transparent 40%
+  );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -1011,111 +349,134 @@
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-}
-
-/* Second copy, blurred, for the outer glow. Left unmasked - it sits behind
-   the button and reads as a halo, not a fill. */
-.glass-button-wrap::after {
-  filter: blur(18px);
-  opacity: 0.55;
-}
-
-@keyframes rainbow-border {
-  0% {
-    background-position: 0 0;
-  }
-  50% {
-    background-position: 400% 0;
-  }
-  100% {
-    background-position: 0 0;
-  }
-}
-
-/* Frosted-glass surface. */
-.glass-button {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.02) 55%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
-  backdrop-filter: blur(10px) saturate(160%);
-  -webkit-backdrop-filter: blur(10px) saturate(160%);
-  box-shadow:
-    inset 0 1px 1px rgba(255, 255, 255, 0.4),
-    inset 0 -1px 1px rgba(255, 255, 255, 0.12),
-    inset 0 0 18px rgba(255, 255, 255, 0.04);
-  color: #fff;
-}
-
-/* Bright, high-contrast label with a shimmer sweeping across the letters. */
-.glass-button-text {
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  background: linear-gradient(
-    100deg,
-    #ffffff 0%,
-    #ffffff 38%,
-    #bfe9ff 47%,
-    #ffffff 56%,
-    #ffffff 100%
-  );
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: glass-text-shimmer 4.5s linear infinite;
-  /* Drop-shadow (not text-shadow) so the glow follows the glyph outlines,
-     which text-shadow cannot do once the fill is transparent. */
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 10px rgba(180, 225, 255, 0.45));
-}
-
-@keyframes glass-text-shimmer {
-  0% {
-    background-position: 150% 0;
-  }
-  100% {
-    background-position: -50% 0;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .glass-button-text {
-    animation: none;
-  }
-}
-
-.glass-button-wrap:hover .glass-button {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.05) 55%,
-    rgba(255, 255, 255, 0.1) 100%
-  );
-}
-
-.glass-button-wrap:active .glass-button {
-  transform: translateY(1px);
-}
-
-/* Contact shadow under the button. */
-.glass-button-shadow {
-  position: absolute;
-  left: 8%;
-  right: 8%;
-  bottom: -6px;
-  height: 40%;
-  z-index: -2;
-  background: rgba(0, 0, 0, 0.55);
-  filter: blur(10px);
   pointer-events: none;
 }
 
+.bx-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+/* ── Custom cursor ───────────────────────────────────────────────────────── */
+
+.bx-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  border-radius: 999px;
+  will-change: transform;
+}
+
+.bx-cursor--dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--color-signal);
+}
+
+.bx-cursor--ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1px solid rgb(245 241 232 / 45%);
+  transition:
+    width 0.3s ease,
+    height 0.3s ease,
+    margin 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.bx-cursor--ring[data-hovering="true"] {
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  background: rgb(245 241 232 / 10%);
+  border-color: rgb(245 241 232 / 70%);
+}
+
+/* The OS cursor is hidden only where the custom one actually renders, so
+   touch and coarse-pointer devices keep their native behaviour. */
+@media (pointer: fine) {
+  html.bx-has-cursor,
+  html.bx-has-cursor * {
+    cursor: none !important;
+  }
+}
+
+/* ── Horizontal services track ───────────────────────────────────────────── */
+
+/* Below the pin breakpoint the track is a native snap carousel — pinning and
+   scrubbing x on touch fights the browser's own scrolling and feels broken. */
+.bx-track {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 1.5rem;
+  padding-inline: 1.5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.bx-track::-webkit-scrollbar {
+  display: none;
+}
+
+.bx-track > * {
+  scroll-snap-align: center;
+  flex: 0 0 min(85vw, 30rem);
+}
+
+@media (min-width: 768px) {
+  .bx-track {
+    overflow: visible;
+    scroll-snap-type: none;
+    gap: 2rem;
+    padding-inline: 0;
+    will-change: transform;
+  }
+
+  .bx-track > * {
+    flex: 0 0 min(78vw, 46rem);
+  }
+}
+
+/* Voice waveform bars. Scaled from the bottom so the trace sits on a baseline
+   the way a real audio meter does. */
+@keyframes bx-wave {
+  0%,
+  100% {
+    transform: scaleY(0.4);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.bx-wave-bar {
+  transform-origin: center bottom;
+  animation: bx-wave 1.8s ease-in-out infinite;
+}
+
+/* ── Motion safety ───────────────────────────────────────────────────────── */
+
 @media (prefers-reduced-motion: reduce) {
-  .glass-button-wrap::before,
-  .glass-button-wrap::after {
-    animation: none;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bx-atmosphere::after {
+    display: none;
   }
 }

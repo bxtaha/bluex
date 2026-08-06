@@ -1,0 +1,48 @@
+"use client";
+
+import { useEffect } from "react";
+import Lenis from "lenis";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
+
+/**
+ * Lenis and ScrollTrigger both want to own the scroll position. Left alone they
+ * run on separate clocks and drift, which shows up as pinned sections lagging a
+ * frame behind the content. Driving Lenis from GSAP's ticker puts both on one
+ * clock; `lagSmoothing(0)` stops GSAP from trying to "catch up" after a slow
+ * frame, which would otherwise jump the scrub.
+ *
+ * Renders nothing — it only installs the loop.
+ */
+export function SmoothScroll() {
+  useEffect(() => {
+    // Honour the OS setting: momentum scrolling is itself a motion effect, and
+    // some people find it nauseating. Native scroll is the accessible default.
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReduced) return;
+
+    const lenis = new Lenis({
+      duration: 1.05,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      // Touch devices already have good native momentum; overriding it makes
+      // the page feel laggy and breaks the browser's own overscroll handling.
+      syncTouch: false,
+    });
+
+    lenis.on("scroll", ScrollTrigger.update);
+
+    const raf = (time: number) => lenis.raf(time * 1000);
+    gsap.ticker.add(raf);
+    gsap.ticker.lagSmoothing(0);
+
+    return () => {
+      gsap.ticker.remove(raf);
+      gsap.ticker.lagSmoothing(500, 33); // restore GSAP's default
+      lenis.destroy();
+    };
+  }, []);
+
+  return null;
+}

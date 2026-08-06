@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, ReactNode } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,8 +33,7 @@ const NODE_ACTIVE_RADIUS = 3.2;
 const LINE_BASE_STYLE = `rgba(${LINE_BASE.r},${LINE_BASE.g},${LINE_BASE.b},${LINE_BASE.a})`;
 const NODE_BASE_STYLE = "rgba(255,255,255,0.2)";
 const IDLE_EPSILON = 0.001;
-const BG_COLOR = "#161618";
-const DEFAULT_ACCENT = "#4a9eff";
+const DEFAULT_ACCENT = "#2e6bff";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -62,15 +61,23 @@ function lerpColor(
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
+/**
+ * Interactive line-grid that warps toward the cursor. Renders as a background
+ * layer filling its nearest positioned ancestor — it does not wrap content.
+ *
+ * The animation loop only runs while the element is on screen. On a long
+ * scrolling page an ungated canvas RAF burns CPU for the whole document and
+ * competes with pinned ScrollTrigger sections for the main thread, which is
+ * exactly when dropped frames are most visible.
+ */
 export default function KineticGrid({
-  children,
   className,
   accentColor = DEFAULT_ACCENT,
 }: {
-  children?: ReactNode;
   className?: string;
   accentColor?: string;
 }) {
+  const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const mouseRef = useRef<Point>({ x: -9999, y: -9999 });
@@ -184,9 +191,9 @@ export default function KineticGrid({
     const bctx = buffer.getContext("2d");
     if (!bctx) return;
 
-    bctx.fillStyle = BG_COLOR;
-    bctx.fillRect(0, 0, W, H);
-
+    // Deliberately no opaque fill: the buffer stays transparent so the page's
+    // gradient wash and grain show through from behind the canvas.
+    bctx.clearRect(0, 0, W, H);
     bctx.fillStyle = "rgba(255,255,255,0.05)";
     for (let x = DOT_SPACING / 2; x < W; x += DOT_SPACING) {
       for (let y = DOT_SPACING / 2; y < H; y += DOT_SPACING) {
@@ -372,40 +379,54 @@ export default function KineticGrid({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const host = hostRef.current;
+    if (!canvas || !host) return;
 
+    // Sized from the host element, not the viewport, so the grid fits whatever
+    // section it backs rather than assuming it is full-screen.
     const setSize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+      const { width, height } = host.getBoundingClientRect();
+      const w = Math.max(1, Math.round(width));
+      const h = Math.max(1, Math.round(height));
+      if (w === sizeRef.current.w && h === sizeRef.current.h) return;
       canvas.width = w;
       canvas.height = h;
       sizeRef.current = { w, h };
       paintStaticBackground();
-      if (mouseRef.current.x === -9999) {
-        mouseRef.current = { x: -9999, y: -9999 };
-        targetMouseRef.current = { x: -9999, y: -9999 };
-      }
     };
 
     setSize();
-    window.addEventListener("resize", setSize);
+    const resizeObserver = new ResizeObserver(setSize);
+    resizeObserver.observe(host);
 
+    // Pointer coordinates are viewport-relative; the grid works in host-local
+    // space, so translate through the host's current rect.
     const onMouseMove = (e: MouseEvent) => {
-      targetMouseRef.current = { x: e.clientX, y: e.clientY };
+      const rect = host.getBoundingClientRect();
+      targetMouseRef.current = {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
+      };
     };
 
     const onClick = (e: MouseEvent) => {
+      const rect = host.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
       ripplesRef.current.push({
-        x: e.clientX,
-        y: e.clientY,
+        x,
+        y,
         radius: 0,
         opacity: 1,
         born: performance.now(),
       });
     };
 
-    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
     window.addEventListener("click", onClick);
+
+    let running = false;
 
     function animate(now: number) {
       const m = mouseRef.current;
@@ -417,15 +438,43 @@ export default function KineticGrid({
       draw(now);
       rafRef.current = requestAnimationFrame(animate);
     }
-    rafRef.current = requestAnimationFrame(animate);
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    const stop = () => {
+      if (!running) return;
+      running = false;
+      cancelAnimationFrame(rafRef.current);
+      // Park the cursor off-grid so the section is back at rest next time it
+      // scrolls in, instead of resuming mid-warp from a stale position.
+      mouseRef.current = { x: -9999, y: -9999 };
+      targetMouseRef.current = { x: -9999, y: -9999 };
+    };
+
+    const visibility = new IntersectionObserver(
+      ([entry]) => (entry.isIntersecting ? start() : stop()),
+      { rootMargin: "120px" },
+    );
+    visibility.observe(host);
+
+    // A backgrounded tab still fires RAF in some browsers; stop explicitly.
+    const onVisibilityChange = () => {
+      if (document.hidden) stop();
+      else if (host.getBoundingClientRect().bottom > 0) start();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
-      window.removeEventListener("resize", setSize);
+      resizeObserver.disconnect();
+      visibility.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("click", onClick);
-      if (rafRef.current) {
-        cancelAnimationFrame(rafRef.current);
-      }
+      cancelAnimationFrame(rafRef.current);
     };
   }, [draw, paintStaticBackground]);
 
@@ -433,17 +482,11 @@ export default function KineticGrid({
 
   return (
     <div
-      className={cn(
-        "relative w-full min-h-screen overflow-hidden bg-[#161618]",
-        className,
-      )}
+      ref={hostRef}
+      aria-hidden="true"
+      className={cn("absolute inset-0 overflow-hidden", className)}
     >
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 w-full h-full z-0 pointer-events-none"
-      />
-
-      <div className="relative z-10 w-full h-full">{children}</div>
+      <canvas ref={canvasRef} className="h-full w-full" />
     </div>
   );
 }
