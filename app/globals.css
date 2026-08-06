@@ -165,6 +165,14 @@
        path taken with reduced motion, where Lenis never initialises and cannot
        apply its own offset. */
     scroll-padding-top: 88px;
+    /* The document scrollbar is hidden, not any section's: it belongs to the
+       page, so there is no way to hide it over the hero alone. Only the bar is
+       hidden — wheel, trackpad, touch, keyboard and Lenis all still scroll. */
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
   }
   ::selection {
     background: color-mix(in oklab, var(--color-electric) 40%, transparent);
