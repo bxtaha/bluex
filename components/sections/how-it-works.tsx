@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { usePinProgress } from "@/components/motion/use-pin-progress";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
+import { BellScrollIndicator } from "@/components/ui/bell-scroll-indicator";
 
 const STEPS = [
   {
@@ -29,9 +31,13 @@ const STEPS = [
 
 export function HowItWorks() {
   const { containerRef, activeStep, progress } = usePinProgress(STEPS.length);
+  const sectionRef = useRef<HTMLElement>(null);
 
   return (
-    <section id="how-it-works" className="relative">
+    <section ref={sectionRef} id="how-it-works" className="relative">
+      {/* Scoped to this section: it fades in with the section and is never
+          visible outside it. */}
+      <BellScrollIndicator sectionRef={sectionRef} />
       {/* Outer container is taller than the viewport; the child sticks to the
           top and the extra height becomes the scroll budget for stepping
           through. Pinning is desktop-only — on a phone four expanded steps do

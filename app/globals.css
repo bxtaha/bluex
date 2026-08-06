@@ -1298,3 +1298,78 @@
     animation: none !important;
   }
 }
+
+/* ── Bell scroll indicator ───────────────────────────────────────────────────
+   A fixed rail beside one section, carrying the bell as its thumb. Fixed
+   rather than absolute so the track stays a constant height on screen while
+   the section scrolls past — an absolute rail inside a 280vh section would be
+   280vh tall and the bell would never appear to move relative to the viewport.
+
+   Hidden below 1024px — deliberately narrower than the md pin breakpoint. On a
+   tablet the section does pin, but the rail would crowd content that has
+   already given up its side margins. */
+
+.bell-rail {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .bell-rail {
+    position: fixed;
+    right: clamp(1.5rem, 4vw, 5rem);
+    top: 50%;
+    height: 58vh;
+    width: 2px;
+    transform: translateY(-50%);
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease-reveal);
+    /* The rope hangs well above the bell and must not be clipped. */
+    overflow: visible;
+    display: block;
+  }
+
+  .bell-rail[data-active="true"] {
+    opacity: 1;
+  }
+
+  .bell-rail__line {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgb(255 255 255 / 14%) 12%,
+      rgb(255 255 255 / 14%) 88%,
+      transparent
+    );
+  }
+
+  /* Positioned by JS via transform only — never `top`, which would animate
+     layout on every frame. */
+  .bell-rail__thumb {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    margin-left: -60px;
+    width: 120px;
+    height: 120px;
+    will-change: transform;
+  }
+
+  /* The scene is square and sized off font-size; this keeps the artwork
+     centred on the rail at the indicator's smaller scale. */
+  .bell-rail__thumb .bell-root {
+    width: 120px;
+    height: 120px;
+    font-size: 1.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bell-rail {
+    display: none !important;
+  }
+}

@@ -21,6 +21,13 @@ type BellNotifyProps = {
   action?: React.ReactNode;
   /** Disable clicking the bell to toggle. */
   disableToggle?: boolean;
+  /**
+   * When false the bell drops its button role, focus stop and handlers, so it
+   * can be used as decoration. A focusable control inside a decorative,
+   * aria-hidden container is reachable by keyboard but invisible to screen
+   * readers, which is worse than either alone.
+   */
+  interactive?: boolean;
   /** Extra class on wrapper. */
   className?: string;
 };
@@ -33,6 +40,7 @@ function BellNotify({
   rotationAmplitude = 0.8,
   action,
   disableToggle = false,
+  interactive = true,
   className = '',
 }: BellNotifyProps) {
   // Uncontrolled fallback
@@ -67,16 +75,20 @@ function BellNotify({
       {/* Bell (acts like a button for accessibility) */}
       <div
         className={bellClass}
-        role="button"
-        aria-pressed={onState}
-        tabIndex={0}
-        onClick={handleToggle}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            handleToggle();
-          }
-        }}
+        {...(interactive
+          ? {
+              role: 'button' as const,
+              'aria-pressed': onState,
+              tabIndex: 0,
+              onClick: handleToggle,
+              onKeyDown: (e: React.KeyboardEvent) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleToggle();
+                }
+              },
+            }
+          : {})}
       >
         <div className="rope" />
         <div className="bell-top" />
