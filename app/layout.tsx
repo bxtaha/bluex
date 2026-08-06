@@ -4,7 +4,7 @@ import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import { LeadFormProvider } from "@/components/providers/lead-form-provider";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { BackToTop } from "@/components/ui/back-to-top";
-import { SectionRail } from "@/components/ui/section-rail";
+import { SectionNav } from "@/components/ui/section-nav";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
@@ -40,7 +40,7 @@ export default function RootLayout({
         {/* Fixed overlays, so they add nothing to layout and cannot shift
             content. Outside <main> because neither is page content. */}
         <ScrollProgress />
-        <SectionRail />
+        <SectionNav />
         <BackToTop />
       </body>
     </html>

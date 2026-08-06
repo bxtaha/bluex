@@ -1546,43 +1546,65 @@
   }
 }
 
-/* ── Section rail ────────────────────────────────────────────────────────────
-   The bluex_v2 tab bar, stood on its end against the right edge. Its spacing
-   rhythm (1.55em icon inside a 2.73em cell), its 0.5s timing and its stroke
-   animation are the original's; the solid white background is not — this one
-   is transparent glass and takes its colour from the page behind it. */
+/* ── Section navigation ──────────────────────────────────────────────────────
+   A crescent rail against the right edge on desktop; a scroll-tracking pill
+   that unfolds into a panel everywhere else. Both are always in the markup and
+   CSS chooses — the query below is duplicated in section-nav.tsx, which gates
+   the behaviour, and the two must agree. */
 
-.rail {
+.nav-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Shared by every icon in both forms. Colour is a transition, never a swap:
+   the active item warms up over 300ms rather than snapping. */
+.nav-icon {
+  width: 1.55em;
+  height: 1.55em;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: color 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Desktop rail ───────────────────────────────────────────────────────── */
+
+.nav-rail {
   --duration: 0.5s;
-  /* The source's cell: 0.5em above the icon, 1.55em of icon, 0.68em below. */
-  --rail-cell: 2.73em;
-  --rail-icon: #8a909c;
+  /* The cell carried over from the bluex_v2 bar: 0.5em of air, a 1.55em icon,
+     0.68em of air. */
+  --nav-cell: 2.73em;
 
   position: fixed;
-  right: clamp(1rem, 2.2vw, 1.75rem);
+  right: 0;
   top: 50%;
   transform: translateY(-50%);
   z-index: 40;
 
-  /* Everything below is em-based, so this one value scales the rail. Capped
-     below the source's 21px: a column of eight is read at a glance, not
-     tapped, and a full-size one crowds the right third of the page. */
+  /* Everything below is em-based, so this one value scales the rail. */
   font-size: clamp(13px, 1.05vw, 16px);
-  padding: 0.55em;
+  /* Asymmetric: the left side carries the bulge, the right sits on the screen
+     edge and only needs the icons off it. */
+  padding: 1.7rem 0.6rem 1.7rem 1.15rem;
 
-  border-radius: 999px;
-  background: rgb(255 255 255 / 5%);
-  /* Unprefixed only. Lightning CSS collapses a prefixed twin onto this one
-     declaration and keeps the prefixed spelling, which current Chrome rejects
-     outright — the rail then renders with no blur at all. */
-  backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid rgb(255 255 255 / 12%);
-  /* Light catching the top lip, then the shadow that lifts it off the page. */
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%),
-    0 10px 34px rgb(0 0 0 / 40%);
+  /* Straight against the viewport on the right, bowed out on the left — a
+     segment of a circle. The radius is large enough that the arc runs past the
+     first and last cells, so the column inside stays straight and rectangular. */
+  border-radius: 3.5rem 0 0 3.5rem;
+
+  background: rgb(255 255 255 / 4%);
+  backdrop-filter: blur(16px) saturate(140%);
+  /* A hairline of light along the top-left arc only, as if lit from above and
+     in front, plus the shadow that lifts the shape off the page. */
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 16%),
+    -10px 0 40px rgb(0 0 0 / 45%);
 }
 
-.rail__list {
+.nav-rail__list {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1591,18 +1613,18 @@
   list-style: none;
 }
 
-.rail__pill {
+.nav-rail__pill {
   position: absolute;
   top: 0;
   left: 0;
-  width: var(--rail-cell);
-  height: var(--rail-cell);
+  width: var(--nav-cell);
+  height: var(--nav-cell);
   border-radius: 50%;
   /* A translate percentage resolves against this element's own height, which
      is one cell — so the offset is the active index, unitless, and stays
-     correct at any font-size without being recomputed. */
-  transform: translate3d(0, calc(var(--rail-active, 0) * 100%), 0);
-  transition: transform var(--timeOut, var(--duration))
+     correct at any font-size without ever being recomputed. */
+  transform: translate3d(0, calc(var(--nav-active, 0) * 100%), 0);
+  transition: transform var(--nav-timeout, var(--duration))
     cubic-bezier(0.16, 1, 0.3, 1);
   background: linear-gradient(
     180deg,
@@ -1613,67 +1635,46 @@
     0 4px 16px rgb(46 107 255 / 45%);
 }
 
-.rail__item {
+.nav-rail__item {
   all: unset;
   position: relative;
   z-index: 1;
   display: grid;
   place-items: center;
-  width: var(--rail-cell);
-  height: var(--rail-cell);
+  width: var(--nav-cell);
+  height: var(--nav-cell);
   border-radius: 50%;
   cursor: pointer;
-  will-change: transform;
-  transition: transform var(--timeOut, var(--duration));
+  color: var(--color-ink-muted);
+  transition: transform var(--nav-timeout, var(--duration)),
+    color 300ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.rail__item .icon {
-  width: 1.55em;
-  height: 1.55em;
-  fill: none;
-  stroke: var(--rail-icon);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  /* Long enough to cover any of these paths, so the dash offset animation
-     draws the whole icon rather than a fragment of it. */
-  stroke-dasharray: 400;
-  transition: stroke var(--duration);
+.nav-rail__item[aria-current] {
+  color: #fff;
 }
 
-.rail__item[aria-current] .icon {
-  stroke: #fff;
-  animation: strok 1.5s reverse;
-}
-
-@keyframes strok {
-  100% {
-    stroke-dashoffset: 400;
-  }
-}
-
-/* The source nudges the active item toward its indicator. Here the indicator
-   sits behind the item and moving it would pull the two apart, so the nudge
-   becomes the hover response instead — outward, away from the screen edge. */
 @media (hover: hover) {
-  .rail__item:hover {
+  /* The source bar nudges the active item toward its indicator. Here the
+     indicator sits behind the item and moving it would pull the two apart, so
+     the nudge becomes the hover response — outward, away from the edge. */
+  .nav-rail__item:hover {
     transform: translate3d(-0.22em, 0, 0);
   }
 
-  .rail__item:hover .icon {
-    stroke: var(--color-ink);
+  .nav-rail__item:not([aria-current]):hover {
+    color: var(--color-ink);
   }
 }
 
-.rail__item:focus-visible {
+.nav-rail__item:focus-visible {
   outline: 2px solid var(--color-electric-glow);
   outline-offset: 3px;
 }
 
-/* Icon-only items, so the name is on the button and this is the visible echo
-   of it. Opens inward: the rail is already against the right edge, and a
-   tooltip going the other way would push the document wider. */
-.rail__label {
+/* Icon-only items, so the name lives on the button and this is its visible
+   echo. Opens inward: the rail is already on the right edge. */
+.nav-rail__tip {
   position: absolute;
   right: calc(100% + 0.7em);
   top: 50%;
@@ -1689,34 +1690,323 @@
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease, translate 0.18s ease;
+  transition: opacity 0.18s ease;
 }
 
-.rail__item:hover .rail__label,
-.rail__item:focus-visible .rail__label {
+.nav-rail__item:hover .nav-rail__tip,
+.nav-rail__item:focus-visible .nav-rail__tip {
   opacity: 1;
 }
 
-/* Below lg the rail would eat into a layout that is already using the full
-   width, and there is a header nav for those sizes. The height condition
-   guards the back-to-top button: the rail is eight 2.73em cells plus padding
-   — about 370px at its largest — and being centred, a viewport over 640px
-   tall leaves at least 135px clear at the bottom, well past that button's
-   44px and its own bottom offset. Shorter than that and they would meet. */
+/* ── Mobile pill and panel ──────────────────────────────────────────────── */
+
+.nav-mobile {
+  /* The pill's travel. Equal insets top and bottom keep the container centred
+     on the viewport, which is what lets the panel inside it centre too. The
+     7rem clears the 85px header above and, below, the back-to-top button — a
+     44px control sitting at most 40px off the bottom edge. */
+  --nav-inset: 7rem;
+  --nav-track: calc(100dvh - (2 * var(--nav-inset)));
+  --nav-pill-w: 2.75rem;
+  --nav-pill-h: 3.25rem;
+  --nav-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  position: fixed;
+  right: 0;
+  top: var(--nav-inset);
+  height: var(--nav-track);
+  width: var(--nav-pill-w);
+  z-index: 41;
+  /* The container is a large invisible strip down the side of the page. Only
+     the controls inside it take clicks. */
+  pointer-events: none;
+}
+
+/* Both layers are laid out identically and read the same custom properties, so
+   the shapes stay welded under the content they back. */
+.nav-goo,
+.nav-pill,
+.nav-panel {
+  position: absolute;
+}
+
+.nav-goo {
+  inset: 0;
+}
+
+/* On only while a toggle is in flight. At rest the shapes keep their crisp
+   edges and their backdrop blur, both of which an SVG filter over the same
+   subtree would take away. */
+.nav-mobile[data-morphing="true"] .nav-goo {
+  filter: url(#nav-goo);
+}
+
+.nav-goo__pill,
+.nav-goo__panel {
+  position: absolute;
+  display: block;
+  background: rgb(255 255 255 / 6%);
+  backdrop-filter: blur(16px) saturate(140%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 16%),
+    -10px 0 40px rgb(0 0 0 / 45%);
+}
+
+/* Pill geometry, shared by the shape and the button on top of it. */
+.nav-goo__pill,
+.nav-pill {
+  right: 0;
+  top: 0;
+  width: var(--nav-pill-w);
+  height: var(--nav-pill-h);
+  border-radius: 999px 0 0 999px;
+  /* Rides the full track as progress runs 0 to 1. The percentage resolves
+     against the pill's own height, so subtracting it keeps the bottom of the
+     travel flush with the bottom of the track. The value written each frame is
+     already eased — no transition here, or the two would fight. */
+  transform: translate3d(
+    0,
+    calc(var(--nav-progress, 0) * (var(--nav-track) - 100%)),
+    0
+  );
+}
+
+.nav-pill {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink-muted);
+  pointer-events: auto;
+  transition: opacity 220ms ease;
+}
+
+/* The pill's own surface is drawn by the shape layer beneath it, so only its
+   contents belong here. */
+.nav-mobile[data-open="true"] .nav-pill {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nav-pill:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.nav-pill__ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.nav-pill__ring path {
+  stroke: var(--color-electric-glow);
+  stroke-width: 2;
+  stroke-linecap: round;
+  /* pathLength normalises the arc to 1, so the offset is the progress value
+     itself and nothing has to be measured at runtime. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--nav-progress, 0));
+  filter: drop-shadow(0 0 4px rgb(77 139 255 / 55%));
+}
+
+/* Every icon is stacked in the same cell and only the active one is opaque, so
+   a change is a crossfade between two icons rather than a swap under a fade. */
+.nav-pill__icons {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 1.55em;
+  height: 1.55em;
+}
+
+.nav-pill__icon {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nav-pill__icon[data-active] {
+  opacity: 1;
+  color: #fff;
+}
+
+/* Panel. Centred in the track — which is itself centred on the viewport — and
+   unfolding from wherever the pill happens to be. */
+.nav-goo__panel,
+.nav-panel {
+  right: 0;
+  top: 50%;
+  width: 15rem;
+  max-height: 100%;
+  border-radius: 1.5rem 0 0 1.5rem;
+  /* Right edge, and the pill's centre measured at the moment of opening. */
+  transform-origin: 100% var(--nav-origin-y, 50%);
+  transform: translateY(-50%) scale(0.16);
+  opacity: 0;
+  transition: transform 420ms var(--nav-spring), opacity 200ms ease;
+}
+
+.nav-goo__panel {
+  /* Empty by design, so it has no height of its own to take. The panel above
+     publishes its measured height and the silhouette borrows it. */
+  height: var(--nav-panel-h, 0px);
+}
+
+.nav-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0.85rem 0.75rem 0.85rem 0.9rem;
+  overflow-y: auto;
+  /* A short viewport can make the list scroll; that must not chain out to the
+     page underneath. */
+  overscroll-behavior: contain;
+  pointer-events: none;
+}
+
+.nav-mobile[data-open="true"] .nav-goo__panel,
+.nav-mobile[data-open="true"] .nav-panel {
+  transform: translateY(-50%) scale(1);
+  opacity: 1;
+}
+
+.nav-mobile[data-open="true"] .nav-panel {
+  pointer-events: auto;
+}
+
+.nav-panel__close {
+  align-self: flex-end;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 8%);
+  color: var(--color-ink-muted);
+  transition: color 200ms ease, background 200ms ease;
+}
+
+.nav-panel__close:hover {
+  color: var(--color-ink);
+  background: rgb(255 255 255 / 14%);
+}
+
+.nav-panel__close:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.nav-panel__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Rows arrive one after another rather than all at once. The delay is only on
+   the way in: closing, they leave together, which reads as the panel being
+   pulled back into the pill rather than unravelling. */
+.nav-panel__row {
+  opacity: 0;
+  transform: translateX(1.25rem);
+  transition: opacity 260ms ease, transform 340ms var(--nav-spring);
+}
+
+.nav-mobile[data-open="true"] .nav-panel__row {
+  opacity: 1;
+  transform: none;
+  transition-delay: calc(var(--nav-i, 0) * 45ms);
+}
+
+.nav-panel__item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.7rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  transition: color 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 200ms ease;
+}
+
+.nav-panel__item[aria-current] {
+  color: #fff;
+  background: linear-gradient(
+    90deg,
+    rgb(46 107 255 / 0%),
+    rgb(46 107 255 / 35%)
+  );
+}
+
+.nav-panel__item:hover {
+  color: var(--color-ink);
+}
+
+.nav-panel__item:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: -2px;
+}
+
+/* ── Which form is on screen ────────────────────────────────────────────── */
+
+@media (min-width: 1024px) and (min-height: 641px) {
+  .nav-mobile {
+    display: none;
+  }
+}
+
 @media (max-width: 1023px), (max-height: 640px) {
-  .rail {
+  .nav-rail {
+    display: none;
+  }
+
+  /* The pill's ring is the progress indicator at these sizes, and two of them
+     saying the same thing is one too many. */
+  .scroll-progress {
     display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rail__pill,
-  .rail__item,
-  .rail__item .icon {
-    transition-duration: 0.01ms;
+  .nav-icon,
+  .nav-rail__pill,
+  .nav-rail__item,
+  .nav-pill,
+  .nav-pill__icon,
+  .nav-goo__panel,
+  .nav-panel,
+  .nav-panel__row,
+  .nav-panel__item {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
   }
 
-  .rail__item[aria-current] .icon {
-    animation: none;
+  /* No unfold: the panel is simply there or not. */
+  .nav-goo__panel,
+  .nav-panel {
+    transform: translateY(-50%) scale(1);
+  }
+
+  .nav-goo__panel,
+  .nav-panel {
+    visibility: hidden;
+  }
+
+  .nav-mobile[data-open="true"] .nav-goo__panel,
+  .nav-mobile[data-open="true"] .nav-panel {
+    visibility: visible;
   }
 }
