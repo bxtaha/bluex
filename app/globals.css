@@ -1356,22 +1356,29 @@
 
 /* ── Back to top ─────────────────────────────────────────────────────────── */
 
-/* Back-to-top, whose background is an animated water fill.
-   `overflow: hidden` on a fully rounded button clips the water to the circle,
-   and `isolation` contains the stacking so the water can sit under the arrow
-   without a z-index competing with the rest of the page. */
-.back-to-top {
+/* Back-to-top, whose background is an animated water fill that throws
+   droplets. The root is fixed and un-clipped so droplets can leave the
+   button; the button itself clips its water to the circle. */
+.btt-root {
   position: fixed;
-  isolation: isolate;
-  overflow: hidden;
   right: clamp(1rem, 3vw, 2.5rem);
   /* Cleared above the 2px progress bar pinned to the very bottom edge. */
   bottom: clamp(1.25rem, 3vw, 2.5rem);
   z-index: 40;
-  display: grid;
-  place-items: center;
   width: 2.75rem;
   height: 2.75rem;
+  /* Only the button takes clicks; the root and the droplet layer never do. */
+  pointer-events: none;
+}
+
+.back-to-top {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
   border: 0;
   border-radius: 999px;
   background: rgb(255 255 255 / 6%);
@@ -1380,8 +1387,6 @@
   color: var(--color-ink);
   opacity: 0;
   transform: translateY(12px);
-  /* Not clickable while invisible, so it cannot swallow clicks in the corner
-     before it has appeared. */
   pointer-events: none;
   transition:
     opacity 0.4s var(--ease-reveal),
@@ -1397,8 +1402,7 @@
 }
 
 /* Twice the button's height, parked fully below it, so a translate of half its
-   own height brings the surface from the bottom edge to the top. The body
-   colour is the water below the crest. */
+   own height brings the surface from the bottom edge to the top. */
 .btt-water {
   position: absolute;
   left: 0;
@@ -1438,7 +1442,6 @@
 .btt-wave__body {
   position: absolute;
   inset: 0;
-  overflow: visible;
 }
 
 /* Twice the button's width holding two identical wave periods, so sliding it
@@ -1483,6 +1486,32 @@
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 55%));
 }
 
+/* Droplet layer. A sibling of the button rather than a child, since the button
+   clips to its circle and droplets have to leave it. Never takes a click. */
+.btt-splash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btt-splash[data-visible="true"] {
+  opacity: 1;
+}
+
+/* Positioned entirely by JS through transform. Sized per droplet on spawn. */
+.btt-drop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 999px;
+  background: var(--color-electric-glow);
+  box-shadow: 0 0 4px rgb(77 139 255 / 55%);
+  will-change: transform, opacity;
+}
+
 @media (hover: hover) {
   .back-to-top[data-visible="true"]:hover {
     background: rgb(255 255 255 / 12%);
@@ -1509,6 +1538,12 @@
      line. The level still tracks scroll — that is information, not
      decoration — but is set instantly, with no easing, by the component. */
   .btt-wave {
+    display: none !important;
+  }
+
+  /* No droplets at all: the pool is never built, so this only covers a change
+     of preference after mount. */
+  .btt-splash {
     display: none !important;
   }
 }
