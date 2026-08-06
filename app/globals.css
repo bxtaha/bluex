@@ -1878,9 +1878,10 @@
   }
 }
 
-/* ── Header pill ─────────────────────────────────────────────────────────────
-   Detached from the top edge and floating over the page, made of the same
-   glass as the side dock — every surface value below comes from the shared
+/* ── Header ──────────────────────────────────────────────────────────────────
+   The logo and the call button sit where they always have, at the two edges of
+   the page. Between them the links float in a glass pill made of the same
+   material as the side dock — every surface value below comes from the shared
    `--glass-*` tokens. */
 
 .site-header {
@@ -1888,25 +1889,25 @@
   inset-inline: 0;
   top: 0;
   z-index: 50;
-  display: flex;
-  justify-content: center;
-  /* The gap that makes it read as hovering rather than as a bar. */
-  padding: 0.9rem 1rem 0;
-  /* The strip either side of the pill is empty and must not swallow clicks
-     meant for the page under it. */
+  /* The bar is a full-width strip with very little in it. Only what is
+     actually drawn takes clicks; the gaps belong to the page underneath. */
   pointer-events: none;
+  transition: background-color 300ms ease, border-color 300ms ease;
+}
+
+.site-header__edge {
+  pointer-events: auto;
 }
 
 .site-header__pill {
+  position: absolute;
+  left: 50%;
+  top: 50%;
   pointer-events: auto;
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  /* Hugs its contents rather than spanning the viewport, but never grows past
-     the screen on a narrow one. */
   width: max-content;
-  max-width: 100%;
-  padding: 0.55rem 0.55rem 0.55rem 1rem;
+  padding: 0.4rem;
   border-radius: 999px;
   background: var(--glass-tint);
   backdrop-filter: var(--glass-blur);
@@ -1914,8 +1915,8 @@
      top of the screen. */
   box-shadow: inset 0 1px 0 var(--glass-edge),
     0 10px var(--glass-shadow-size) var(--glass-shadow-tint);
+  transform: translate(-50%, -50%);
   transition: padding 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    gap 420ms cubic-bezier(0.16, 1, 0.3, 1),
     backdrop-filter 420ms cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1923,26 +1924,10 @@
 /* Contracted once there is content under it: tighter, and lifted a little
    further off the page. */
 .site-header[data-scrolled="true"] .site-header__pill {
-  gap: 0.9rem;
-  padding: 0.35rem 0.35rem 0.35rem 0.8rem;
+  padding: 0.25rem;
   backdrop-filter: var(--glass-blur-lifted);
   box-shadow: inset 0 1px 0 var(--glass-edge),
     0 14px var(--glass-shadow-size-lifted) var(--glass-shadow-tint-lifted);
-}
-
-.site-header__logo {
-  display: block;
-  flex-shrink: 0;
-}
-
-.site-header__logo img {
-  width: auto;
-  height: 2.4rem;
-  transition: height 420ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.site-header[data-scrolled="true"] .site-header__logo img {
-  height: 2rem;
 }
 
 .site-header__list {
@@ -2002,13 +1987,6 @@
   gap: 0.5rem;
 }
 
-.site-header__cta {
-  flex-shrink: 0;
-  height: 2.25rem;
-  padding-inline: 0.9rem;
-  font-size: 0.8125rem;
-}
-
 .site-header__menu {
   display: grid;
   place-items: center;
@@ -2036,9 +2014,23 @@
 /* Below the width where four labels fit beside the logo and the CTA, the links
    collapse and the menu button takes over — it opens the dock's panel, which is
    the navigation at these sizes. */
+/* Below the width where the pill clears the logo and the call button either
+   side of it, the links collapse and the menu button takes over — it opens the
+   dock's panel, which is the navigation at these sizes. */
 @media (max-width: 899px) {
-  .site-header__nav {
+  .site-header__pill {
     display: none;
+  }
+
+  /* With no pill at these widths, nothing separates the logo and the call
+     button from whatever scrolls under them — headings run straight behind the
+     logo. This is the backing the bar carried before it floated, restored only
+     where the pill is not already doing that job. */
+  .site-header[data-scrolled="true"] {
+    pointer-events: auto;
+    border-bottom: 1px solid rgb(255 255 255 / 8%);
+    background: color-mix(in oklab, var(--color-void) 72%, transparent);
+    backdrop-filter: var(--glass-blur);
   }
 }
 
@@ -2048,27 +2040,9 @@
   }
 }
 
-@media (max-width: 419px) {
-  .site-header__pill {
-    gap: 0.6rem;
-  }
-
-  /* Restated, because the scrolled rule above is more specific than the plain
-     class and would otherwise leave the pill *widening* as it contracts. */
-  .site-header[data-scrolled="true"] .site-header__pill {
-    gap: 0.45rem;
-  }
-
-  .site-header__cta {
-    height: 2.1rem;
-    padding-inline: 0.7rem;
-    font-size: 0.75rem;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
+  .site-header,
   .site-header__pill,
-  .site-header__logo img,
   .site-header__indicator,
   .site-header__link {
     transition-duration: 0.01ms !important;

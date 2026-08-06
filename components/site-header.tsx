@@ -108,18 +108,26 @@ export function SiteHeader() {
 
   return (
     <header ref={headerRef} data-scrolled="false" className="site-header">
-      <div className="site-header__pill">
-        <a href="#top" aria-label="BlueX — home" className="site-header__logo">
+      <div className="relative mx-auto flex max-w-[100rem] items-center justify-between gap-4 px-6 py-4 sm:px-10 lg:px-16">
+        <a
+          href="#top"
+          aria-label="BlueX — home"
+          className="site-header__edge shrink-0"
+        >
           <Image
             src="/bluex-logo.png"
             alt="BlueX"
             width={525}
             height={271}
             priority
+            className="h-11 w-auto sm:h-13"
           />
         </a>
 
-        <nav className="site-header__nav" aria-label="Main">
+        {/* Centred on the viewport rather than sitting between its neighbours:
+            the logo and the action group are different widths, so a flex
+            middle child would land off-centre by half that difference. */}
+        <nav className="site-header__pill" aria-label="Main">
           <ul ref={listRef} className="site-header__list">
             {/* One sliding element, animating both its position and its width
                 to fit whichever item is current. */}
@@ -145,8 +153,12 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="site-header__actions">
-          <CallCta size="sm" magnetic={false} className="site-header__cta">
+        <div className="site-header__edge site-header__actions">
+          <CallCta
+            size="sm"
+            magnetic={false}
+            className="h-9 shrink-0 px-3 text-xs sm:h-10 sm:px-4 sm:text-[0.8125rem]"
+          >
             Get a call
           </CallCta>
 
