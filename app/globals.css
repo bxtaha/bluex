@@ -178,6 +178,21 @@
     background: color-mix(in oklab, var(--color-electric) 40%, transparent);
     color: #fff;
   }
+
+  /* Native <button> resolves to `cursor: default`, and Tailwind's preflight
+     does not change that — so every button needs this stated once here rather
+     than remembered per component. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 /* ── Page texture ────────────────────────────────────────────────────────────
