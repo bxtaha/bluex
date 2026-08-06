@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
+import ParticleOrb from "@/components/ui/particle-orb";
 import { validateLead, type LeadErrors } from "@/lib/lead";
 
 type Status = "idle" | "sending" | "done" | "error";
@@ -81,9 +82,19 @@ export function ExperienceIt() {
     <section
       ref={ref}
       id="experience"
-      className="relative border-y border-white/8 bg-white/[0.015]"
+      className="relative overflow-hidden border-y border-white/8 bg-white/[0.015]"
     >
-      <div className="mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16">
+      {/* Background layer, behind all existing content. Two point clouds
+          meeting reads as the lead and the agent connecting. */}
+      <ParticleOrb className="opacity-70" />
+
+      {/* Keeps the orb from washing out the form's contrast at the centre. */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(closest-side,rgba(10,11,15,0.82),transparent)]"
+        aria-hidden
+      />
+
+      <div className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16">
         <div className="mx-auto max-w-2xl text-center">
           <Reveal as="p" className="bx-eyebrow">
             Experience it
