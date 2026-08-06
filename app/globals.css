@@ -1371,3 +1371,137 @@
     transform: translateY(-4.5rem) scale(1.15);
   }
 }
+
+/* ── Scroll overlays ─────────────────────────────────────────────────────────
+   Both are fixed, so neither participates in layout or can shift content.
+   They sit above the page but below the header (z-50) and below any native
+   <dialog>, which renders in the browser's top layer regardless. */
+
+.scroll-progress {
+  position: fixed;
+  left: clamp(0.75rem, 2vw, 1.75rem);
+  top: 50%;
+  height: min(38vh, 20rem);
+  width: 1.5rem;
+  transform: translateY(-50%);
+  z-index: 40;
+  /* Indicator only — it must never intercept a click meant for the page. */
+  pointer-events: none;
+  display: none;
+}
+
+/* Shown from md up. On a phone it would sit over content that has already
+   given up its side margins. */
+@media (min-width: 768px) {
+  .scroll-progress {
+    display: block;
+  }
+}
+
+.scroll-progress__track,
+.scroll-progress__fill {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  margin-left: -0.5px;
+  border-radius: 999px;
+}
+
+.scroll-progress__track {
+  background: rgb(255 255 255 / 12%);
+}
+
+.scroll-progress__fill {
+  background: linear-gradient(
+    180deg,
+    var(--color-electric-glow),
+    var(--color-electric)
+  );
+  transform-origin: top;
+  transform: scaleY(0);
+}
+
+/* Written every frame, so it carries no transition of its own — see the
+   component for why position and rotation are split across two elements. */
+.scroll-progress__thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: var(--color-void);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 18%);
+  color: var(--color-ink);
+  will-change: transform;
+}
+
+/* The flip. Rotation is transitioned here rather than swapped, so scrolling
+   back up turns the arrow over instead of snapping it. */
+.scroll-progress__icon {
+  display: grid;
+  place-items: center;
+  transition: transform 0.45s var(--ease-reveal);
+}
+
+.scroll-progress__thumb[data-direction="up"] .scroll-progress__icon {
+  transform: rotate(180deg);
+}
+
+/* ── Back to top ─────────────────────────────────────────────────────────── */
+
+.back-to-top {
+  position: fixed;
+  right: clamp(1rem, 3vw, 2.5rem);
+  bottom: clamp(1rem, 3vw, 2.5rem);
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
+  backdrop-filter: blur(10px);
+  color: var(--color-ink);
+  opacity: 0;
+  transform: translateY(12px);
+  /* Not clickable while invisible, so it cannot swallow clicks in the corner
+     before it has appeared. */
+  pointer-events: none;
+  transition:
+    opacity 0.4s var(--ease-reveal),
+    transform 0.4s var(--ease-reveal),
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.back-to-top[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+@media (hover: hover) {
+  .back-to-top[data-visible="true"]:hover {
+    background: rgb(255 255 255 / 12%);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 26%);
+  }
+}
+
+.back-to-top:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress__icon,
+  .back-to-top {
+    transition: none !important;
+  }
+}

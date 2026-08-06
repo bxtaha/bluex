@@ -3,6 +3,8 @@ import { clashDisplay, generalSans } from "@/lib/fonts";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import { LeadFormProvider } from "@/components/providers/lead-form-provider";
 import { CustomCursor } from "@/components/ui/custom-cursor";
+import { ScrollProgress } from "@/components/ui/scroll-progress";
+import { BackToTop } from "@/components/ui/back-to-top";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
 
@@ -35,6 +37,11 @@ export default function RootLayout({
           <SiteHeader />
           <main className="relative z-10">{children}</main>
         </LeadFormProvider>
+
+        {/* Fixed overlays, so they add nothing to layout and cannot shift
+            content. Outside <main> because neither is page content. */}
+        <ScrollProgress />
+        <BackToTop />
       </body>
     </html>
   );

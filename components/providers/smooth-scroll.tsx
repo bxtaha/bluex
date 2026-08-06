@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { setLenis } from "@/lib/lenis";
 
 /** Clearance for the fixed header so anchored sections aren't tucked under it. */
 const HEADER_OFFSET = 88;
@@ -33,6 +34,10 @@ export function SmoothScroll() {
       // the page feel laggy and breaks the browser's own overscroll handling.
       syncTouch: false,
     });
+
+    // Published so programmatic scrolling elsewhere routes through this
+    // instance rather than fighting it with a native call.
+    setLenis(lenis);
 
     lenis.on("scroll", ScrollTrigger.update);
 
@@ -67,6 +72,7 @@ export function SmoothScroll() {
     document.addEventListener("click", onAnchorClick);
 
     return () => {
+      setLenis(null);
       document.removeEventListener("click", onAnchorClick);
       gsap.ticker.remove(raf);
       gsap.ticker.lagSmoothing(500, 33); // restore GSAP's default
