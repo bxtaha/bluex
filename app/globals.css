@@ -147,6 +147,25 @@
   --input: rgb(255 255 255 / 14%);
   --ring: #2e6bff;
   --radius: 0.75rem;
+
+  /* Floating glass. The header pill and the side dock are the same material,
+     so every value that describes that material lives here and nowhere else —
+     the two cannot drift apart without this changing first.
+
+     Only the offsets are left to each component: a pill under the top edge
+     catches light on its top and casts downward, one against the right edge
+     catches it on the left and casts sideways. That is geometry, not surface. */
+  --glass-tint: rgb(255 255 255 / 6%);
+  --glass-blur: blur(16px) saturate(140%);
+  --glass-edge: rgb(255 255 255 / 16%);
+  --glass-shadow-size: 40px;
+  --glass-shadow-tint: rgb(0 0 0 / 45%);
+
+  /* Elevated: what the header pill moves to once the page is scrolled under
+     it. Marginal on purpose — enough to read as lifting, not as a new object. */
+  --glass-blur-lifted: blur(22px) saturate(150%);
+  --glass-shadow-size-lifted: 54px;
+  --glass-shadow-tint-lifted: rgb(0 0 0 / 58%);
 }
 
 @layer base {
@@ -1618,10 +1637,13 @@
 .nav-goo__panel {
   position: absolute;
   display: block;
-  background: rgb(255 255 255 / 6%);
-  backdrop-filter: blur(16px) saturate(140%);
-  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 16%),
-    -10px 0 40px rgb(0 0 0 / 45%);
+  background: var(--glass-tint);
+  backdrop-filter: var(--glass-blur);
+  /* Highlight on the top-left arc and the shadow thrown inward, because this
+     one sits against the right edge. The values are shared; the directions are
+     this component's own. */
+  box-shadow: inset 1px 1px 0 var(--glass-edge),
+    -10px 0 var(--glass-shadow-size) var(--glass-shadow-tint);
 }
 
 /* Pill geometry, shared by the shape and the button on top of it. */
@@ -1697,8 +1719,17 @@
   width: 15rem;
   max-height: 100%;
   border-radius: 1.5rem 0 0 1.5rem;
-  /* Right edge, and the pill's centre measured at the moment of opening. */
-  transform-origin: 100% var(--nav-origin-y, 50%);
+  /* Unfolds from the right edge at the pill's centre. Derived rather than
+     measured: the pill's own offset down the track is progress x the distance
+     it can travel, and the panel's top is half the leftover track — so the
+     origin follows the pill for free, whoever opens the panel and wherever the
+     page happens to be when they do. */
+  transform-origin: 100%
+    calc(
+      var(--nav-progress, 0) * (var(--nav-track) - var(--nav-pill-h)) +
+        (var(--nav-pill-h) / 2) -
+        ((var(--nav-track) - var(--nav-panel-h, 0px)) / 2)
+    );
   transform: translateY(-50%) scale(0.16);
   opacity: 0;
   transition: transform 420ms var(--nav-spring), opacity 200ms ease;
@@ -1844,5 +1875,202 @@
   .nav-dock[data-open="true"] .nav-goo__panel,
   .nav-dock[data-open="true"] .nav-panel {
     visibility: visible;
+  }
+}
+
+/* ── Header pill ─────────────────────────────────────────────────────────────
+   Detached from the top edge and floating over the page, made of the same
+   glass as the side dock — every surface value below comes from the shared
+   `--glass-*` tokens. */
+
+.site-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  /* The gap that makes it read as hovering rather than as a bar. */
+  padding: 0.9rem 1rem 0;
+  /* The strip either side of the pill is empty and must not swallow clicks
+     meant for the page under it. */
+  pointer-events: none;
+}
+
+.site-header__pill {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  /* Hugs its contents rather than spanning the viewport, but never grows past
+     the screen on a narrow one. */
+  width: max-content;
+  max-width: 100%;
+  padding: 0.55rem 0.55rem 0.55rem 1rem;
+  border-radius: 999px;
+  background: var(--glass-tint);
+  backdrop-filter: var(--glass-blur);
+  /* Light along the top edge, shadow cast downward — this pill hangs under the
+     top of the screen. */
+  box-shadow: inset 0 1px 0 var(--glass-edge),
+    0 10px var(--glass-shadow-size) var(--glass-shadow-tint);
+  transition: padding 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    gap 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    backdrop-filter 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Contracted once there is content under it: tighter, and lifted a little
+   further off the page. */
+.site-header[data-scrolled="true"] .site-header__pill {
+  gap: 0.9rem;
+  padding: 0.35rem 0.35rem 0.35rem 0.8rem;
+  backdrop-filter: var(--glass-blur-lifted);
+  box-shadow: inset 0 1px 0 var(--glass-edge),
+    0 14px var(--glass-shadow-size-lifted) var(--glass-shadow-tint-lifted);
+}
+
+.site-header__logo {
+  display: block;
+  flex-shrink: 0;
+}
+
+.site-header__logo img {
+  width: auto;
+  height: 2.4rem;
+  transition: height 420ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.site-header[data-scrolled="true"] .site-header__logo img {
+  height: 2rem;
+}
+
+.site-header__list {
+  position: relative;
+  display: flex;
+  align-items: center;
+  /* Fixed while the pill contracts: the indicator's geometry is measured
+     inside this list, so its spacing has to stay still even as the pill's own
+     padding moves the list as a whole. */
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-header__indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 9%);
+  box-shadow: inset 0 1px 0 var(--glass-edge);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    width 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease;
+}
+
+.site-header__link {
+  display: block;
+  padding: 0.45rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  color: var(--color-ink-muted);
+  transition: color 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.site-header__link:hover {
+  color: var(--color-ink);
+}
+
+.site-header__link[aria-current="page"] {
+  color: var(--color-ink);
+}
+
+.site-header__link:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-header__cta {
+  flex-shrink: 0;
+  height: 2.25rem;
+  padding-inline: 0.9rem;
+  font-size: 0.8125rem;
+}
+
+.site-header__menu {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 8%);
+  color: var(--color-ink-muted);
+  transition: color 200ms ease, background 200ms ease;
+}
+
+.site-header__menu:hover {
+  color: var(--color-ink);
+  background: rgb(255 255 255 / 14%);
+}
+
+.site-header__menu:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+/* Below the width where four labels fit beside the logo and the CTA, the links
+   collapse and the menu button takes over — it opens the dock's panel, which is
+   the navigation at these sizes. */
+@media (max-width: 899px) {
+  .site-header__nav {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .site-header__menu {
+    display: none;
+  }
+}
+
+@media (max-width: 419px) {
+  .site-header__pill {
+    gap: 0.6rem;
+  }
+
+  /* Restated, because the scrolled rule above is more specific than the plain
+     class and would otherwise leave the pill *widening* as it contracts. */
+  .site-header[data-scrolled="true"] .site-header__pill {
+    gap: 0.45rem;
+  }
+
+  .site-header__cta {
+    height: 2.1rem;
+    padding-inline: 0.7rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header__pill,
+  .site-header__logo img,
+  .site-header__indicator,
+  .site-header__link {
+    transition-duration: 0.01ms !important;
   }
 }

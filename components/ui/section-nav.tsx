@@ -8,17 +8,8 @@ import {
   useSyncExternalStore,
   type CSSProperties,
 } from "react";
-import {
-  CalendarCheck,
-  Home,
-  Layers,
-  PhoneCall,
-  Route,
-  ShieldCheck,
-  TrendingUp,
-  Workflow,
-  X,
-} from "lucide-react";
+import { X } from "lucide-react";
+import { SECTIONS, useSections } from "@/components/providers/section-provider";
 import { scrollToSection } from "@/lib/lenis";
 
 /**
@@ -30,28 +21,9 @@ import { scrollToSection } from "@/lib/lenis";
  * maintain, and it leaves the page itself as the only thing changing between
  * a phone and a desktop.
  *
- * Items must stay in document order: the active item is the topmost section
- * crossing the middle of the viewport, which relies on index order matching
- * page order.
+ * Which section is current is not decided here: it comes from SectionProvider,
+ * so this and the header pill can never disagree.
  */
-const SECTIONS = [
-  { id: "top", label: "Home", Icon: Home },
-  { id: "services", label: "What we build", Icon: Layers },
-  { id: "how-it-works", label: "How it works", Icon: Workflow },
-  { id: "experience", label: "Try the agent", Icon: PhoneCall },
-  { id: "why-bluex", label: "Why BlueX", Icon: ShieldCheck },
-  { id: "process", label: "Process", Icon: Route },
-  { id: "outcomes", label: "Outcomes", Icon: TrendingUp },
-  { id: "contact", label: "Get a call", Icon: CalendarCheck },
-] as const;
-
-/**
- * Narrows the observer's root to a band across the middle of the viewport, so
- * "active" means the section being looked at rather than any section with a
- * pixel on screen — near a boundary two are always partly visible, and the top
- * edge would flip the state a full screen early.
- */
-const ROOT_MARGIN = "-45% 0px -45% 0px";
 
 const REDUCED_QUERY = "(prefers-reduced-motion: reduce)";
 
@@ -63,8 +35,6 @@ const PILL_EPSILON = 0.0004;
 
 /** How long the goo filter stays applied after a toggle. Matches the CSS. */
 const MORPH_MS = 560;
-
-/* ── Hooks ────────────────────────────────────────────────────────────────── */
 
 function useMediaQuery(query: string) {
   const subscribe = useCallback(
@@ -85,43 +55,6 @@ function useMediaQuery(query: string) {
     () => false,
   );
 }
-
-function useActiveSection() {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    const elements = SECTIONS.map((s) => document.getElementById(s.id));
-
-    // Which sections are in the band. A set rather than one index because
-    // several qualify at once while one scrolls out and the next scrolls in.
-    const inBand = new Set<number>();
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const index = elements.indexOf(entry.target as HTMLElement);
-          if (index === -1) continue;
-          if (entry.isIntersecting) inBand.add(index);
-          else inBand.delete(index);
-        }
-
-        // Untracked stretches sit between some sections — the trust strip, the
-        // speed hook, the footer. Holding the last active item through them is
-        // right: the nav should not blank out between two of its entries.
-        if (inBand.size === 0) return;
-        setActiveIndex(Math.min(...inBand));
-      },
-      { rootMargin: ROOT_MARGIN, threshold: 0 },
-    );
-
-    for (const el of elements) if (el) observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  return activeIndex;
-}
-
-/* ── Filter ───────────────────────────────────────────────────────────────── */
 
 /**
  * Blur, then push alpha far past its own range and pull it back down. Partly
@@ -148,11 +81,8 @@ function GooFilter() {
   );
 }
 
-/* ── The dock ─────────────────────────────────────────────────────────────── */
-
 export function SectionNav() {
-  const activeIndex = useActiveSection();
-  const [open, setOpen] = useState(false);
+  const { activeIndex, navOpen, setNavOpen } = useSections();
   const [morphing, setMorphing] = useState(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -162,9 +92,9 @@ export function SectionNav() {
   const reduced = useMediaQuery(REDUCED_QUERY);
   const active = SECTIONS[activeIndex];
 
-  /* Scroll progress drives the pill's position. Written to the root as a custom
-     property so the shape layer and the content layer read the same number and
-     stay welded together. */
+  /* Scroll progress drives the pill's position, and the panel's unfold origin
+     is derived from it in CSS. Written to the root as a custom property so the
+     shape layer and the content layer read the same number and stay welded. */
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
@@ -229,16 +159,16 @@ export function SectionNav() {
   /* The shape layer mirrors the panel, and an empty element has no content to
      take its height from — left alone it collapses to nothing and the panel
      opens with no surface under it at all. The real panel's measured height is
-     published so the shape can borrow it. */
+     published so the shape can borrow it, and so the CSS that positions the
+     unfold origin has a panel height to work from. */
   useEffect(() => {
     const root = rootRef.current;
     const panel = panelRef.current;
     if (!root || !panel) return;
 
     const observer = new ResizeObserver(() => {
-      // The border box, not the content box: the shape has to cover the
-      // panel's padding too. A layout value, so the panel's own scale transform
-      // does not feed back into it.
+      // A layout value, so the panel's own scale transform does not feed back
+      // into it.
       root.style.setProperty("--nav-panel-h", `${panel.offsetHeight}px`);
     });
 
@@ -246,32 +176,16 @@ export function SectionNav() {
     return () => observer.disconnect();
   }, []);
 
-  /* The panel unfolds out of the pill, so its transform origin is wherever the
-     pill happens to be — which changes with scroll. Measured at the moment of
-     opening, when the pill is still in its collapsed position. */
-  const setOrigin = useCallback(() => {
-    const root = rootRef.current;
-    const pill = pillRef.current;
-    if (!root || !pill) return;
-    const pillBox = pill.getBoundingClientRect();
-    const rootBox = root.getBoundingClientRect();
-    root.style.setProperty(
-      "--nav-origin-y",
-      `${pillBox.top + pillBox.height / 2 - rootBox.top}px`,
-    );
-  }, []);
-
   const toggle = useCallback(
     (next: boolean) => {
-      if (next) setOrigin();
-      setOpen(next);
+      setNavOpen(next);
       // The goo is a transition effect. Off at rest, so the resting shapes keep
       // their crisp edges and their backdrop blur, which an SVG filter on the
       // same subtree would otherwise take away.
       if (reduced) return;
       setMorphing(true);
     },
-    [reduced, setOrigin],
+    [reduced, setNavOpen],
   );
 
   useEffect(() => {
@@ -283,7 +197,7 @@ export function SectionNav() {
   /* Escape, a click outside, and a focus loop — the three things a panel that
      covers the page owes the person using it. */
   useEffect(() => {
-    if (!open) return;
+    if (!navOpen) return;
     const panel = panelRef.current;
     if (!panel) return;
 
@@ -325,8 +239,9 @@ export function SectionNav() {
     };
 
     document.addEventListener("keydown", onKeyDown);
-    // Deferred a frame: the pointerdown that opened the panel is still being
-    // dispatched, and this listener would see it and close it immediately.
+    // Deferred a frame: the pointerdown that opened the panel — which may have
+    // landed on the header's menu button, not the pill — is still being
+    // dispatched, and this listener would see it and close the panel again.
     const arm = requestAnimationFrame(() =>
       document.addEventListener("pointerdown", onPointerDown),
     );
@@ -338,7 +253,7 @@ export function SectionNav() {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("pointerdown", onPointerDown);
     };
-  }, [open, toggle]);
+  }, [navOpen, toggle]);
 
   // Closing hands focus back to the control that opened the panel, so tabbing
   // does not restart from the top of the document.
@@ -359,7 +274,7 @@ export function SectionNav() {
       <div
         ref={rootRef}
         className="nav-dock"
-        data-open={open}
+        data-open={navOpen}
         data-morphing={morphing}
       >
         {/* Shape layer. Nothing here has content — it exists to be blurred and
@@ -375,8 +290,8 @@ export function SectionNav() {
           type="button"
           className="nav-pill"
           aria-label={`Sections — currently ${active.label}`}
-          aria-expanded={open}
-          onClick={() => toggle(!open)}
+          aria-expanded={navOpen}
+          onClick={() => toggle(!navOpen)}
         >
           {/* Every icon is mounted and only the active one is opaque, so the
               change is a crossfade between two of them rather than one icon
@@ -402,7 +317,7 @@ export function SectionNav() {
           aria-label="Sections"
           // Hidden from assistive tech and from tabbing while collapsed. The
           // element stays mounted so the unfold has something to animate.
-          inert={!open}
+          inert={!navOpen}
         >
           <button
             type="button"
@@ -423,7 +338,7 @@ export function SectionNav() {
                 <button
                   type="button"
                   className="nav-panel__item"
-                  aria-current={i === activeIndex ? "true" : undefined}
+                  aria-current={i === activeIndex ? "page" : undefined}
                   onClick={() => go(section.id)}
                 >
                   <section.Icon

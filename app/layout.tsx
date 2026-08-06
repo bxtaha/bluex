@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { clashDisplay, generalSans } from "@/lib/fonts";
 import { SmoothScroll } from "@/components/providers/smooth-scroll";
 import { LeadFormProvider } from "@/components/providers/lead-form-provider";
+import { SectionProvider } from "@/components/providers/section-provider";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { BackToTop } from "@/components/ui/back-to-top";
 import { SectionNav } from "@/components/ui/section-nav";
@@ -32,16 +33,20 @@ export default function RootLayout({
 
         <SmoothScroll />
 
-        <LeadFormProvider>
-          <SiteHeader />
-          <main className="relative z-10">{children}</main>
-        </LeadFormProvider>
+        {/* Wraps the header and the dock both: they highlight the same current
+            section, and one observer between them is what keeps them agreeing. */}
+        <SectionProvider>
+          <LeadFormProvider>
+            <SiteHeader />
+            <main className="relative z-10">{children}</main>
+          </LeadFormProvider>
 
-        {/* Fixed overlays, so they add nothing to layout and cannot shift
-            content. Outside <main> because neither is page content. */}
-        <ScrollProgress />
-        <SectionNav />
-        <BackToTop />
+          {/* Fixed overlays, so they add nothing to layout and cannot shift
+              content. Outside <main> because none is page content. */}
+          <ScrollProgress />
+          <SectionNav />
+          <BackToTop />
+        </SectionProvider>
       </body>
     </html>
   );
