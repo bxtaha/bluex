@@ -1,5 +1,6 @@
 import { Hero } from "@/components/sections/hero";
 import { TrustStrip } from "@/components/sections/trust-strip";
+import { SpeedHook } from "@/components/sections/speed-hook";
 import { Services } from "@/components/sections/services";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { WhyBluex } from "@/components/sections/why-bluex";
@@ -8,13 +9,14 @@ import { Outcomes } from "@/components/sections/outcomes";
 import { FinalCta } from "@/components/sections/final-cta";
 import { SiteFooter } from "@/components/sections/site-footer";
 
-// Order follows the brief. Sections 3 (speed hook) and 6 ("experience it")
-// are not built yet and slot in after TrustStrip and HowItWorks respectively.
+// Order follows the brief. Section 6 ("experience it") is not built yet and
+// slots in after HowItWorks.
 export default function Home() {
   return (
     <>
       <Hero />
       <TrustStrip />
+      <SpeedHook />
       <Services />
       <HowItWorks />
       <WhyBluex />

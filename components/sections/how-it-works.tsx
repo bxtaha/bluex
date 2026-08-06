@@ -6,22 +6,22 @@ import { RevealText } from "@/components/ui/reveal-text";
 
 const STEPS = [
   {
-    time: "0:00",
+    time: "0 min",
     title: "The lead submits",
     body: "Someone fills in your form, at any hour. The agent picks it up immediately — no queue, no inbox, nobody to be available.",
   },
   {
-    time: "0:04",
+    time: "4 min",
     title: "Hermes calls them",
     body: "Our voice agent dials out while they are still on your site and the problem is still fresh in their mind.",
   },
   {
-    time: "0:05",
+    time: "5 min",
     title: "It qualifies the conversation",
     body: "A real conversation against your criteria: budget, timeline, what they actually need. Not a phone tree.",
   },
   {
-    time: "0:09",
+    time: "9 min",
     title: "The meeting is booked",
     body: "It lands in your calendar, and you get the transcript and outcome before you have picked up your phone.",
   },
