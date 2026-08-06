@@ -29,7 +29,11 @@ export function FinalCta() {
               aria-hidden
             />
 
-            <div className="mx-auto max-w-3xl text-center">
+            {/* Above the bell. It descends from over a screen's height above
+                its resting place, so on a short viewport it crosses this copy
+                on the way down — passing behind it keeps the headline readable
+                for the whole descent. */}
+            <div className="relative z-20 mx-auto max-w-3xl text-center">
               <Reveal as="p" className="bx-eyebrow">
                 Ready when you are
               </Reveal>
@@ -55,7 +59,10 @@ export function FinalCta() {
 
             {/* Last thing in the section, under the bell — the closing action
                 someone reaches after the whole page. */}
-            <Reveal index={2} className="mt-24 flex justify-center sm:mt-32">
+            <Reveal
+              index={2}
+              className="relative z-20 mt-24 flex justify-center sm:mt-32"
+            >
               <CallCta />
             </Reveal>
           </div>

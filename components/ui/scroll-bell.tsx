@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { BellNotify } from "@/components/ui/bell-notify";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * The bell, centred, entering and leaving on scroll through one section.
@@ -14,8 +15,18 @@ import { BellNotify } from "@/components/ui/bell-notify";
  * Lenis's smoothing; chasing the target keeps it gliding and lets it settle.
  */
 
-/** Fraction of the remaining distance covered per frame. Lower = heavier. */
+/**
+ * Fraction of the remaining distance covered in one 60Hz frame. Lower =
+ * heavier. Converted to the real elapsed time each frame, so a 120Hz display
+ * does not arrive twice as fast as a 60Hz one.
+ */
 const EASING = 0.09;
+
+/** The frame length `EASING` is expressed against, in ms. */
+const FRAME_MS = 1000 / 60;
+
+/** Longest step the smoothing will honour, in ms. Covers a backgrounded tab. */
+const MAX_STEP_MS = 64;
 
 /**
  * Progress is not mapped straight onto travel. The bell descends into place
@@ -25,8 +36,11 @@ const EASING = 0.09;
  * It still comes and goes, because the mapping is a pure function of scroll
  * position rather than a one-shot trigger — scrolling back up runs the
  * descent in reverse and lifts it out again.
+ *
+ * 0.85 of one screen of scrolling, so the bell settles just before the
+ * section's top reaches the top of the viewport.
  */
-const ENTER_END = 0.36;
+const ENTER_END = 0.85;
 
 /** Distance travelled above the resting position, as a fraction of bell height. */
 const TRAVEL = 1.45;
@@ -46,6 +60,7 @@ export function ScrollBell({
   action?: ReactNode;
   className?: string;
 }) {
+  const reduced = useReducedMotion();
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,7 +70,7 @@ export function ScrollBell({
 
     // Movement tied to scrolling is the whole point of the element, so with
     // reduced motion it simply rests in place rather than animating.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reduced) {
       wrap.style.opacity = "1";
       wrap.style.transform = "none";
       return;
@@ -65,25 +80,39 @@ export function ScrollBell({
     let frame = 0;
     let running = false;
 
+    /**
+     * How far the section's leading edge has come from the bottom of the
+     * viewport to the top of it. One formula, and a denominator that is always
+     * exactly one screen.
+     *
+     * This used to branch on whether the section was taller than the viewport,
+     * with a different denominator on each side. Crossing that boundary moved
+     * progress discontinuously: on a 360x790 phone the closing section is 788px
+     * tall, so a URL bar collapsing by 4px flipped progress from 0.25 to 0 and
+     * the bell vanished mid-scroll. The tall branch was also degenerate near
+     * the boundary — its denominator is `height - viewport`, which was 2px
+     * there, so the entire descent happened within two pixels of scrolling.
+     */
     const readProgress = () => {
-      const rect = section.getBoundingClientRect();
       const viewport = window.innerHeight;
-
-      if (rect.height > viewport) {
-        // Tall section: how far the viewport has travelled through it.
-        return Math.min(1, Math.max(0, -rect.top / (rect.height - viewport)));
-      }
-      // Shorter than the viewport, so it can never be scrolled "through" —
-      // progress runs from the moment it enters to the moment it leaves.
-      return Math.min(
-        1,
-        Math.max(0, (viewport - rect.top) / (viewport + rect.height)),
-      );
+      if (viewport <= 0) return 0;
+      const { top } = section.getBoundingClientRect();
+      return Math.min(1, Math.max(0, (viewport - top) / viewport));
     };
 
-    const tick = () => {
+    let last = 0;
+
+    const tick = (now: number) => {
+      // Scaled by real elapsed time. A fixed fraction per frame means a 120Hz
+      // display takes half as long to arrive as a 60Hz one — the same easing
+      // constant, twice the speed. Raising it to the number of 60Hz frames
+      // that actually passed makes the curve the same wherever it runs.
+      const step = Math.min(MAX_STEP_MS, now - last);
+      last = now;
+      const rate = 1 - Math.pow(1 - EASING, step / FRAME_MS);
+
       const target = readProgress();
-      current += (target - current) * EASING;
+      current += (target - current) * rate;
       if (Math.abs(target - current) < 0.0002) current = target;
 
       const { offset, opacity } = mapPosition(current);
@@ -96,6 +125,7 @@ export function ScrollBell({
     const start = () => {
       if (running) return;
       running = true;
+      last = performance.now();
       frame = requestAnimationFrame(tick);
     };
 
@@ -124,7 +154,7 @@ export function ScrollBell({
       document.removeEventListener("visibilitychange", onVisibilityChange);
       cancelAnimationFrame(frame);
     };
-  }, [sectionRef]);
+  }, [sectionRef, reduced]);
 
   return (
     <div ref={wrapRef} className={`scroll-bell ${className}`}>

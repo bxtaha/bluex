@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * Whole-page scroll progress, pinned to the bottom of the viewport.
@@ -17,13 +18,13 @@ import { useEffect, useRef } from "react";
 const EASING = 0.12;
 
 export function ScrollProgress() {
+  const reduced = useReducedMotion();
   const fillRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const fill = fillRef.current;
     if (!fill) return;
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let current = 0;
     let frame = 0;
@@ -45,7 +46,7 @@ export function ScrollProgress() {
 
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [reduced]);
 
   return (
     <div className="scroll-progress" aria-hidden>

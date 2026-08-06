@@ -284,7 +284,7 @@ export function Services() {
                 className="bx-card bx-hairline bx-lift flex flex-col overflow-hidden p-6 sm:p-9 md:flex-row md:items-center md:gap-10 md:p-11"
               >
                 <div className="md:flex-1">
-                  <span className="bx-eyebrow text-electric">{service.index}</span>
+                  <span className="bx-eyebrow text-electric-glow">{service.index}</span>
                   <h3 className="bx-display mt-2 text-[clamp(1.5rem,3.4vw,2.6rem)] text-ink sm:mt-3">
                     {service.title}
                   </h3>

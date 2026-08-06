@@ -794,6 +794,14 @@
   outline: none;
 }
 
+/* It is a tab stop, so it has to show when it is the one focused. Rounded
+   because the box is the whole bell scene, not the bell. */
+.bell-container:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: -18%;
+  border-radius: 24%;
+}
+
 @keyframes bell {
   0% {
     rotate: calc(1deg * var(--degofrot));
@@ -1430,7 +1438,9 @@
 .scroll-progress {
   position: fixed;
   inset-inline: 0;
-  bottom: 0;
+  /* Rides above the home indicator rather than under it, where it would be
+     invisible on the devices that have one. */
+  bottom: env(safe-area-inset-bottom);
   height: 2px;
   z-index: 40;
   background: rgb(255 255 255 / 10%);
@@ -1455,9 +1465,10 @@
    button; the button itself clips its water to the circle. */
 .btt-root {
   position: fixed;
-  right: clamp(1rem, 3vw, 2.5rem);
-  /* Cleared above the 2px progress bar pinned to the very bottom edge. */
-  bottom: clamp(1.25rem, 3vw, 2.5rem);
+  right: calc(clamp(1rem, 3vw, 2.5rem) + env(safe-area-inset-right));
+  /* Cleared above the 2px progress bar pinned to the very bottom edge, and
+     above the home indicator where there is one. */
+  bottom: calc(clamp(1.25rem, 3vw, 2.5rem) + env(safe-area-inset-bottom));
   z-index: 40;
   width: 2.75rem;
   height: 2.75rem;
@@ -1681,8 +1692,10 @@
   --nav-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
 
   position: fixed;
-  right: 0;
-  top: var(--nav-inset);
+  /* In landscape the notch is on one of the short edges, which is exactly
+     where this lives. */
+  right: env(safe-area-inset-right);
+  top: calc(var(--nav-inset) + env(safe-area-inset-top));
   height: var(--nav-track);
   width: var(--nav-pill-w);
   z-index: 41;
@@ -1828,7 +1841,13 @@
   right: 0;
   top: 50%;
   width: 15rem;
-  max-height: 100%;
+  max-width: calc(100vw - 1.5rem);
+  /* Sized against the viewport rather than the pill's track. The panel is
+     centred on the track, and the track is centred on the viewport, so a panel
+     this tall leaves 88px clear above and below — the header on one side, the
+     back-to-top button on the other. Tying it to the track instead left it
+     11rem shorter than it needed to be for no reason. */
+  max-height: calc(100dvh - 11rem);
   border-radius: 1.5rem 0 0 1.5rem;
   /* Unfolds from the right edge at the pill's centre. Derived rather than
      measured: the pill's own offset down the track is progress x the distance
@@ -1859,7 +1878,11 @@
   /* Both axes stated. Setting only `overflow-y` leaves `overflow-x` at
      `visible`, which CSS then computes to `auto` — and a stray horizontal
      scrollbar there is both visible and 15px of height the shape layer behind
-     the panel would copy but never fill. */
+     the panel would copy but never fill.
+
+     `auto` on the block axis is the last resort, not the plan: the column
+     count below is chosen so the list fits without it at every height this
+     page is likely to meet. */
   overflow: hidden auto;
   /* A short viewport can make the list scroll; that must not chain out to the
      page underneath. */
@@ -1877,12 +1900,17 @@
   pointer-events: auto;
 }
 
+/* 44px square. Anything smaller is below the size a finger can reliably hit,
+   and this one sits in a corner where a miss lands on the page behind it. */
 .nav-panel__close {
   align-self: flex-end;
   display: grid;
   place-items: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  /* It is a flex child, and a short panel was squeezing it a pixel under the
+     minimum it exists to meet. */
+  flex: 0 0 auto;
   margin-bottom: 0.25rem;
   padding: 0;
   border: 0;
@@ -1903,12 +1931,55 @@
 }
 
 .nav-panel__list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.15rem;
   margin: 0;
   padding: 0;
   list-style: none;
+}
+
+/* Eight 44px rows plus the close button come to about 444px, which needs a
+   620px viewport once the header and the corner button are cleared. Below
+   that the list wraps into columns rather than growing a scrollbar — the
+   rows keep their height, the panel just gets wider instead of taller.
+
+   Two columns need ~258px of panel, four need ~165px. The thresholds sit
+   above each of those so there is slack rather than a fit to the pixel. */
+@media (max-height: 700px) {
+  .nav-goo__panel,
+  .nav-panel {
+    width: 23rem;
+  }
+
+  .nav-panel__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 480px) {
+  .nav-goo__panel,
+  .nav-panel {
+    width: 31rem;
+  }
+
+  .nav-panel__list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* The label is the first thing to give at this height; the icon and the
+     highlight still say which one is current. */
+  .nav-panel__item {
+    gap: 0.5rem;
+    padding-inline: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  /* The rows are already at their floor, so the last pixel of overflow comes
+     out of the panel's own padding rather than out of a touch target. */
+  .nav-panel {
+    padding-block: 0.5rem;
+  }
 }
 
 /* Rows arrive one after another rather than all at once. The delay is only on
@@ -1932,6 +2003,9 @@
   align-items: center;
   gap: 0.7rem;
   width: 100%;
+  /* 44px, the smallest a touch target should be. Padding alone left these at
+     41px. */
+  min-height: 2.75rem;
   box-sizing: border-box;
   padding: 0.6rem 0.7rem;
   border-radius: 0.75rem;
@@ -2001,6 +2075,11 @@
   inset-inline: 0;
   top: 0;
   z-index: 50;
+  /* With viewport-fit=cover the page runs under the notch, so the bar holds
+     itself off it. Zero on every device without one. */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
   /* The bar is a full-width strip with very little in it. Only what is
      actually drawn takes clicks; the gaps belong to the page underneath. */
   pointer-events: none;
@@ -2116,8 +2195,10 @@
 .site-header__menu {
   display: grid;
   place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  /* 44px. It is the only way into the navigation below 1150px, so it is not
+     the control to make small. */
+  width: 2.75rem;
+  height: 2.75rem;
   flex-shrink: 0;
   padding: 0;
   border: 0;

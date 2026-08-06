@@ -1,5 +1,6 @@
-"use client";
-
+/* Server Component: it renders client children (Reveal, SplitText) but has
+   no state, effects or handlers of its own, so none of it needs to ship to
+   the browser. */
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 

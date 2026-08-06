@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * Maps scroll through a tall container onto a 0→1 progress value and an active
@@ -15,6 +16,7 @@ import { useEffect, useRef, useState } from "react";
  * passive, so it can never block scrolling.
  */
 export function usePinProgress(stepCount: number) {
+  const reduced = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeStep, setActiveStep] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -25,7 +27,7 @@ export function usePinProgress(stepCount: number) {
 
     // With reduced motion the steps are all shown expanded and nothing tracks
     // scroll, so there is no work to schedule.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (reduced) return;
 
     let frame = 0;
 
@@ -63,7 +65,7 @@ export function usePinProgress(stepCount: number) {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [stepCount]);
+  }, [stepCount, reduced]);
 
   return { containerRef, activeStep, progress };
 }

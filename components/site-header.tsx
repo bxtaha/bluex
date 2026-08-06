@@ -127,6 +127,10 @@ export function SiteHeader() {
             width={525}
             height={271}
             priority
+            /* The box is 93px wide on a phone and 108px on a desktop. Without
+               this the browser has no width to reason about and takes the
+               largest candidate in the set — a 1080px source for a 108px slot. */
+            sizes="(min-width: 640px) 108px, 93px"
             className="h-12 w-auto sm:h-14"
           />
         </a>
@@ -161,10 +165,11 @@ export function SiteHeader() {
         </nav>
 
         <div className="site-header__edge site-header__actions">
+          {/* 44px tall on a phone, where it is tapped rather than clicked. */}
           <CallCta
             size="sm"
             magnetic={false}
-            className="h-9 shrink-0 px-3 text-xs sm:h-10 sm:px-4 sm:text-[0.8125rem]"
+            className="h-11 shrink-0 px-3 text-xs sm:h-11 sm:px-4 sm:text-[0.8125rem]"
           >
             Get a call
           </CallCta>

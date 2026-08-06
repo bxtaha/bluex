@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { scrollToTop } from "@/lib/lenis";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * Fixed bottom-right control that returns the page to the top, with an
@@ -100,6 +101,7 @@ function WaveLayer() {
 }
 
 export function BackToTop() {
+  const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
   const waterRef = useRef<HTMLSpanElement>(null);
   const backRef = useRef<HTMLSpanElement>(null);
@@ -107,6 +109,8 @@ export function BackToTop() {
   const splashRef = useRef<HTMLSpanElement>(null);
   /** Set by the effect; called on click for the one-off burst. */
   const burstRef = useRef<(() => void) | null>(null);
+  /** Set up by the simulation effect, driven by the visibility effect below. */
+  const loopRef = useRef<{ start: () => void; stop: () => void } | null>(null);
 
   // Show/hide keyed to the hero, unchanged.
   useEffect(() => {
@@ -131,8 +135,6 @@ export function BackToTop() {
     const front = frontRef.current;
     const splash = splashRef.current;
     if (!water || !back || !front || !splash) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const readProgress = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -224,6 +226,7 @@ export function BackToTop() {
     let lastDirection = 0;
     let emitCredit = 0;
     let frame = 0;
+    let running = false;
 
     const tick = () => {
       const y = window.scrollY;
@@ -328,17 +331,58 @@ export function BackToTop() {
         }
       }
 
-      frame = requestAnimationFrame(tick);
+      if (running) frame = requestAnimationFrame(tick);
     };
 
-    frame = requestAnimationFrame(tick);
+    // Published for the effect below to drive. The loop is not started here:
+    // near the top of the page this button is hidden, and a hidden button has
+    // no water to slosh and no droplets to throw — running the loop there was
+    // a frame of work every 16ms for something nobody could see.
+    loopRef.current = {
+      start: () => {
+        if (running) return;
+        running = true;
+        lastY = window.scrollY;
+        frame = requestAnimationFrame(tick);
+      },
+      stop: () => {
+        running = false;
+        cancelAnimationFrame(frame);
+        // Nothing mid-flight survives the pause, or drops would reappear
+        // frozen in the air when the button comes back.
+        for (const drop of pool) {
+          drop.alive = false;
+          drop.el.style.opacity = "0";
+        }
+      },
+    };
 
     return () => {
+      running = false;
       cancelAnimationFrame(frame);
+      loopRef.current = null;
       burstRef.current = null;
       for (const drop of pool) drop.el.remove();
     };
-  }, []);
+  }, [reduced]);
+
+  /* Runs only while the button is on screen and the tab is in front. */
+  useEffect(() => {
+    const loop = loopRef.current;
+    if (!loop) return;
+
+    const sync = () => {
+      if (visible && !document.hidden) loop.start();
+      else loop.stop();
+    };
+
+    sync();
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      document.removeEventListener("visibilitychange", sync);
+      loop.stop();
+    };
+  }, [visible]);
 
   const handleClick = useCallback(() => {
     burstRef.current?.();

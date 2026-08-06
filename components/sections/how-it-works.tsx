@@ -86,7 +86,7 @@ export function HowItWorks() {
                       }`}
                       aria-current={isActive ? "step" : undefined}
                     >
-                      <span className="bx-display text-sm text-electric">
+                      <span className="bx-display text-sm text-electric-glow">
                         {step.time}
                       </span>
                       <h3 className="bx-display mt-1 text-xl text-ink sm:text-2xl">

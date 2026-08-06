@@ -29,6 +29,7 @@ export function SiteFooter() {
               alt="BlueX"
               width={525}
               height={271}
+              sizes="93px"
               className="h-12 w-auto"
             />
             <p className="mt-4 text-sm leading-relaxed text-ink-muted">
@@ -41,12 +42,20 @@ export function SiteFooter() {
             {COLUMNS.map((column) => (
               <div key={column.heading}>
                 <h2 className="bx-eyebrow">{column.heading}</h2>
-                <ul className="mt-4 space-y-2.5">
+                {/* The rows carry their own height now, so the gap between
+                    them comes out of the list. */}
+                <ul className="mt-2">
                   {column.links.map((link) => (
                     <li key={link.label}>
                       <a
                         href={link.href}
-                        className="text-sm text-ink-muted transition-colors hover:text-ink"
+                        /* The tap target is the row, not the glyphs. Inline
+                           text is only as tall as its line box, which left
+                           these at 17px — well under a fingertip. The negative
+                           inline margin keeps the text optically flush with
+                           the heading above while the padded box extends past
+                           it. */
+                        className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm text-ink-muted transition-colors hover:text-ink"
                       >
                         {link.label}
                       </a>

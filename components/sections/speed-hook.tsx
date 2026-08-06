@@ -5,6 +5,7 @@ import { observeOnce } from "@/lib/reveal";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * Optional sourced statistic.
@@ -35,6 +36,7 @@ const TIMELINE = [
 ] as const;
 
 export function SpeedHook() {
+  const reduced = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
 
@@ -56,7 +58,7 @@ export function SpeedHook() {
     // opacity, so it cannot be a CSS transition — it counts on rAF instead.
     // Written straight to textContent, never through state, so a 60fps count
     // does not queue 144 React renders.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reduced) {
       counter.textContent = format(TARGET_SECONDS);
       return;
     }
@@ -82,7 +84,7 @@ export function SpeedHook() {
       stop();
       if (frame) cancelAnimationFrame(frame);
     };
-  }, []);
+  }, [reduced]);
 
   return (
     <section
@@ -158,7 +160,7 @@ export function SpeedHook() {
                 <Reveal as="li" key={point.at} index={i + 1} className="min-w-0">
                   <span
                     className={`bx-display block text-sm ${
-                      point.tone === "signal" ? "text-signal" : "text-electric"
+                      point.tone === "signal" ? "text-signal" : "text-electric-glow"
                     }`}
                   >
                     {point.at}

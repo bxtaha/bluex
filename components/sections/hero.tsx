@@ -79,11 +79,15 @@ export function Hero() {
           Every lead called back in five minutes.
         </TextRoll>
 
-        {/* Indices resume after the headline's seven words so the subheading
-            lands at ~540ms, once the last word is on its way up. */}
+        {/* Index 1, not 6. This paragraph is the page's largest contentful
+            paint, and a reveal index is a delay before it is painted at all —
+            six of them held the headline metric back by about 450ms for
+            choreography nobody was waiting on. It now arrives while the
+            headline's words are still landing, which reads fine and is the
+            difference between a fast page and one that measures slow. */}
         <Reveal
           as="p"
-          index={6}
+          index={1}
           className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg"
         >
           We build the websites that bring you leads and the AI voice agents that
@@ -91,7 +95,7 @@ export function Hero() {
         </Reveal>
 
         <Reveal
-          index={7}
+          index={2}
           className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
           {/* Not magnetic: the button sits beside a static one, and only one of
@@ -104,7 +108,7 @@ export function Hero() {
 
         <Reveal
           as="dl"
-          index={8}
+          index={3}
           className="mx-auto mt-14 grid max-w-lg grid-cols-3 gap-4 border-t border-white/8 pt-7"
         >
           {STATS.map((stat) => (

@@ -82,6 +82,10 @@ function BellNotify({
         {...(interactive
           ? {
               role: 'button' as const,
+              // A tab stop with no name announces as "button" and nothing
+              // else. The name stays constant and `aria-pressed` carries the
+              // state, rather than the label flipping under the reader.
+              'aria-label': 'Bell light',
               'aria-pressed': onState,
               tabIndex: 0,
               onClick: handleToggle,

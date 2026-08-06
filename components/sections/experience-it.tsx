@@ -3,7 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
-import ParticleOrb from "@/components/ui/particle-orb";
+import dynamic from "next/dynamic";
+
+// Decorative, below the fold, and a canvas that renders nothing on the
+// server anyway. Split out so its code is not on the critical path.
+const ParticleOrb = dynamic(() => import("@/components/ui/particle-orb"), {
+  ssr: false,
+});
 import { validateLead, type LeadErrors } from "@/lib/lead";
 
 type Status = "idle" | "sending" | "done" | "error";
@@ -171,7 +177,7 @@ export function ExperienceIt() {
                     }}
                     aria-invalid={!!errors.name}
                     aria-describedby={errors.name ? "demo-name-error" : undefined}
-                    className={`w-full rounded-lg border bg-white/[0.03] px-3.5 py-3 text-sm text-ink outline-none transition focus:border-electric focus:bg-white/[0.06] ${
+                    className={`w-full rounded-lg border bg-white/[0.03] px-3.5 py-3 text-sm text-ink transition focus:border-electric focus:bg-white/[0.06] focus:outline-2 focus:outline-offset-2 focus:outline-electric-glow ${
                       errors.name ? "border-red-500/70" : "border-white/12"
                     }`}
                   />
@@ -201,7 +207,7 @@ export function ExperienceIt() {
                     }}
                     aria-invalid={!!errors.phone}
                     aria-describedby={errors.phone ? "demo-phone-error" : undefined}
-                    className={`w-full rounded-lg border bg-white/[0.03] px-3.5 py-3 text-sm text-ink outline-none transition placeholder:text-ink-muted/60 focus:border-electric focus:bg-white/[0.06] ${
+                    className={`w-full rounded-lg border bg-white/[0.03] px-3.5 py-3 text-sm text-ink transition placeholder:text-ink-muted/60 focus:border-electric focus:bg-white/[0.06] focus:outline-2 focus:outline-offset-2 focus:outline-electric-glow ${
                       errors.phone ? "border-red-500/70" : "border-white/12"
                     }`}
                   />

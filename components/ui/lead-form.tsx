@@ -173,7 +173,12 @@ export function LeadForm({
                     onChange={(e) => update(field.key, e.target.value)}
                     aria-invalid={!!error}
                     aria-describedby={error ? `lead-${field.key}-error` : undefined}
-                    className={`w-full rounded-lg border bg-white/[0.03] px-3.5 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-muted/60 focus:border-electric focus:bg-white/[0.06] ${
+                    /* A real focus ring. `outline-none` with only a border
+                       colour change left keyboard users with no reliable
+                       indication of where they were — a 1px hairline shifting
+                       hue is not one, and it was being outranked by the error
+                       border besides. */
+                    className={`w-full rounded-lg border bg-white/[0.03] px-3.5 py-2.5 text-sm text-ink transition placeholder:text-ink-muted/60 focus:border-electric focus:bg-white/[0.06] focus:outline-2 focus:outline-offset-2 focus:outline-electric-glow ${
                       error ? "border-red-500/70" : "border-white/12"
                     }`}
                   />

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * Two intersecting spheres drawn as point clouds.
@@ -85,6 +86,7 @@ export default function ParticleOrb({
   colorB?: string;
   period?: number;
 }) {
+  const reduced = useReducedMotion();
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef(0);
@@ -187,7 +189,7 @@ export default function ParticleOrb({
     resizeObserver.observe(host);
 
     // A still frame carries the composition without any motion at all.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reduced) {
       draw(0);
       return () => resizeObserver.disconnect();
     }
@@ -231,7 +233,7 @@ export default function ParticleOrb({
       document.removeEventListener("visibilitychange", onVisibilityChange);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [density, colorA, colorB, draw]);
+  }, [density, colorA, colorB, draw, reduced]);
 
   return (
     <div

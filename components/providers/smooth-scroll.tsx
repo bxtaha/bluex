@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Lenis from "lenis";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { HEADER_OFFSET, setLenis } from "@/lib/lenis";
+import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
  * Lenis and ScrollTrigger both want to own the scroll position. Left alone they
@@ -15,13 +16,12 @@ import { HEADER_OFFSET, setLenis } from "@/lib/lenis";
  * Renders nothing — it only installs the loop.
  */
 export function SmoothScroll() {
+  const reduced = useReducedMotion();
+
   useEffect(() => {
     // Honour the OS setting: momentum scrolling is itself a motion effect, and
     // some people find it nauseating. Native scroll is the accessible default.
-    const prefersReduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (prefersReduced) return;
+    if (reduced) return;
 
     const lenis = new Lenis({
       duration: 1.05,
@@ -75,7 +75,7 @@ export function SmoothScroll() {
       gsap.ticker.lagSmoothing(500, 33); // restore GSAP's default
       lenis.destroy();
     };
-  }, []);
+  }, [reduced]);
 
   return null;
 }
