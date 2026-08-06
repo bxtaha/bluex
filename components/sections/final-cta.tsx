@@ -15,9 +15,9 @@ export function FinalCta() {
           viewport gives the scroll budget, and a sticky child holds the
           content still while that budget is spent — which is what turns
           scrolling into the bell's timeline rather than just moving the page. */}
-      <div className="lg:h-[220vh]">
+      <div className="lg:h-[220vh] border-red-500 border-solid">
         <div className="lg:sticky lg:top-0 lg:flex lg:h-dvh lg:items-center">
-          <div className="relative w-full overflow-hidden px-6 py-28 sm:px-10 md:py-36 lg:py-0">
+          <div className="relative w-full overflow-hidden px-6 py-28 sm:px-10 md:py-36 lg:py-38">
             {/* Glow anchored behind the headline so the closing section reads
                 as the brightest point on the page. */}
             <div

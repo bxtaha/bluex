@@ -128,7 +128,10 @@ export function ScrollBell({
 
   return (
     <div ref={wrapRef} className={`scroll-bell ${className}`}>
-      <BellNotify size={300} action={action} disableToggle interactive={false} />
+      {/* Interactive, as on bluex_v2: clicking the bell turns its light on and
+          off. It was made inert only while it served as a decorative rail
+          thumb, which it no longer is. */}
+      <BellNotify size={300} action={action} />
     </div>
   );
 }

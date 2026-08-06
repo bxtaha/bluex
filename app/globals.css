@@ -1283,10 +1283,16 @@
   pointer-events: none;
 }
 
-/* The bell reacts to nothing and holds no controls here, so it is decoration
-   and must not be announced. */
 .scroll-bell .bell-root {
   font-size: 1.55px;
+}
+
+/* The wrapper is a large empty box that would otherwise swallow clicks meant
+   for the copy above it, so hit-testing is handed back only to the bell
+   itself and to whatever the CTA slot holds. */
+.scroll-bell .bell-container,
+.scroll-bell .bell-action {
+  pointer-events: auto;
 }
 
 @media (min-width: 640px) {
@@ -1305,11 +1311,6 @@
   .scroll-bell .bell-root {
     font-size: 2.3px;
   }
-}
-
-/* Anything the slot holds is interactive again, so it opts back in. */
-.scroll-bell .bell-action {
-  pointer-events: auto;
 }
 
 @media (prefers-reduced-motion: reduce) {
