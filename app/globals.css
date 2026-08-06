@@ -182,8 +182,10 @@
     background: var(--color-void);
     /* Clears the fixed header when an anchor is reached by native jump — the
        path taken with reduced motion, where Lenis never initialises and cannot
-       apply its own offset. */
-    scroll-padding-top: 88px;
+       apply its own offset. The bar measures 88px with the larger logo, so this
+       leaves a little air rather than landing flush against it. Mirrored by
+       HEADER_OFFSET in lib/lenis.ts, which is the Lenis path. */
+    scroll-padding-top: 96px;
     /* The document scrollbar is hidden, not any section's: it belongs to the
        page, so there is no way to hide it over the hero alone. Only the bar is
        hidden — wheel, trackpad, touch, keyboard and Lenis all still scroll. */
@@ -426,6 +428,11 @@
      container of its own — the page's vertical scroll moves it sideways. */
   overflow: visible;
   will-change: transform;
+  /* The browser keeps vertical panning, which is ordinary page scrolling and
+     should stay native. Horizontal is left alone for the swipe handler in
+     services.tsx to read, which it cannot do if the browser claims the gesture
+     first. */
+  touch-action: pan-y;
 }
 
 .bx-track > * {
@@ -1964,6 +1971,10 @@
   list-style: none;
 }
 
+/* The hero's call button, at the moment it is hovered: the fill has risen, so
+   what is left is the electric gradient, a wave turning slowly under it, a
+   white hairline across the top and the blue glow beneath. The current section
+   wears the same thing the primary action wears when you reach for it. */
 .site-header__indicator {
   position: absolute;
   left: 0;
@@ -1971,12 +1982,57 @@
   height: 100%;
   width: 0;
   border-radius: 999px;
-  background: rgb(255 255 255 / 9%);
-  box-shadow: inset 0 1px 0 var(--glass-edge);
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    180deg,
+    var(--color-electric-glow) 0%,
+    var(--color-electric) 50%,
+    #1b3fb8 100%
+  );
+  box-shadow: 0 10px 26px -10px rgb(77 139 255 / 95%),
+    inset 0 0 0 1px rgb(77 139 255 / 70%);
   opacity: 0;
   pointer-events: none;
   transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
     width 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease;
+}
+
+/* The wave, turning on the button's own keyframes and period.
+   It is a pale sheen here rather than the button's dark one. That blob is
+   nearly as large as the button it sits in, so at nav scale it swept the whole
+   pill dark once a cycle and the current section stopped reading as the blue
+   one. Light, and wider than it is tall, it stays a highlight moving across a
+   blue fill — which is what the effect looks like at the size it was drawn
+   for. */
+.site-header__indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 320%;
+  height: 240%;
+  transform: translate(-50%, -50%);
+  border-radius: 43%;
+  background: rgb(255 255 255 / 12%);
+  animation: liquid-button-wave 7s linear infinite;
+}
+
+/* The lit top edge, the last thing the button keeps once it is full. */
+.site-header__indicator::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 60%),
+    transparent
+  );
 }
 
 .site-header__link {
@@ -1993,8 +2049,18 @@
   color: var(--color-ink);
 }
 
+/* Sits above the indicator, and takes the button's own weight and white while
+   it is there. */
+.site-header__link {
+  position: relative;
+  z-index: 1;
+}
+
+/* Colour only. The button it borrows from is semibold, but weight changes
+   width, and a nav whose items shift sideways every time the active section
+   changes is worse than one that is a shade lighter than its source. */
 .site-header__link[aria-current="page"] {
-  color: var(--color-ink);
+  color: #fff;
 }
 
 .site-header__link:focus-visible {
@@ -2069,5 +2135,10 @@
   .site-header__indicator,
   .site-header__link {
     transition-duration: 0.01ms !important;
+  }
+
+  /* The fill stays; only the wave turning inside it stops. */
+  .site-header__indicator::before {
+    animation: none;
   }
 }

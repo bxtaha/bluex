@@ -35,8 +35,9 @@ export function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
-/** Height of the fixed header, mirroring `scroll-padding-top` in globals.css. */
-export const HEADER_OFFSET = 88;
+/** Clearance under the fixed header, mirroring `scroll-padding-top` in
+ *  globals.css. The bar itself is 88px; this leaves a little air under it. */
+export const HEADER_OFFSET = 96;
 
 /**
  * Scrolls a section into view under the fixed header.

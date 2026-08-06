@@ -9,6 +9,15 @@ import { CallCta } from "@/components/ui/call-cta";
 /** Breathing room left after the final panel when the track is fully scrolled. */
 const TRAIL = 96;
 
+/** Movement, in px, before a swipe is judged horizontal or vertical. */
+const AXIS_THRESHOLD = 8;
+
+/** Share of its speed a flick keeps each frame after the finger lifts. */
+const GLIDE_DECAY = 0.94;
+
+/** Speed below which the glide has arrived, in px per frame. */
+const GLIDE_MIN = 0.25;
+
 const SERVICES = [
   {
     index: "01",
@@ -129,7 +138,101 @@ export function Services() {
         },
       });
 
+      // Swiping sideways moves the panels sideways. Scroll position is the only
+      // thing that actually drives the track, so the drag does not touch the
+      // track at all — it scrolls the page by the same distance the finger
+      // travelled, and the pin turns that back into horizontal movement. One
+      // source of truth, and letting go leaves scroll exactly where the panels
+      // say it should be.
+      const trigger = tween.scrollTrigger;
+      let tracking = false;
+      let horizontal: boolean | null = null;
+      let startX = 0;
+      let startY = 0;
+      let lastX = 0;
+      let lastTime = 0;
+      let velocity = 0;
+      let glide = 0;
+
+      const onPointerDown = (event: PointerEvent) => {
+        // Mice and trackpads already scrub this by scrolling; hijacking a
+        // click-drag there would break text selection for no gain.
+        if (event.pointerType === "mouse") return;
+        cancelAnimationFrame(glide);
+        tracking = true;
+        horizontal = null;
+        startX = lastX = event.clientX;
+        startY = event.clientY;
+        lastTime = event.timeStamp;
+        velocity = 0;
+      };
+
+      const onPointerMove = (event: PointerEvent) => {
+        if (!tracking) return;
+
+        // Which way this gesture is going is decided once, after it has moved
+        // far enough to mean something, and never revisited — otherwise a
+        // diagonal swipe flickers between scrolling the page and dragging.
+        if (horizontal === null) {
+          const dx = Math.abs(event.clientX - startX);
+          const dy = Math.abs(event.clientY - startY);
+          if (dx < AXIS_THRESHOLD && dy < AXIS_THRESHOLD) return;
+          horizontal = dx > dy;
+          if (horizontal) track.setPointerCapture?.(event.pointerId);
+        }
+        if (!horizontal) return;
+
+        const dx = event.clientX - lastX;
+        const dt = event.timeStamp - lastTime;
+        // Per frame rather than per millisecond, so the glide below can just
+        // add it once per frame.
+        if (dt > 0) velocity = (-dx / dt) * 16;
+        lastX = event.clientX;
+        lastTime = event.timeStamp;
+
+        // Dragging content to the left is scrolling forwards.
+        window.scrollBy(0, -dx);
+      };
+
+      const onPointerUp = () => {
+        if (!tracking) return;
+        const wasHorizontal = horizontal;
+        tracking = false;
+        horizontal = null;
+        if (!wasHorizontal || Math.abs(velocity) < GLIDE_MIN) return;
+
+        // A flick should coast. Native scrolling has momentum and a carousel
+        // that stops dead the instant the finger lifts feels broken beside it.
+        const step = () => {
+          velocity *= GLIDE_DECAY;
+          if (Math.abs(velocity) < GLIDE_MIN) return;
+          window.scrollBy(0, velocity);
+          glide = requestAnimationFrame(step);
+        };
+        glide = requestAnimationFrame(step);
+      };
+
+      // Only while the section owns the screen. Outside the pin the same drag
+      // would scroll the page sideways-to-vertically for no visible reason.
+      const guard = (handler: (event: PointerEvent) => void) => {
+        return (event: PointerEvent) => {
+          if (!trigger?.isActive) return;
+          handler(event);
+        };
+      };
+
+      const down = guard(onPointerDown);
+      track.addEventListener("pointerdown", down);
+      track.addEventListener("pointermove", onPointerMove);
+      track.addEventListener("pointerup", onPointerUp);
+      track.addEventListener("pointercancel", onPointerUp);
+
       return () => {
+        cancelAnimationFrame(glide);
+        track.removeEventListener("pointerdown", down);
+        track.removeEventListener("pointermove", onPointerMove);
+        track.removeEventListener("pointerup", onPointerUp);
+        track.removeEventListener("pointercancel", onPointerUp);
         tween.scrollTrigger?.kill();
         tween.kill();
         gsap.set(track, { x: 0 });
