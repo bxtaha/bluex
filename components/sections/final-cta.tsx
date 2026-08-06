@@ -47,14 +47,17 @@ export function FinalCta() {
                 Leave your number and you’ll hear the whole thing working within
                 five minutes. That is the pitch and the demo at the same time.
               </Reveal>
-              <Reveal index={2} className="mt-10 flex justify-center">
-                <CallCta />
-              </Reveal>
             </div>
 
             {/* Centred beneath the copy. Its vertical position and opacity are
                 driven by scroll progress through this section. */}
             <ScrollBell sectionRef={sectionRef} />
+
+            {/* Last thing in the section, under the bell — the closing action
+                someone reaches after the whole page. */}
+            <Reveal index={2} className="mt-2 flex justify-center">
+              <CallCta />
+            </Reveal>
           </div>
         </div>
       </div>
