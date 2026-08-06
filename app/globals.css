@@ -1971,10 +1971,10 @@
   list-style: none;
 }
 
-/* The hero's call button, at the moment it is hovered: the fill has risen, so
-   what is left is the electric gradient, a wave turning slowly under it, a
-   white hairline across the top and the blue glow beneath. The current section
-   wears the same thing the primary action wears when you reach for it. */
+/* The hero call button's edge, without its fill: the electric hairline and the
+   blue it throws beneath. Outlined rather than filled, so the current section
+   is marked without a second solid block competing with the button itself two
+   hundred pixels to its right. */
 .site-header__indicator {
   position: absolute;
   left: 0;
@@ -1982,57 +1982,13 @@
   height: 100%;
   width: 0;
   border-radius: 999px;
-  overflow: hidden;
-  isolation: isolate;
-  background: linear-gradient(
-    180deg,
-    var(--color-electric-glow) 0%,
-    var(--color-electric) 50%,
-    #1b3fb8 100%
-  );
-  box-shadow: 0 10px 26px -10px rgb(77 139 255 / 95%),
-    inset 0 0 0 1px rgb(77 139 255 / 70%);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgb(77 139 255 / 70%),
+    0 8px 22px -10px rgb(46 107 255 / 80%);
   opacity: 0;
   pointer-events: none;
   transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
     width 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 240ms ease;
-}
-
-/* The wave, turning on the button's own keyframes and period.
-   It is a pale sheen here rather than the button's dark one. That blob is
-   nearly as large as the button it sits in, so at nav scale it swept the whole
-   pill dark once a cycle and the current section stopped reading as the blue
-   one. Light, and wider than it is tall, it stays a highlight moving across a
-   blue fill — which is what the effect looks like at the size it was drawn
-   for. */
-.site-header__indicator::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 320%;
-  height: 240%;
-  transform: translate(-50%, -50%);
-  border-radius: 43%;
-  background: rgb(255 255 255 / 12%);
-  animation: liquid-button-wave 7s linear infinite;
-}
-
-/* The lit top edge, the last thing the button keeps once it is full. */
-.site-header__indicator::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 18%;
-  right: 18%;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(255 255 255 / 60%),
-    transparent
-  );
 }
 
 .site-header__link {
@@ -2137,8 +2093,4 @@
     transition-duration: 0.01ms !important;
   }
 
-  /* The fill stays; only the wave turning inside it stops. */
-  .site-header__indicator::before {
-    animation: none;
-  }
 }
