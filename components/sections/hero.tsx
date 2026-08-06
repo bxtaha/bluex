@@ -94,7 +94,9 @@ export function Hero() {
           index={7}
           className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
         >
-          <CallCta />
+          {/* Not magnetic: the button sits beside a static one, and only one of
+              the pair drifting toward the cursor reads as the layout shifting. */}
+          <CallCta magnetic={false} />
           <a href="#services" className="bx-btn bx-btn--ghost bx-lift">
             See what we build
           </a>
