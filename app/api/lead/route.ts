@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { validateLead, type LeadInput } from "@/lib/lead";
+import { validateLead, type LeadInput, type LeadSource } from "@/lib/lead";
 
 /**
  * Lead intake. Validates server-side, then hands off to the Hermes voice agent
@@ -17,7 +17,7 @@ import { validateLead, type LeadInput } from "@/lib/lead";
 const HERMES_WEBHOOK_URL = process.env.HERMES_WEBHOOK_URL;
 
 export async function POST(request: Request) {
-  let body: Partial<LeadInput>;
+  let body: Partial<LeadInput> & { source?: LeadSource };
 
   try {
     body = await request.json();
@@ -28,16 +28,19 @@ export async function POST(request: Request) {
     );
   }
 
-  const errors = validateLead(body);
+  const source: LeadSource = body.source === "inline" ? "inline" : "form";
+
+  const errors = validateLead(body, source);
   if (Object.keys(errors).length > 0) {
     return NextResponse.json({ ok: false, errors }, { status: 422 });
   }
 
   const lead = {
     name: body.name!.trim(),
-    business: body.business!.trim(),
+    business: body.business?.trim() ?? "",
     phone: body.phone!.trim(),
     email: body.email?.trim() ?? "",
+    source,
     submittedAt: new Date().toISOString(),
   };
 

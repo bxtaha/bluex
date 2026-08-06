@@ -4,6 +4,13 @@
  * drift from what the server actually enforces.
  */
 
+/**
+ * Where the lead came from. The inline demo widget trades the business name
+ * for lower friction — asking for it before someone will try the thing is
+ * what stops them trying it. The agent asks on the call instead.
+ */
+export type LeadSource = "form" | "inline";
+
 export type LeadInput = {
   name: string;
   business: string;
@@ -26,14 +33,19 @@ export const EMPTY_LEAD: LeadInput = {
 const PHONE_DIGITS = /\d/g;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-export function validateLead(input: Partial<LeadInput>): LeadErrors {
+export function validateLead(
+  input: Partial<LeadInput>,
+  source: LeadSource = "form",
+): LeadErrors {
   const errors: LeadErrors = {};
 
   const name = input.name?.trim() ?? "";
   if (name.length < 2) errors.name = "Please enter your name.";
 
   const business = input.business?.trim() ?? "";
-  if (business.length < 2) errors.business = "Please enter your business name.";
+  if (source === "form" && business.length < 2) {
+    errors.business = "Please enter your business name.";
+  }
 
   const phone = input.phone?.trim() ?? "";
   const digits = phone.match(PHONE_DIGITS)?.length ?? 0;
@@ -49,6 +61,9 @@ export function validateLead(input: Partial<LeadInput>): LeadErrors {
   return errors;
 }
 
-export function isValidLead(input: Partial<LeadInput>): boolean {
-  return Object.keys(validateLead(input)).length === 0;
+export function isValidLead(
+  input: Partial<LeadInput>,
+  source: LeadSource = "form",
+): boolean {
+  return Object.keys(validateLead(input, source)).length === 0;
 }
