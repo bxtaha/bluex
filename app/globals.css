@@ -1377,79 +1377,30 @@
    They sit above the page but below the header (z-50) and below any native
    <dialog>, which renders in the browser's top layer regardless. */
 
+/* Pinned to the bottom of the viewport, full width. Deliberately the same
+   treatment as the rail inside how-it-works — hairline track, solid electric
+   fill growing from the left — so page progress and section progress read as
+   one idea at two scales. */
+
 .scroll-progress {
   position: fixed;
-  left: clamp(0.75rem, 2vw, 1.75rem);
-  top: 50%;
-  height: min(38vh, 20rem);
-  width: 1.5rem;
-  transform: translateY(-50%);
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
   z-index: 40;
+  background: rgb(255 255 255 / 10%);
   /* Indicator only — it must never intercept a click meant for the page. */
   pointer-events: none;
-  display: none;
 }
 
-/* Shown from md up. On a phone it would sit over content that has already
-   given up its side margins. */
-@media (min-width: 768px) {
-  .scroll-progress {
-    display: block;
-  }
-}
-
-.scroll-progress__track,
 .scroll-progress__fill {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 1px;
+  display: block;
   height: 100%;
-  margin-left: -0.5px;
-  border-radius: 999px;
-}
-
-.scroll-progress__track {
-  background: rgb(255 255 255 / 12%);
-}
-
-.scroll-progress__fill {
-  background: linear-gradient(
-    180deg,
-    var(--color-electric-glow),
-    var(--color-electric)
-  );
-  transform-origin: top;
-  transform: scaleY(0);
-}
-
-/* Written every frame, so it carries no transition of its own — see the
-   component for why position and rotation are split across two elements. */
-.scroll-progress__thumb {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
-  background: var(--color-void);
-  box-shadow: 0 0 0 1px rgb(255 255 255 / 18%);
-  color: var(--color-ink);
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
+  background: var(--color-electric);
   will-change: transform;
-}
-
-/* The flip. Rotation is transitioned here rather than swapped, so scrolling
-   back up turns the arrow over instead of snapping it. */
-.scroll-progress__icon {
-  display: grid;
-  place-items: center;
-  transition: transform 0.45s var(--ease-reveal);
-}
-
-.scroll-progress__thumb[data-direction="up"] .scroll-progress__icon {
-  transform: rotate(180deg);
 }
 
 /* ── Back to top ─────────────────────────────────────────────────────────── */
@@ -1500,7 +1451,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .scroll-progress__icon,
   .back-to-top {
     transition: none !important;
   }
