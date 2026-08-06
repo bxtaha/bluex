@@ -1683,6 +1683,26 @@
   pointer-events: none;
 }
 
+/* The shape goes too, or a stray blob is left against the edge wherever the
+   pill happened to be parked — above or below the panel for most of the page,
+   since the panel is centred and the pill is not.
+
+   Both directions are deliberately late, and by different amounts. Leaving, it
+   is held until the panel has grown over it, so the goo has two overlapping
+   shapes to merge and the pill dissolves into the panel instead of blinking
+   out. Returning, it waits for the panel to be visibly on its way back before
+   fading in, so it reads as the pill re-forming out of the panel rather than
+   the two being on screen together. */
+.nav-goo__pill {
+  opacity: 1;
+  transition: opacity 220ms ease 120ms;
+}
+
+.nav-dock[data-open="true"] .nav-goo__pill {
+  opacity: 0;
+  transition: opacity 260ms ease 220ms;
+}
+
 .nav-pill:focus-visible {
   outline: 2px solid var(--color-electric-glow);
   outline-offset: 2px;
@@ -1853,6 +1873,7 @@
   .nav-icon,
   .nav-pill,
   .nav-pill__icon,
+  .nav-goo__pill,
   .nav-goo__panel,
   .nav-panel,
   .nav-panel__row,
