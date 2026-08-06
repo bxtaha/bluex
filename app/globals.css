@@ -539,6 +539,63 @@
   }
 }
 
+/* ── Character roll ──────────────────────────────────────────────────────────
+   Sits inside the word mask above, so the entrance and the roll share one
+   clipping edge and cannot disagree about where a word ends. The entrance
+   moves .bx-word__inner; this moves the characters within it. */
+
+.bx-roll {
+  position: relative;
+}
+
+.bx-roll__layer {
+  display: block;
+}
+
+/* The replacement, stacked exactly over the text it replaces. */
+.bx-roll__layer--in {
+  position: absolute;
+  inset: 0;
+}
+
+.bx-roll__char {
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bx-roll__char {
+    transition: transform 520ms var(--ease-reveal);
+    /* Distance from the middle of the phrase when centred, so the roll opens
+       outward from the centre instead of sweeping in from one end. */
+    transition-delay: calc(var(--roll-i, 0) * 35ms);
+  }
+
+  /* 110% rather than 100%: the mask carries a little extra room at the bottom
+     for descenders, and a character parked at exactly its own height would
+     show its top edge in that gap. */
+  .bx-roll__layer--in .bx-roll__char {
+    transform: translate3d(0, 110%, 0);
+  }
+
+  /* Hover is read from the whole heading, so one pass crosses every word
+     rather than each word rolling on its own as the cursor moves. */
+  .bx-rolltext:hover .bx-roll__layer--out .bx-roll__char {
+    transform: translate3d(0, -110%, 0);
+  }
+
+  .bx-rolltext:hover .bx-roll__layer--in .bx-roll__char {
+    transform: none;
+  }
+}
+
+/* No roll to make, and the spare copy would otherwise sit on top of the text
+   it was going to replace. */
+@media (prefers-reduced-motion: reduce) {
+  .bx-roll__layer--in {
+    display: none;
+  }
+}
+
 /* A bar that draws itself in when its revealing ancestor fires. Scale rather
    than width, so it stays on the transform/opacity path. */
 @media (scripting: enabled) {

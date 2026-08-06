@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import KineticGrid from "@/components/ui/kinetic-grid";
-import { SplitText } from "@/components/motion/split-text";
 import { Reveal } from "@/components/motion/reveal";
+import { TextRoll } from "@/components/ui/text-roll";
 import { CallCta } from "@/components/ui/call-cta";
 import { gsap, MOTION_QUERIES } from "@/lib/gsap";
 
@@ -71,13 +71,13 @@ export function Hero() {
           AI voice agents · Web &amp; e-commerce
         </Reveal>
 
-        <SplitText
+        <TextRoll
           as="h1"
           delay={150}
           className="bx-display mt-7 text-[clamp(2.5rem,8vw,6.5rem)] text-ink"
         >
           Every lead called back in five minutes.
-        </SplitText>
+        </TextRoll>
 
         {/* Indices resume after the headline's seven words so the subheading
             lands at ~540ms, once the last word is on its way up. */}
