@@ -1319,3 +1319,32 @@
     transform: none !important;
   }
 }
+
+/* ── Liquid button ───────────────────────────────────────────────────────────
+   Keyframes for components/ui/liquid-button. They live here rather than in an
+   inline <style> tag inside the component: the button renders several times per
+   page and each instance would otherwise inject a duplicate copy of the same
+   two rules into the document. */
+
+@keyframes liquid-button-wave {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes liquid-button-bubble {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.7);
+  }
+  18% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4.5rem) scale(1.15);
+  }
+}
