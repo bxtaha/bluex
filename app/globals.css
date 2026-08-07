@@ -425,6 +425,412 @@
   color: var(--color-ink-muted);
 }
 
+/* ── Carousel ────────────────────────────────────────────────────────────────
+   Slides sit side by side in a flex row and the row is translated by whole
+   multiples of 100%. Two consequences worth keeping:
+
+   - The row stretches to the tallest slide, so advancing never resizes the card
+     or shifts what sits under it. Stacking slides absolutely would need a
+     measured height and would jump between slides of different lengths.
+   - Movement is a transform on a composited layer, so it costs no layout. */
+
+.bx-carousel {
+  position: relative;
+  border-radius: inherit;
+  /* Both axes stated. `overflow-x: hidden` alone computes `overflow-y` to auto
+     and grows a phantom scrollbar — the nav panel bug, in a different box. */
+  overflow: hidden;
+}
+
+.bx-carousel:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.bx-carousel__viewport {
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.bx-carousel__track {
+  display: flex;
+  /* Long and eased rather than linear: the slide should arrive, not slide past.
+     Matches the house ease used by the reveals. */
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.bx-carousel__slide {
+  flex: 0 0 100%;
+  /* Without this a long word in a slide sets the flex base width and the track
+     stops being exactly N × 100%. */
+  min-width: 0;
+}
+
+/* ── Controls ─────────────────────────────────────────────────────────────
+   They sit over slides of opposite polarity, so every colour below is keyed
+   off the active slide's tone rather than fixed. */
+
+.bx-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  display: grid;
+  place-items: center;
+  /* 44px: this is a tap target on a phone. */
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  border-radius: 50%;
+  opacity: 0;
+  cursor: pointer;
+  transition:
+    opacity 220ms ease,
+    background 220ms ease,
+    color 220ms ease;
+}
+
+.bx-carousel__arrow--prev {
+  left: 0.625rem;
+}
+
+.bx-carousel__arrow--next {
+  right: 0.625rem;
+}
+
+/* Revealed on hover of the carousel, or whenever a control has focus — a
+   keyboard user never triggers hover and must not be left without arrows. */
+.bx-carousel:hover .bx-carousel__arrow,
+.bx-carousel:focus-within .bx-carousel__arrow {
+  opacity: 1;
+}
+
+/* Coarse pointers have no hover to reveal them with, so the arrows simply
+   stay. */
+@media (hover: none) {
+  .bx-carousel__arrow {
+    opacity: 1;
+  }
+}
+
+.bx-carousel[data-tone="dark"] .bx-carousel__arrow {
+  background: rgb(255 255 255 / 10%);
+  color: var(--color-ink);
+}
+
+.bx-carousel[data-tone="dark"] .bx-carousel__arrow:hover {
+  background: rgb(255 255 255 / 18%);
+}
+
+.bx-carousel[data-tone="light"] .bx-carousel__arrow {
+  background: rgb(15 18 26 / 8%);
+  color: #12141a;
+}
+
+.bx-carousel[data-tone="light"] .bx-carousel__arrow:hover {
+  background: rgb(15 18 26 / 15%);
+}
+
+.bx-carousel__arrow:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.bx-carousel__dots {
+  position: absolute;
+  bottom: 1rem;
+  inset-inline: 0;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.bx-carousel__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    width 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    background 300ms ease;
+}
+
+/* The active dot stretches into a pill rather than only changing colour, so
+   position is legible without relying on a contrast difference alone. */
+.bx-carousel__dot[data-active="true"] {
+  width: 1.375rem;
+  border-radius: 999px;
+}
+
+.bx-carousel[data-tone="dark"] .bx-carousel__dot {
+  background: rgb(255 255 255 / 25%);
+}
+
+.bx-carousel[data-tone="dark"] .bx-carousel__dot[data-active="true"] {
+  background: var(--color-electric-glow);
+}
+
+.bx-carousel[data-tone="light"] .bx-carousel__dot {
+  background: rgb(15 18 26 / 20%);
+}
+
+.bx-carousel[data-tone="light"] .bx-carousel__dot[data-active="true"] {
+  background: var(--color-electric);
+}
+
+.bx-carousel__dot:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-carousel__track,
+  .bx-carousel__arrow,
+  .bx-carousel__dot {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── The Harvard slide ───────────────────────────────────────────────────────
+   A deliberately light surface inside a dark card: it is a quotation of a
+   printed page, and it only reads as one if it is the colour of paper. Every
+   value here is local to this slide — none of it comes from the `--color-*`
+   tokens, because none of it should follow the site's dark palette. */
+
+.bx-quote-slide {
+  /* Not flat #fff — the source has a soft vignette toward the edges, which is
+     what keeps a white block inside a dark card from looking like a hole. */
+  background:
+    radial-gradient(120% 90% at 50% 0%, #ffffff 40%, #f2f3f5 100%);
+  color: #3c4149;
+}
+
+/* Shield, rule and wordmark set as one lockup. The rule is a border on the
+   wordmark rather than an element of its own, so it can never fall out of step
+   with the text's height. */
+.bx-quote-slide__lockup {
+  display: flex;
+  align-items: stretch;
+  gap: 0.875rem;
+}
+
+.bx-quote-slide__shield {
+  width: auto;
+  /* Overhangs the wordmark's three-line block (3 × 1.5rem) top and bottom. The
+     shield is the recognisable half of the lockup, so it leads rather than
+     matching the type's height exactly. */
+  height: 5.25rem;
+  flex-shrink: 0;
+}
+
+.bx-quote-slide__wordmark {
+  border-left: 2px solid #12141a;
+  padding-left: 0.875rem;
+  color: #12141a;
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.5rem;
+  letter-spacing: -0.015em;
+  /* Optically centres the three lines against the shield. */
+  align-self: center;
+}
+
+.bx-quote-slide__title {
+  color: #12141a;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.bx-quote-slide__body strong {
+  color: #12141a;
+  font-weight: 700;
+}
+
+/* The highlighter. `box-decoration-break` is what keeps the band unbroken when
+   a highlighted run wraps across lines — without it only the first line gets
+   the padding and the mark looks torn. */
+.bx-quote-slide__mark {
+  background: #ffe94a;
+  color: #12141a;
+  padding: 0.08em 0.12em;
+  box-decoration-break: clone;
+}
+
+/* ── Opening the research ─────────────────────────────────────────────────── */
+
+.bx-quote-slide__opener {
+  position: relative;
+  height: 100%;
+  cursor: zoom-in;
+}
+
+.bx-quote-slide__expand {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 0.625rem;
+  background: rgb(15 18 26 / 6%);
+  color: #3c4149;
+  cursor: zoom-in;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.bx-quote-slide__opener:hover .bx-quote-slide__expand {
+  background: rgb(15 18 26 / 12%);
+  color: #12141a;
+}
+
+.bx-quote-slide__expand:focus-visible {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
+}
+
+/* The link out to Harvard. Pinned to the bottom of the slide rather than left
+   to follow the prose, so it sits on the same line whichever slide length the
+   card settles at. */
+.bx-quote-slide__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  margin-top: 1.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 999px;
+  background: #12141a;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 200ms ease, transform 200ms ease;
+}
+
+.bx-quote-slide__cta:hover {
+  background: #2b3038;
+}
+
+.bx-quote-slide__cta:focus-visible {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
+}
+
+/* In the dialog the slide is a document, not a card: it scrolls on its own and
+   the corners are the panel's. */
+.bx-quote-slide--dialog {
+  height: auto;
+  border-radius: inherit;
+}
+
+.bx-quote-slide--dialog .bx-quote-slide__shield {
+  height: 6.75rem;
+}
+
+.bx-quote-slide--dialog .bx-quote-slide__wordmark {
+  font-size: 1.75rem;
+  line-height: 1.9rem;
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────────────
+   Above the header (50) and the dock (41), because it covers the page and
+   nothing may float over it. */
+
+.bx-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+
+.bx-modal__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(4 5 8 / 72%);
+  backdrop-filter: blur(6px);
+  animation: bx-modal-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.bx-modal__panel {
+  position: relative;
+  width: min(64rem, 100%);
+  /* Never taller than the viewport it is centred in; the body scrolls inside
+     instead of the panel running off the screen. */
+  max-height: min(46rem, 100%);
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: 0 2.5rem 5rem rgb(0 0 0 / 55%);
+  animation: bx-modal-panel-in 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.bx-modal__body {
+  /* Both axes stated — see the nav panel. */
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+
+.bx-modal__close {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(15 18 26 / 8%);
+  color: #3c4149;
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.bx-modal__close:hover {
+  background: rgb(15 18 26 / 16%);
+  color: #12141a;
+}
+
+.bx-modal__close:focus-visible {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
+}
+
+@keyframes bx-modal-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes bx-modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-modal__scrim,
+  .bx-modal__panel {
+    animation-duration: 0.01ms !important;
+  }
+
+  .bx-quote-slide__cta,
+  .bx-quote-slide__expand,
+  .bx-modal__close {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Horizontal services track ───────────────────────────────────────────── */
 
 /* Below the pin breakpoint the track is a native snap carousel — pinning and
