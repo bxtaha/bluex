@@ -7,7 +7,6 @@ import { observeOnce } from "@/lib/reveal";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
-import { Carousel } from "@/components/ui/carousel";
 import { Modal } from "@/components/ui/modal";
 import { useReducedMotion } from "@/lib/use-media-query";
 
@@ -67,7 +66,7 @@ function ResearchBody({ size }: { size: "card" | "dialog" }) {
       className={
         dialog
           ? "bx-quote-slide bx-quote-slide--dialog px-6 py-10 sm:px-12 sm:py-14"
-          : "bx-quote-slide h-full px-8 pb-16 pt-8 sm:px-10 sm:pt-10"
+          : "bx-quote-slide h-full px-8 pb-10 pt-8 sm:px-10 sm:pt-10"
       }
     >
       {/* The lockup is composed rather than a single asset: the supplied PNG is
@@ -240,12 +239,14 @@ export function SpeedHook() {
       id="speed"
       className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16"
     >
-      {/* The card column is the wider of the two — it carries the research
-          slide's paragraphs, which need the measure more than the copy on the
-          left does. `minmax(0, …)` on both tracks rather than a bare ratio: a
-          grid item's automatic minimum is its content, and the carousel's flex
-          track would otherwise push the column past its share. */}
-      <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)] lg:items-center lg:gap-16">
+      {/* Two columns that say the same thing from opposite ends: the left is
+          the claim and the proof of it, the right is the research the claim
+          rests on. `minmax(0, …)` rather than bare ratios because a grid item's
+          automatic minimum is its content, which can otherwise push a column
+          past its share. Top-aligned, not centred — both columns are now
+          content-rich and of unequal length, and centring would leave the
+          heading floating away from the card it argues with. */}
+      <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start lg:gap-16">
         <div>
           <Reveal as="p" index={0} className="bx-eyebrow">
             Speed to lead
@@ -283,32 +284,76 @@ export function SpeedHook() {
             </Reveal>
           )}
 
-          <Reveal index={3} className="mt-9">
+          {/* The clock, folded into the argument rather than boxed off beside
+              it. No card of its own: a second surface here would read as a
+              separate widget, and this is the paragraph's evidence. A rule and
+              the eyebrow are enough to mark it as a different kind of content
+              from the prose above. */}
+          <Reveal index={2} className="mt-10 border-t border-white/8 pt-8">
+            <p className="bx-eyebrow">Your response time</p>
+
+            {/* tabular-nums keeps the clock from reflowing as digits change.
+                Deliberately smaller than the h2 above it — in its own card it
+                could be the largest thing on screen, but in this column the
+                heading has to stay the hero. */}
+            <p className="mt-3 flex items-baseline gap-3">
+              <span
+                ref={counterRef}
+                className="bx-display text-[clamp(2.75rem,7vw,4rem)] tabular-nums text-ink"
+              >
+                0:00
+              </span>
+              <span className="text-sm text-ink-muted">
+                minutes, every time
+              </span>
+            </p>
+
+            <div className="mt-8">
+              <div className="relative h-1.5 overflow-hidden rounded-full bg-white/8">
+                {/* Scales in from the section's own reveal — see .bx-bar-fill */}
+                <div className="bx-bar-fill h-full origin-left rounded-full bg-gradient-to-r from-signal via-electric to-electric-glow" />
+              </div>
+
+              <ol className="mt-5 flex justify-between gap-2">
+                {TIMELINE.map((point, i) => (
+                  <Reveal
+                    as="li"
+                    key={point.at}
+                    index={i + 1}
+                    className="min-w-0"
+                  >
+                    <span
+                      className={`bx-display block text-sm ${
+                        point.tone === "signal"
+                          ? "text-signal"
+                          : "text-electric-glow"
+                      }`}
+                    >
+                      {point.at}
+                    </span>
+                    <span className="mt-1 block truncate text-xs text-ink-muted">
+                      {point.label}
+                    </span>
+                  </Reveal>
+                ))}
+              </ol>
+            </div>
+
+            <p className="mt-8 max-w-lg text-sm leading-relaxed text-ink-muted">
+              The agent does not get busy, forget, or go home. It answers the
+              2am enquiry exactly as fast as the 2pm one.
+            </p>
+          </Reveal>
+
+          <Reveal index={3} className="mt-10">
             <CallCta>See how fast it is</CallCta>
           </Reveal>
         </div>
 
-        {/* The card is now only the frame — `overflow-hidden` so the light
-            slide is clipped to its rounded corners. */}
+        {/* The research, on its own now. The card is only the frame —
+            `overflow-hidden` so the light surface is clipped to its corners. */}
         <Reveal index={2} className="bx-card bx-hairline overflow-hidden">
-          <Carousel
-            ariaLabel="Speed to lead: the research, and your response time"
-            paused={researchOpen}
-            slides={[
-              {
-                id: "research",
-                label: "The research",
-                tone: "light",
-                content: <ResearchSlide onOpen={() => setResearchOpen(true)} />,
-              },
-              {
-                id: "response-time",
-                label: "Your response time",
-                tone: "dark",
-                content: <ResponseTimeSlide counterRef={counterRef} />,
-              },
-            ]}
-          />
+          <ResearchSlide onOpen={() => setResearchOpen(true)} />
         </Reveal>
       </div>
 
@@ -320,61 +365,5 @@ export function SpeedHook() {
         <ResearchBody size="dialog" />
       </Modal>
     </section>
-  );
-}
-
-/**
- * The card's own content, unchanged — it is now the second slide rather than
- * the whole card.
- */
-function ResponseTimeSlide({
-  counterRef,
-}: {
-  counterRef: React.RefObject<HTMLSpanElement | null>;
-}) {
-  return (
-    <div className="h-full px-8 pb-16 pt-8 sm:px-10 sm:pt-10">
-      <p className="bx-eyebrow">Your response time</p>
-
-      {/* tabular-nums keeps the clock from reflowing as digits change */}
-      <p className="mt-4 flex items-baseline gap-3">
-        <span
-          ref={counterRef}
-          className="bx-display text-[clamp(3.5rem,11vw,6rem)] tabular-nums text-ink"
-        >
-          0:00
-        </span>
-        <span className="text-sm text-ink-muted">minutes, every time</span>
-      </p>
-
-      <div className="mt-10">
-        <div className="relative h-1.5 overflow-hidden rounded-full bg-white/8">
-          {/* Scales in from the card's own reveal — see .bx-bar-fill */}
-          <div className="bx-bar-fill h-full origin-left rounded-full bg-gradient-to-r from-signal via-electric to-electric-glow" />
-        </div>
-
-        <ol className="mt-5 flex justify-between gap-2">
-          {TIMELINE.map((point, i) => (
-            <Reveal as="li" key={point.at} index={i + 1} className="min-w-0">
-              <span
-                className={`bx-display block text-sm ${
-                  point.tone === "signal" ? "text-signal" : "text-electric-glow"
-                }`}
-              >
-                {point.at}
-              </span>
-              <span className="mt-1 block truncate text-xs text-ink-muted">
-                {point.label}
-              </span>
-            </Reveal>
-          ))}
-        </ol>
-      </div>
-
-      <p className="mt-9 border-t border-white/8 pt-5 text-sm leading-relaxed text-ink-muted">
-        The agent does not get busy, forget, or go home. It answers the 2am
-        enquiry exactly as fast as the 2pm one.
-      </p>
-    </div>
   );
 }

@@ -10,11 +10,11 @@ import { cn } from "@/lib/utils";
 /**
  * A dialog that covers the page.
  *
- * Portalled to `document.body` rather than rendered in place, for two reasons
- * that both bite silently: the card this is opened from is `overflow: hidden`,
- * which would clip it, and it sits inside a transformed carousel track, which
- * creates a containing block that `position: fixed` would resolve against
- * instead of the viewport.
+ * Portalled to `document.body` rather than rendered in place: the card it opens
+ * from is `overflow: hidden`, which would clip it. Worth keeping the portal even
+ * if that ever changes — any transformed ancestor becomes a containing block
+ * that `position: fixed` resolves against instead of the viewport, and that
+ * failure is silent.
  *
  * Escape, an outside click, a wrapped focus loop, and focus restored to the
  * opener on close — the same four obligations the nav panel meets, met the same
