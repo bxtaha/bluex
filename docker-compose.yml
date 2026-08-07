@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: bluex:latest
+    image: ghcr.io/bxtaha/bluex:latest
     container_name: bluex
     restart: unless-stopped
     ports:
