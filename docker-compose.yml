@@ -11,3 +11,9 @@ services:
     environment:
       NODE_ENV: production
       HERMES_WEBHOOK_URL: ${HERMES_WEBHOOK_URL:-}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.bluex.rule=Host(`bluex.agency`) || Host(`www.bluex.agency`)"
+      - "traefik.http.routers.bluex.entrypoints=websecure"
+      - "traefik.http.routers.bluex.tls.certresolver=letsencrypt"
+      - "traefik.http.services.bluex.loadbalancer.server.port=3000"
