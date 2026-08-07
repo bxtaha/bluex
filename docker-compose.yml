@@ -1,0 +1,13 @@
+services:
+  bluex:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bluex:latest
+    container_name: bluex
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    environment:
+      NODE_ENV: production
+      HERMES_WEBHOOK_URL: ${HERMES_WEBHOOK_URL:-}
