@@ -587,6 +587,18 @@
   outline-offset: 2px;
 }
 
+/* Hidden on phones. `display: none` rather than a visual hide, deliberately —
+   it takes the link out of the tab order and the accessibility tree together,
+   so nothing focusable is left sitting invisibly in the card. The dialog's
+   focus loop filters on `offsetParent`, which a display:none element fails, so
+   it drops out of the trap on its own. The research is still reachable there:
+   the card opens the full text either way. */
+@media (max-width: 639px) {
+  .bx-quote-slide__cta {
+    display: none;
+  }
+}
+
 /* In the dialog the slide is a document, not a card: it scrolls on its own and
    the corners are the panel's. */
 .bx-quote-slide--dialog {
@@ -608,12 +620,16 @@
    nothing may float over it. */
 
 .bx-modal {
+  /* Held in a property so the panel's height cap below subtracts exactly this
+     and cannot drift from it. */
+  --bx-modal-gutter: clamp(1rem, 4vw, 3rem);
+
   position: fixed;
   inset: 0;
   z-index: 60;
   display: grid;
   place-items: center;
-  padding: clamp(1rem, 4vw, 3rem);
+  padding: var(--bx-modal-gutter);
 }
 
 .bx-modal__scrim {
@@ -628,8 +644,13 @@
   position: relative;
   width: min(64rem, 100%);
   /* Never taller than the viewport it is centred in; the body scrolls inside
-     instead of the panel running off the screen. */
-  max-height: min(46rem, 100%);
+     instead of the panel running off the screen.
+
+     Stated in `dvh` minus the gutter rather than as `100%`: a percentage here
+     resolves against a grid track, which is a chain worth not depending on, and
+     `dvh` is what tracks a phone's URL bar collapsing — the same unit the dock
+     already uses for its own full-height track. */
+  max-height: min(46rem, calc(100dvh - 2 * var(--bx-modal-gutter)));
   display: flex;
   flex-direction: column;
   border-radius: 1.25rem;
@@ -639,6 +660,17 @@
 }
 
 .bx-modal__body {
+  /* `min-height: 0` is the whole of why this scrolls. A flex item's default
+     minimum is `auto`, meaning it refuses to shrink below its content — so
+     without this the body grew to its full height, overshot the panel's
+     max-height, and the panel's `overflow: hidden` clipped the rest. It never
+     became a scroll container because it was never actually constrained, and
+     the overflowing text was simply unreachable.
+
+     It only showed on phones: at 64rem wide the copy fits inside 46rem, and it
+     is the narrow measure that wraps it long enough to overflow. */
+  flex: 1 1 auto;
+  min-height: 0;
   /* Both axes stated — see the nav panel. */
   overflow: hidden auto;
   overscroll-behavior: contain;
