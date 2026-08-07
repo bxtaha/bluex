@@ -6,6 +6,7 @@ import { SectionProvider } from "@/components/providers/section-provider";
 import { ScrollProgress } from "@/components/ui/scroll-progress";
 import { BackToTop } from "@/components/ui/back-to-top";
 import { SectionNav } from "@/components/ui/section-nav";
+import { SplashCursorMount } from "@/components/ui/splash-cursor-mount";
 import { SiteHeader } from "@/components/site-header";
 import {
   CONTACT_EMAIL,
@@ -111,6 +112,12 @@ export default function RootLayout({
           <SectionNav />
           <BackToTop />
         </SectionProvider>
+
+        {/* Last in the body and outside the providers: it reads no section
+            state and owns no layout, so it is only ever a layer. Its z-index
+            (30, set in globals.css) is what puts it over the page and under
+            every control, not its position here. */}
+        <SplashCursorMount />
       </body>
     </html>
   );
