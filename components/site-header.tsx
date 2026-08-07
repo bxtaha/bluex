@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useRef } from "react";
-import { Menu } from "lucide-react";
 import {
   useSections,
   type SectionId,
@@ -43,7 +42,7 @@ const CONTRACT_AT = 24;
  * difference between an indicator that steps aside and one that lies.
  */
 export function SiteHeader() {
-  const { activeId, navOpen, setNavOpen } = useSections();
+  const { activeId } = useSections();
 
   const headerRef = useRef<HTMLElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -173,18 +172,6 @@ export function SiteHeader() {
           >
             Get a call
           </CallCta>
-
-          {/* Opens the dock's panel rather than a second menu of its own. Below
-              the breakpoint where the links fit, that panel is the navigation. */}
-          <button
-            type="button"
-            className="site-header__menu"
-            aria-label="Open navigation"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen(!navOpen)}
-          >
-            <Menu className="nav-icon" strokeWidth={1.7} aria-hidden />
-          </button>
         </div>
       </div>
     </header>
