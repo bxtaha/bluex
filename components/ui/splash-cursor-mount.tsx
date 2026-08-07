@@ -17,20 +17,15 @@ const SplashCursor = dynamic(() => import("@/components/ui/splash-cursor"), {
 });
 
 /**
- * Tuning for the fluid, as specified.
- *
- * The colour is a violet that is *not* in the site's palette — neither
- * `--color-electric` nor any other token — so nothing else on the page moves
- * with it. It lives here as a literal because the sim reads a hex string once,
- * at init, inside a canvas no stylesheet can reach.
+ * Tuning for the fluid.
  *
  * `RAINBOW_MODE: false` is what makes `COLOR` mean anything; with the rainbow
  * on, upstream cycles the whole hue wheel and ignores the value. The sim scales
- * whatever it is given by 0.15 before the dye, so this lands at the same
- * intensity the rainbow did. `COLOR_UPDATE_SPEED` only re-picks the pointer's
- * colour, so with the rainbow off it re-picks the same violet each time — kept
- * at the given value because it costs nothing and matters again the moment the
- * rainbow is switched back on.
+ * whatever it is given by 0.15 before the dye, so a token value lands at the
+ * same intensity the rainbow did. `COLOR_UPDATE_SPEED` only re-picks the
+ * pointer's colour, so with the rainbow off it re-picks the same value each
+ * time — kept at the given number because it costs nothing and matters again
+ * the moment the rainbow is switched back on.
  */
 const SPLASH_CONFIG = {
   DENSITY_DISSIPATION: 3.5,
@@ -42,8 +37,33 @@ const SPLASH_CONFIG = {
   COLOR_UPDATE_SPEED: 27,
   SHADING: true,
   RAINBOW_MODE: false,
-  COLOR: "#A855F7",
 } as const;
+
+/**
+ * The token the scroll progress bar fills with — `.scroll-progress__fill` is
+ * `background: var(--color-electric)`. The cursor reads the same property, so
+ * the two cannot drift: retune the token and both follow.
+ */
+const COLOR_TOKEN = "--color-electric";
+
+/** Used only if the token is missing or is not a plain hex. Today's value. */
+const COLOR_FALLBACK = "#2e6bff";
+
+/**
+ * Resolves the token to a hex string the sim can parse.
+ *
+ * The sim's own `hexToRGB` understands `#rgb` and `#rrggbb` and nothing else —
+ * hand it an `oklch()` or a `color-mix()` and every channel comes back `NaN`,
+ * which renders as an invisible splat rather than an error. So the value is
+ * checked rather than trusted: anything that is not a plain hex falls back.
+ */
+function resolveSplashColor(): string {
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(COLOR_TOKEN)
+    .trim();
+
+  return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(raw) ? raw : COLOR_FALLBACK;
+}
 
 /**
  * Breathing room after `load` before the sim is built.
@@ -78,7 +98,10 @@ const MOUNT_DELAY = 300;
  */
 export function SplashCursorMount() {
   const reduced = useReducedMotion();
-  const [ready, setReady] = useState(false);
+  // One piece of state, not a `ready` flag beside a colour: the colour is only
+  // readable once the stylesheet has applied, which is the same moment the sim
+  // may be built. Null means "not yet".
+  const [color, setColor] = useState<string | null>(null);
 
   useEffect(() => {
     if (reduced) return;
@@ -86,7 +109,10 @@ export function SplashCursorMount() {
     let handle: number | undefined;
 
     const start = () => {
-      handle = window.setTimeout(() => setReady(true), MOUNT_DELAY);
+      // Resolved here rather than at module scope: custom properties do not
+      // exist until the stylesheet is applied, and this file is imported long
+      // before that.
+      handle = window.setTimeout(() => setColor(resolveSplashColor()), MOUNT_DELAY);
     };
 
     // A page restored from bfcache, or one hydrated after `load` already fired,
@@ -106,7 +132,7 @@ export function SplashCursorMount() {
   // `reduced` is live, not read once at mount: turning the preference on with
   // the page open unmounts the sim, and its own cleanup cancels the rAF loop
   // and drops the pointer listeners.
-  if (reduced || !ready) return null;
+  if (reduced || color === null) return null;
 
-  return <SplashCursor {...SPLASH_CONFIG} />;
+  return <SplashCursor {...SPLASH_CONFIG} COLOR={color} />;
 }
