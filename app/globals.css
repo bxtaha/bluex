@@ -824,6 +824,306 @@
   }
 }
 
+/* ── FAQ accordion ───────────────────────────────────────────────────────────
+   Rows separated by a hairline, and a panel that eases open on a grid track. */
+
+.bx-faq__row {
+  border-top: 1px solid rgb(255 255 255 / 9%);
+}
+
+.bx-faq__row:last-child {
+  border-bottom: 1px solid rgb(255 255 255 / 9%);
+}
+
+.bx-faq__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  width: 100%;
+  /* Generous vertical padding is what makes the whole row a comfortable tap
+     target on a phone, rather than just the text. */
+  padding: 1.5rem 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--color-ink);
+  transition: color var(--hover-duration) var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-faq__trigger:hover {
+    color: var(--color-electric-glow);
+  }
+}
+
+.bx-faq__trigger:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: -2px;
+}
+
+.bx-faq__question {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  line-height: 1.4;
+}
+
+/* ── The plus that becomes a minus ───────────────────────────────────────── */
+
+.bx-faq__icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  color: var(--color-electric);
+}
+
+.bx-faq__bar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.875rem;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  translate: -50% -50%;
+  transition: rotate 320ms var(--ease-reveal);
+}
+
+/* Only the upright bar turns. It lands flat on top of the horizontal one, so
+   the plus reads as folding into a minus rather than spinning. */
+.bx-faq__bar--vertical {
+  rotate: 90deg;
+}
+
+.bx-faq__row[data-open="true"] .bx-faq__bar--vertical {
+  rotate: 0deg;
+}
+
+/* ── The panel ───────────────────────────────────────────────────────────────
+   `grid-template-rows: 0fr → 1fr` is the height animation. `height: auto` does
+   not animate; a measured pixel height needs JS on every resize and font swap,
+   and a max-height guess either clips a long answer or eases through dead
+   space. The grid track eases to the content's real height and needs no
+   measurement. */
+
+.bx-faq__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 380ms var(--ease-reveal);
+}
+
+.bx-faq__row[data-open="true"] .bx-faq__panel {
+  grid-template-rows: 1fr;
+}
+
+/* The `0fr` track only collapses if the child cannot force it open, which means
+   the overflow has to be hidden here, on the row's own child. */
+.bx-faq__panel-inner {
+  /* The shorthand states both axes at once, which is what this codebase wants
+     everywhere — `overflow-y` alone computes `overflow-x` to `auto`. */
+  overflow: hidden;
+  min-height: 0;
+}
+
+.bx-faq__answer {
+  padding: 0 0 1.75rem;
+  max-width: 60ch;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--color-ink-muted);
+  /* Fades in behind the height so the text is not legible while squashed. */
+  opacity: 0;
+  transition: opacity 240ms var(--ease-reveal);
+}
+
+.bx-faq__row[data-open="true"] .bx-faq__answer {
+  opacity: 1;
+  transition-delay: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-faq__panel,
+  .bx-faq__bar,
+  .bx-faq__answer,
+  .bx-faq__trigger {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+
+/* ── Contact ─────────────────────────────────────────────────────────────────
+   The form card is `.bx-card .bx-hairline` like every other card on the page.
+   What is described here is the field treatment — which the lead dialog writes
+   inline and this section does not, because these fields appear ten times and
+   an inline focus ring repeated ten times is a focus ring that eventually gets
+   one instance wrong. */
+
+.bx-field__label {
+  display: block;
+  margin-bottom: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+}
+
+.bx-field__optional {
+  opacity: 0.6;
+}
+
+.bx-field {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 0.625rem;
+  background: rgb(255 255 255 / 3%);
+  color: var(--color-ink);
+  font-family: inherit;
+  /* 16px. Anything smaller and iOS Safari zooms the viewport on focus, which
+     on this page also drags the sticky header out of position. */
+  font-size: 1rem;
+  line-height: 1.5;
+  transition:
+    border-color var(--hover-duration) var(--ease-reveal),
+    background var(--hover-duration) var(--ease-reveal);
+}
+
+@media (min-width: 640px) {
+  .bx-field {
+    font-size: 0.875rem;
+  }
+}
+
+.bx-field::placeholder {
+  color: color-mix(in oklab, var(--color-ink-muted) 60%, transparent);
+}
+
+.bx-field:focus {
+  border-color: var(--color-electric);
+  background: rgb(255 255 255 / 6%);
+  /* A real ring, not a border colour change. A 1px hairline shifting hue is
+     not a focus indicator, and it loses outright to the error border below. */
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.bx-field[aria-invalid="true"] {
+  border-color: rgb(248 113 113 / 70%);
+}
+
+.bx-field--area {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.bx-field--select {
+  /* The native arrow is drawn in the OS's light palette on a dark control in
+     several browsers and disappears; this one is ours. */
+  appearance: none;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a909c' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+}
+
+/* The option list is painted by the OS, which does not inherit the field's
+   colours — without this it is black text on white inside a dark form. */
+.bx-field--select option {
+  background: #101219;
+  color: var(--color-ink);
+}
+
+.bx-field__error {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: rgb(248 113 113);
+}
+
+/* Direct contact methods. Whole rows are the target, not just the text —
+   these are tapped on a phone, and a 44px row is a target a thumb can hit. */
+.bx-contact__row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  min-height: 3.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 0.875rem;
+  background: rgb(255 255 255 / 2%);
+  text-decoration: none;
+  transition:
+    border-color var(--hover-duration) var(--ease-reveal),
+    background var(--hover-duration) var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-contact__row:hover {
+    border-color: color-mix(in oklab, var(--color-electric) 45%, transparent);
+    background: rgb(255 255 255 / 5%);
+  }
+}
+
+.bx-contact__row:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+.bx-contact__row-icon {
+  display: grid;
+  place-content: center;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.625rem;
+  background: color-mix(in oklab, var(--color-electric) 14%, transparent);
+  color: var(--color-electric-glow);
+}
+
+.bx-contact__row-text {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.bx-contact__row-label {
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.bx-contact__row-value {
+  /* Long addresses and numbers must not widen the column — this page has
+     `overflow-x` traps of its own and a phone would zoom the whole site out. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9375rem;
+  color: var(--color-ink);
+}
+
+/* The honeypot. Off-screen rather than `display: none` or `hidden`: the
+   simpler scrapers skip fields that are obviously hidden, and this one is only
+   obviously hidden to a person. */
+.bx-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-field,
+  .bx-contact__row {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Horizontal services track ───────────────────────────────────────────── */
 
 /* Below the pin breakpoint the track is a native snap carousel — pinning and

@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PricingTier } from "@/lib/pricing";
+import type { Faq } from "@/lib/faq";
+import type { ContactSettings } from "@/lib/contact-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
+import { AdminFaqManager } from "@/components/ui/admin-faq-manager";
+import { AdminContactManager } from "@/components/ui/admin-contact-manager";
+import { AdminInbox } from "@/components/ui/admin-inbox";
 import {
   Home,
   DollarSign,
@@ -25,6 +30,9 @@ import {
   Bell,
   Settings,
   HelpCircle,
+  MessagesSquare,
+  Inbox,
+  AtSign,
   User,
 } from "lucide-react";
 
@@ -44,12 +52,19 @@ export function AdminDashboard({
   email,
   name,
   tiers,
+  faqs,
+  contact,
+  unread,
 }: {
   /** The signed-in account, resolved on the server by the page's guard. */
   email: string;
   name?: string;
-  /** Read on the server so the pricing view has its data before it is opened. */
+  /** Read on the server so the editors have data before they are opened. */
   tiers: PricingTier[];
+  faqs: Faq[];
+  contact: ContactSettings;
+  /** Unread conversations at page load. The inbox keeps it current after that. */
+  unread: number;
 }) {
   // The theme class is owned by the layout's provider, not by this page — the
   // login screen shares the area and has to agree with it. This only reads the
@@ -58,6 +73,14 @@ export function AdminDashboard({
   // Lifted out of the sidebar: the content area has to render according to the
   // same selection, and two copies of that state would drift.
   const [selected, setSelected] = useState("Dashboard");
+  // Lifted for the same reason: the badge lives in the sidebar and the number
+  // is discovered by the inbox, so one of them has to own it and it cannot be
+  // the one that only sometimes renders.
+  const [unreadCount, setUnreadCount] = useState(unread);
+
+  // Stable, or the inbox's fetch effect re-runs on every parent render and
+  // polls the server in a loop.
+  const handleUnread = useCallback((count: number) => setUnreadCount(count), []);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -67,6 +90,7 @@ export function AdminDashboard({
           name={name}
           selected={selected}
           setSelected={setSelected}
+          unread={unreadCount}
         />
         <DashboardContent
           isDark={isDark}
@@ -74,6 +98,10 @@ export function AdminDashboard({
           selected={selected}
           email={email}
           tiers={tiers}
+          faqs={faqs}
+          contact={contact}
+          unread={unreadCount}
+          onUnreadChange={handleUnread}
         />
       </div>
     </div>
@@ -85,11 +113,13 @@ function Sidebar({
   name,
   selected,
   setSelected,
+  unread,
 }: {
   email: string;
   name?: string;
   selected: string;
   setSelected: (title: string) => void;
+  unread: number;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(true);
@@ -118,6 +148,17 @@ function Sidebar({
           setSelected={setSelected}
           open={open}
         />
+        {/* `undefined` rather than 0 when there is nothing waiting — `Option`
+            renders any number it is given, and a badge reading "0" is a
+            notification that there are no notifications. */}
+        <Option
+          Icon={Inbox}
+          title="Inbox"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+          notifs={unread > 0 ? unread : undefined}
+        />
         <Option
           Icon={DollarSign}
           title="Sales"
@@ -144,6 +185,20 @@ function Sidebar({
         <Option
           Icon={Tag}
           title="Pricing"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+        />
+        <Option
+          Icon={MessagesSquare}
+          title="FAQ"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+        />
+        <Option
+          Icon={AtSign}
+          title="Contact"
           selected={selected}
           setSelected={setSelected}
           open={open}
@@ -439,47 +494,91 @@ const TINTS = {
   },
 } as const;
 
+/**
+ * Titles for each view.
+ *
+ * A lookup rather than the stack of nested ternaries this replaced. Six views
+ * deep, the ternary version had the same key spelled out in two separate
+ * chains — heading and subtitle — which is two places to forget when a seventh
+ * arrives. Anything not listed here falls through to the overview, so an
+ * unimplemented sidebar item shows the dashboard rather than a blank pane.
+ */
+const VIEWS: Record<string, { title: string; subtitle: string }> = {
+  Inbox: {
+    title: "Inbox",
+    subtitle: "Contact-form submissions and email, in one place",
+  },
+  Pricing: {
+    title: "Pricing",
+    subtitle: "Tiers shown in the pricing section of the site",
+  },
+  FAQ: {
+    title: "FAQ",
+    subtitle: "Questions shown in the FAQ section of the site",
+  },
+  Contact: {
+    title: "Contact",
+    subtitle: "Details shown in the contact section of the site",
+  },
+  Settings: { title: "Settings", subtitle: "Manage your account" },
+};
+
+const OVERVIEW = {
+  title: "Dashboard",
+  subtitle: "Welcome back to your dashboard",
+};
+
 function DashboardContent({
   isDark,
   setIsDark,
   selected,
   email,
   tiers,
+  faqs,
+  contact,
+  unread,
+  onUnreadChange,
 }: {
   isDark: boolean;
   setIsDark: (next: boolean) => void;
   selected: string;
   email: string;
   tiers: PricingTier[];
+  faqs: Faq[];
+  contact: ContactSettings;
+  unread: number;
+  onUnreadChange: (count: number) => void;
 }) {
-  const isSettings = selected === "Settings";
-  const isPricing = selected === "Pricing";
-  // Anything that is not its own view falls back to the dashboard, so an
-  // unimplemented sidebar item shows the overview rather than a blank pane.
-  const isOverview = !isSettings && !isPricing;
+  const view = VIEWS[selected] ?? OVERVIEW;
+  const isOverview = view === OVERVIEW;
+
   return (
     <div className="flex-1 overflow-auto bg-gray-50 p-6 dark:bg-gray-950">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {isSettings ? "Settings" : isPricing ? "Pricing" : "Dashboard"}
+            {view.title}
           </h1>
           <p className="mt-1 text-gray-600 dark:text-gray-400">
-            {isSettings
-              ? "Manage your account"
-              : isPricing
-                ? "Tiers shown in the pricing section of the site"
-                : "Welcome back to your dashboard"}
+            {view.subtitle}
           </p>
         </div>
         <div className="flex items-center gap-4">
           <button
             type="button"
-            aria-label="Notifications"
+            aria-label={
+              unread > 0
+                ? `Notifications — ${unread} unread conversations`
+                : "Notifications"
+            }
             className="relative rounded-lg border border-gray-200 bg-white p-2 text-gray-600 transition-colors hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
           >
             <Bell className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500" />
+            {/* Only when something is actually waiting. A permanent red dot is
+                a dot, not a notification. */}
+            {unread > 0 && (
+              <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-red-500" />
+            )}
           </button>
           <button
             type="button"
@@ -505,8 +604,11 @@ function DashboardContent({
         </div>
       </div>
 
-      {isSettings && <AdminChangePassword email={email} />}
-      {isPricing && <AdminPricingManager initial={tiers} />}
+      {selected === "Inbox" && <AdminInbox onUnreadChange={onUnreadChange} />}
+      {selected === "Settings" && <AdminChangePassword email={email} />}
+      {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
+      {selected === "FAQ" && <AdminFaqManager initial={faqs} />}
+      {selected === "Contact" && <AdminContactManager initial={contact} />}
       {isOverview && (
         <>
           <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">

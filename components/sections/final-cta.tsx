@@ -10,7 +10,12 @@ export function FinalCta() {
   const sectionRef = useRef<HTMLElement>(null);
 
   return (
-    <section ref={sectionRef} id="contact" className="relative">
+    /* Was `id="contact"` until the contact section existed. Two elements
+       cannot share an id — `getElementById` returns the first, so the nav's
+       "Get a call" and every `scrollToSection("contact")` would have kept
+       landing here rather than on the form. This is the closing flourish; the
+       anchor now belongs to the section that actually collects an enquiry. */
+    <section ref={sectionRef} id="final-cta" className="relative">
       {/* Same shape as the how-it-works section: a container taller than the
           viewport gives the scroll budget, and a sticky child holds the
           content still while that budget is spent — which is what turns

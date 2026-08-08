@@ -2,6 +2,13 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, getSessionUser } from "@/lib/admin-auth";
 import { listAllTiers, type PricingTier } from "@/lib/pricing";
+import { listAllFaqs, type Faq } from "@/lib/faq";
+import {
+  DEFAULT_CONTACT,
+  getContactSettings,
+  type ContactSettings,
+} from "@/lib/contact";
+import { unreadThreadCount } from "@/lib/message-store";
 import { AdminDashboard } from "@/components/ui/dashboard-with-collapsible-sidebar";
 
 /**
@@ -31,13 +38,35 @@ export default async function AdminPage() {
   // the editor then renders with its rows already present instead of flashing
   // an empty list, and there is no second round trip after the page arrives.
   let tiers: PricingTier[] = [];
+  let faqs: Faq[] = [];
+  let contact: ContactSettings = DEFAULT_CONTACT;
+  // The badge, not the inbox itself. The thread list is fetched by the client
+  // because mail arrives while the tab is open and a server snapshot of it
+  // would be stale before anyone read it; the count is cheap and it has to be
+  // right in the sidebar before the Inbox view is ever opened.
+  let unread = 0;
+
   try {
-    tiers = await listAllTiers();
+    [tiers, faqs, contact, unread] = await Promise.all([
+      listAllTiers(),
+      listAllFaqs(),
+      getContactSettings(),
+      unreadThreadCount(),
+    ]);
   } catch (error) {
     // The dashboard is still worth showing without them; the pricing view will
     // simply start empty rather than taking the whole page down.
-    console.error("[pricing] could not load tiers:", error);
+    console.error("[admin] could not load editor content:", error);
   }
 
-  return <AdminDashboard email={user.email} name={user.name} tiers={tiers} />;
+  return (
+    <AdminDashboard
+      email={user.email}
+      name={user.name}
+      tiers={tiers}
+      faqs={faqs}
+      contact={contact}
+      unread={unread}
+    />
+  );
 }

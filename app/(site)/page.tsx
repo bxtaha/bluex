@@ -8,6 +8,8 @@ import { WhyBluex } from "@/components/sections/why-bluex";
 import { Process } from "@/components/sections/process";
 import { Outcomes } from "@/components/sections/outcomes";
 import { Pricing } from "@/components/sections/pricing";
+import { Faq } from "@/components/sections/faq";
+import { Contact } from "@/components/sections/contact";
 import { FinalCta } from "@/components/sections/final-cta";
 import { SiteFooter } from "@/components/sections/site-footer";
 
@@ -25,6 +27,8 @@ export default function Home() {
       <Process />
       <Outcomes />
       <Pricing />
+      <Faq />
+      <Contact />
       <FinalCta />
       <SiteFooter />
     </>
