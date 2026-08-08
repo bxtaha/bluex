@@ -7,6 +7,7 @@ import { ExperienceIt } from "@/components/sections/experience-it";
 import { WhyBluex } from "@/components/sections/why-bluex";
 import { Process } from "@/components/sections/process";
 import { Outcomes } from "@/components/sections/outcomes";
+import { Pricing } from "@/components/sections/pricing";
 import { FinalCta } from "@/components/sections/final-cta";
 import { SiteFooter } from "@/components/sections/site-footer";
 
@@ -23,6 +24,7 @@ export default function Home() {
       <WhyBluex />
       <Process />
       <Outcomes />
+      <Pricing />
       <FinalCta />
       <SiteFooter />
     </>

@@ -11,6 +11,11 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    /* Node 22 runs TypeScript by stripping types, and its resolver wants the
+       real filename — so scripts/ imports carry a .ts extension. Permitted by
+       `noEmit`, which is already set: nothing is compiled, so nothing can emit
+       an import that a bundler would fail to resolve. */
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [

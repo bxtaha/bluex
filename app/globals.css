@@ -729,6 +729,101 @@
   }
 }
 
+/* ── Pricing tiers ───────────────────────────────────────────────────────────
+   The cards are `.bx-card .bx-hairline .bx-lift` like every other card on the
+   page; only the featured one and the two buttons are described here. */
+
+.bx-tier--featured {
+  /* The glow is a box-shadow rather than a border so the card does not grow by
+     a pixel relative to its neighbours and break the grid's alignment. The
+     inset ring replaces `.bx-card`'s own, in the accent instead of white. */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--color-electric) 55%, transparent),
+    0 0 0 1px color-mix(in oklab, var(--color-electric) 20%, transparent),
+    0 22px 60px -30px color-mix(in oklab, var(--color-electric) 70%, transparent);
+}
+
+@media (hover: hover) {
+  .bx-tier--featured:hover {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in oklab, var(--color-electric) 70%, transparent),
+      0 0 0 1px color-mix(in oklab, var(--color-electric) 28%, transparent),
+      0 26px 70px -28px color-mix(in oklab, var(--color-electric) 80%, transparent);
+  }
+}
+
+.bx-tier__badge {
+  position: absolute;
+  top: 0;
+  right: 1.75rem;
+  /* Straddles the top edge, which is why the card needs no extra padding for
+     it and the other cards stay the same height. */
+  transform: translateY(-50%);
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  background: var(--color-electric);
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bx-tier__cta,
+.bx-tier__cta--primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  /* 44px, because on a phone this is tapped. */
+  min-height: 2.75rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background var(--hover-duration) var(--ease-reveal),
+    border-color var(--hover-duration) var(--ease-reveal),
+    color var(--hover-duration) var(--ease-reveal);
+}
+
+.bx-tier__cta {
+  border: 1px solid rgb(255 255 255 / 14%);
+  background: rgb(255 255 255 / 4%);
+  color: var(--color-ink);
+}
+
+.bx-tier__cta:hover {
+  border-color: rgb(255 255 255 / 26%);
+  background: rgb(255 255 255 / 9%);
+}
+
+.bx-tier__cta--primary {
+  border: 1px solid transparent;
+  background: var(--color-electric);
+  color: #ffffff;
+}
+
+.bx-tier__cta--primary:hover {
+  background: var(--color-electric-glow);
+}
+
+.bx-tier__cta:focus-visible,
+.bx-tier__cta--primary:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-tier__cta,
+  .bx-tier__cta--primary {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ── Horizontal services track ───────────────────────────────────────────── */
 
 /* Below the pin breakpoint the track is a native snap carousel — pinning and

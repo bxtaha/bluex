@@ -17,11 +17,11 @@ import { Loader2, Lock, LogIn, Mail } from "lucide-react";
  * happen to share a domain, and the admin area should not look like a landing
  * page.
  */
-export function AdminLoginForm() {
+export function AdminLoginForm({ notice }: { notice?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(notice ?? null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
