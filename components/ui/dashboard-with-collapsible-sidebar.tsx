@@ -6,6 +6,7 @@ import type { PricingTier } from "@/lib/pricing";
 import type { Faq } from "@/lib/faq";
 import type { ContactSettings } from "@/lib/contact-store";
 import type { PostCard } from "@/lib/blog-store";
+import type { Project } from "@/lib/project-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
@@ -13,6 +14,7 @@ import { AdminFaqManager } from "@/components/ui/admin-faq-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
 import { AdminBlogManager } from "@/components/ui/admin-blog-manager";
+import { AdminProjectsManager } from "@/components/ui/admin-projects-manager";
 import {
   Home,
   DollarSign,
@@ -36,6 +38,7 @@ import {
   Inbox,
   AtSign,
   PenLine,
+  Briefcase,
   User,
 } from "lucide-react";
 
@@ -58,6 +61,8 @@ export function AdminDashboard({
   faqs,
   contact,
   posts,
+  projects,
+  footnote,
   unread,
 }: {
   /** The signed-in account, resolved on the server by the page's guard. */
@@ -68,6 +73,8 @@ export function AdminDashboard({
   faqs: Faq[];
   contact: ContactSettings;
   posts: PostCard[];
+  projects: Project[];
+  footnote: string;
   /** Unread conversations at page load. The inbox keeps it current after that. */
   unread: number;
 }) {
@@ -106,6 +113,8 @@ export function AdminDashboard({
           faqs={faqs}
           contact={contact}
           posts={posts}
+          projects={projects}
+          footnote={footnote}
           unread={unreadCount}
           onUnreadChange={handleUnread}
         />
@@ -198,6 +207,13 @@ function Sidebar({
         <Option
           Icon={MessagesSquare}
           title="FAQ"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+        />
+        <Option
+          Icon={Briefcase}
+          title="Work"
           selected={selected}
           setSelected={setSelected}
           open={open}
@@ -529,6 +545,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "FAQ",
     subtitle: "Questions shown in the FAQ section of the site",
   },
+  Work: {
+    title: "Selected work",
+    subtitle: "Projects shown in the portfolio section of the site",
+  },
   Blog: {
     title: "Blog",
     subtitle: "Posts, drafts and everything scheduled",
@@ -554,6 +574,8 @@ function DashboardContent({
   faqs,
   contact,
   posts,
+  projects,
+  footnote,
   unread,
   onUnreadChange,
 }: {
@@ -565,6 +587,8 @@ function DashboardContent({
   faqs: Faq[];
   contact: ContactSettings;
   posts: PostCard[];
+  projects: Project[];
+  footnote: string;
   unread: number;
   onUnreadChange: (count: number) => void;
 }) {
@@ -627,6 +651,9 @@ function DashboardContent({
       {selected === "Settings" && <AdminChangePassword email={email} />}
       {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
       {selected === "FAQ" && <AdminFaqManager initial={faqs} />}
+      {selected === "Work" && (
+        <AdminProjectsManager initial={projects} initialFootnote={footnote} />
+      )}
       {selected === "Blog" && <AdminBlogManager initial={posts} />}
       {selected === "Contact" && <AdminContactManager initial={contact} />}
       {isOverview && (

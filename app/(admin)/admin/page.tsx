@@ -10,6 +10,12 @@ import {
 } from "@/lib/contact";
 import { unreadThreadCount } from "@/lib/message-store";
 import { listAllPosts, type PostCard } from "@/lib/blog";
+import {
+  DEFAULT_FOOTNOTE,
+  getFootnote,
+  listAllProjects,
+  type Project,
+} from "@/lib/projects";
 import { AdminDashboard } from "@/components/ui/dashboard-with-collapsible-sidebar";
 
 /**
@@ -47,15 +53,20 @@ export default async function AdminPage() {
   // right in the sidebar before the Inbox view is ever opened.
   let unread = 0;
   let posts: PostCard[] = [];
+  let projects: Project[] = [];
+  let footnote = DEFAULT_FOOTNOTE;
 
   try {
-    [tiers, faqs, contact, unread, posts] = await Promise.all([
-      listAllTiers(),
-      listAllFaqs(),
-      getContactSettings(),
-      unreadThreadCount(),
-      listAllPosts(),
-    ]);
+    [tiers, faqs, contact, unread, posts, projects, footnote] =
+      await Promise.all([
+        listAllTiers(),
+        listAllFaqs(),
+        getContactSettings(),
+        unreadThreadCount(),
+        listAllPosts(),
+        listAllProjects(),
+        getFootnote(),
+      ]);
   } catch (error) {
     // The dashboard is still worth showing without them; the pricing view will
     // simply start empty rather than taking the whole page down.
@@ -70,6 +81,8 @@ export default async function AdminPage() {
       faqs={faqs}
       contact={contact}
       posts={posts}
+      projects={projects}
+      footnote={footnote}
       unread={unread}
     />
   );

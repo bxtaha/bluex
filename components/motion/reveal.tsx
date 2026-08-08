@@ -5,13 +5,28 @@ import { useEffect, useRef } from "react";
 import { observeOnce } from "@/lib/reveal";
 import { cn } from "@/lib/utils";
 
+/**
+ * `data-*` attributes are forwarded to the rendered element.
+ *
+ * This is not a convenience. JSX allows any hyphenated attribute on any
+ * component without a type error, so `<Reveal data-open={isOpen}>` compiled
+ * cleanly while the prop was dropped on the floor — the FAQ accordion shipped
+ * with `.bx-faq__row[data-open="true"]` in the stylesheet and nothing ever
+ * setting the attribute, so no panel opened. Nothing in TypeScript or React
+ * reports that; it has to be either forwarded or refused, and forwarding is
+ * what every caller already assumed.
+ */
+type DataAttributes = {
+  [key: `data-${string}`]: string | number | boolean | undefined;
+};
+
 type RevealProps = {
   children: React.ReactNode;
   /** Position in a stagger sequence. Drives transition-delay via a CSS var. */
   index?: number;
   as?: "div" | "section" | "p" | "li" | "span" | "h2" | "h3" | "dl" | "ul" | "ol";
   className?: string;
-};
+} & DataAttributes;
 
 /**
  * Fades and lifts its children into place once, when scrolled into view.
@@ -29,6 +44,7 @@ export function Reveal({
   index = 0,
   as: Tag = "div",
   className,
+  ...data
 }: RevealProps) {
   const ref = useRef<HTMLElement>(null);
 
@@ -41,6 +57,9 @@ export function Reveal({
   return React.createElement(
     Tag,
     {
+      // Spread first, so a caller cannot overwrite `data-reveal` or the
+      // stagger variable this component exists to set.
+      ...data,
       ref,
       "data-reveal": "",
       style: { "--reveal-i": index } as React.CSSProperties,

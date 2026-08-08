@@ -7,6 +7,7 @@ import { ExperienceIt } from "@/components/sections/experience-it";
 import { WhyBluex } from "@/components/sections/why-bluex";
 import { Process } from "@/components/sections/process";
 import { Outcomes } from "@/components/sections/outcomes";
+import { Portfolio } from "@/components/sections/portfolio";
 import { Pricing } from "@/components/sections/pricing";
 import { Faq } from "@/components/sections/faq";
 import { BlogTeaser } from "@/components/sections/blog-teaser";
@@ -38,6 +39,7 @@ export default function Home() {
       <WhyBluex />
       <Process />
       <Outcomes />
+      <Portfolio />
       <Pricing />
       <Faq />
       <BlogTeaser />
