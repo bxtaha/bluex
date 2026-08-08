@@ -8,7 +8,8 @@ import {
   useSyncExternalStore,
   type CSSProperties,
 } from "react";
-import { X } from "lucide-react";
+import Link from "next/link";
+import { PenLine, X } from "lucide-react";
 import { SECTIONS, useSections } from "@/components/providers/section-provider";
 import { scrollToSection } from "@/lib/lenis";
 
@@ -350,6 +351,30 @@ export function SectionNav() {
                 </button>
               </li>
             ))}
+
+            {/* The blog, which is a page rather than a section of this one.
+                An anchor, not a button, because it is a real navigation — it
+                middle-clicks, it opens in a new tab, and it works before the
+                bundle has loaded. It carries no `aria-current`: the observer
+                tracks positions on this page and has nothing to say about a
+                route that leaves it.
+
+                Below the sections and behind a rule, so the panel reads as
+                "here is this page, and here is somewhere else" rather than
+                putting a page-leaving link in a list of scroll targets. */}
+            <li
+              className="nav-panel__row nav-panel__row--route"
+              style={{ "--nav-i": SECTIONS.length } as CSSProperties}
+            >
+              <Link
+                href="/blog"
+                className="nav-panel__item"
+                onClick={() => toggle(false)}
+              >
+                <PenLine className="nav-icon" strokeWidth={1.6} aria-hidden />
+                <span>Writing</span>
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

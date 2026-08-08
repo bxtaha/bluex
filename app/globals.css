@@ -3652,14 +3652,21 @@
   list-style: none;
 }
 
-/* Eight 44px rows plus the close button come to about 444px, which needs a
-   620px viewport once the header and the corner button are cleared. Below
-   that the list wraps into columns rather than growing a scrollbar — the
-   rows keep their height, the panel just gets wider instead of taller.
+/* Twelve rows now, not eight: eleven sections plus the link off to the blog.
+   At 44px each with a 0.15rem gap that is ~554px of list, and about 640px once
+   the close button and the panel's own padding are added — so a single column
+   needs roughly an 820px viewport after the 11rem the panel holds clear for
+   the header and the corner button.
 
-   Two columns need ~258px of panel, four need ~165px. The thresholds sit
-   above each of those so there is slack rather than a fit to the pixel. */
-@media (max-height: 700px) {
+   Below each threshold the list wraps into columns rather than growing a
+   scrollbar: the rows keep their height and the panel gets wider instead of
+   taller, which is the trade that keeps every touch target at 44px.
+
+   Six rows need ~540px of viewport, four need ~450px, three need ~400px. Each
+   threshold sits above its own requirement so there is slack rather than a fit
+   to the pixel. These moved up from 700/480 when the list grew; the old values
+   were correct for eight rows and would now scroll. */
+@media (max-height: 820px) {
   .nav-goo__panel,
   .nav-panel {
     width: 23rem;
@@ -3670,10 +3677,21 @@
   }
 }
 
-@media (max-height: 480px) {
+@media (max-height: 560px) {
   .nav-goo__panel,
   .nav-panel {
     width: 31rem;
+  }
+
+  .nav-panel__list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 450px) {
+  .nav-goo__panel,
+  .nav-panel {
+    width: 38rem;
   }
 
   .nav-panel__list {
@@ -3693,6 +3711,17 @@
   .nav-panel {
     padding-block: 0.5rem;
   }
+}
+
+/* The blog sits under a rule, because it is the one row that leaves the page.
+   `grid-column: 1 / -1` keeps it on its own line once the list has wrapped
+   into columns, where it would otherwise land beside a section and read as
+   one of them. */
+.nav-panel__row--route {
+  grid-column: 1 / -1;
+  margin-top: 0.35rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgb(255 255 255 / 10%);
 }
 
 /* Rows arrive one after another rather than all at once. The delay is only on

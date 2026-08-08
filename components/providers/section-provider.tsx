@@ -9,12 +9,15 @@ import {
   type ReactNode,
 } from "react";
 import {
+  Briefcase,
   CalendarCheck,
   Home,
   Layers,
+  MessagesSquare,
   PhoneCall,
   Route,
   ShieldCheck,
+  Tag,
   TrendingUp,
   Workflow,
 } from "lucide-react";
@@ -30,6 +33,16 @@ import {
  * Items must stay in document order: the active item is the topmost section
  * crossing the middle of the viewport, which relies on index order matching
  * page order.
+ *
+ * Anchors only, and every one of them is a section that always renders. The
+ * blog teaser is deliberately absent: it hides itself below three published
+ * posts, and a dock row that scrolls nowhere is worse than no row. The blog is
+ * reachable as a route instead — see the entry below the divider in
+ * `SectionNav`, and the `/blog` link in the header — which is the more useful
+ * destination anyway.
+ *
+ * `#final-cta` is also absent. It is the closing flourish rather than a place
+ * anyone navigates to, and the observer holds the last active item across it.
  */
 export const SECTIONS = [
   { id: "top", label: "Home", Icon: Home },
@@ -39,6 +52,9 @@ export const SECTIONS = [
   { id: "why-bluex", label: "Why BlueX", Icon: ShieldCheck },
   { id: "process", label: "Process", Icon: Route },
   { id: "outcomes", label: "Outcomes", Icon: TrendingUp },
+  { id: "work", label: "Selected work", Icon: Briefcase },
+  { id: "pricing", label: "Pricing", Icon: Tag },
+  { id: "faq", label: "Questions", Icon: MessagesSquare },
   { id: "contact", label: "Get a call", Icon: CalendarCheck },
 ] as const;
 

@@ -21,7 +21,6 @@ import {
   Monitor,
   ShoppingCart,
   Tag,
-  BarChart3,
   Users,
   ChevronDown,
   ChevronsRight,
@@ -155,7 +154,11 @@ function Sidebar({
     >
       <TitleSection open={open} email={email} name={name} />
 
-      <div className="mb-8 space-y-1">
+      {/* Scrolls if the viewport is short, and stops above the collapse toggle,
+          which is pinned to the bottom of the sidebar. Both axes stated —
+          `overflow-y` alone computes `overflow-x` to `auto` and grows a phantom
+          horizontal scrollbar. */}
+      <div className="mb-8 max-h-[calc(100vh-13rem)] space-y-1 overflow-hidden overflow-y-auto">
         <Option
           Icon={Home}
           title="Dashboard"
@@ -174,25 +177,13 @@ function Sidebar({
           open={open}
           notifs={unread > 0 ? unread : undefined}
         />
+
+        {/* One editor per section of the site, in the order those sections
+            appear on it, so the sidebar can be read against the page. */}
+        <Group label="Site content" open={open} />
         <Option
-          Icon={DollarSign}
-          title="Sales"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-          notifs={3}
-        />
-        <Option
-          Icon={Monitor}
-          title="View Site"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-          onSelect={() => window.open("/", "_blank", "noopener,noreferrer")}
-        />
-        <Option
-          Icon={ShoppingCart}
-          title="Products"
+          Icon={Briefcase}
+          title="Work"
           selected={selected}
           setSelected={setSelected}
           open={open}
@@ -212,13 +203,6 @@ function Sidebar({
           open={open}
         />
         <Option
-          Icon={Briefcase}
-          title="Work"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        <Option
           Icon={PenLine}
           title="Blog"
           selected={selected}
@@ -232,55 +216,71 @@ function Sidebar({
           setSelected={setSelected}
           open={open}
         />
+
+        <Group label="Account" open={open} />
         <Option
-          Icon={BarChart3}
-          title="Analytics"
+          Icon={Monitor}
+          title="View site"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+          onSelect={() => window.open("/", "_blank", "noopener,noreferrer")}
+        />
+        <Option
+          Icon={Settings}
+          title="Settings"
           selected={selected}
           setSelected={setSelected}
           open={open}
         />
         <Option
-          Icon={Users}
-          title="Members"
+          Icon={HelpCircle}
+          title="Help & Support"
           selected={selected}
           setSelected={setSelected}
           open={open}
-          notifs={12}
+        />
+        <Option
+          Icon={LogOut}
+          title="Sign out"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+          onSelect={signOut}
         />
       </div>
 
-      {open && (
-        <div className="space-y-1 border-t border-gray-200 pt-4 dark:border-gray-800">
-          <div className="px-3 py-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Account
-          </div>
-          <Option
-            Icon={Settings}
-            title="Settings"
-            selected={selected}
-            setSelected={setSelected}
-            open={open}
-          />
-          <Option
-            Icon={HelpCircle}
-            title="Help & Support"
-            selected={selected}
-            setSelected={setSelected}
-            open={open}
-          />
-          <Option
-            Icon={LogOut}
-            title="Sign out"
-            selected={selected}
-            setSelected={setSelected}
-            open={open}
-            onSelect={signOut}
-          />
-        </div>
-      )}
-
       <ToggleClose open={open} setOpen={setOpen} />
     </nav>
+  );
+}
+
+/**
+ * A heading between groups of sidebar items.
+ *
+ * Collapsed, there is no room for the words, so it becomes a rule — the
+ * grouping is the useful part and it survives at 64px wide. `aria-hidden`
+ * either way: this is a visual grouping over a flat list of buttons, and
+ * announcing a heading that labels nothing programmatically is worse than
+ * silence.
+ */
+function Group({ label, open }: { label: string; open: boolean }) {
+  if (!open) {
+    return (
+      <div
+        aria-hidden
+        className="mx-3 !mt-3 mb-1 border-t border-gray-200 pt-1 dark:border-gray-800"
+      />
+    );
+  }
+
+  return (
+    <div
+      aria-hidden
+      className="!mt-5 border-t border-gray-200 px-3 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400"
+    >
+      {label}
+    </div>
   );
 }
 
