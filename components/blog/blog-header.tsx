@@ -40,7 +40,15 @@ export function BlogHeader() {
           />
         </Link>
 
-        <nav className="site-header__pill" aria-label="Main">
+        {/* The `--static` variant: the same glass pill, but the current item
+            wears the `--edge-lit-*` outline directly instead of a measured
+            indicator sliding onto it. Nothing here changes as you scroll, so
+            there is nothing to animate — and unlike the marketing pill, two
+            items fit well below 1150px, so this one stays visible on a phone. */}
+        <nav
+          className="site-header__pill site-header__pill--static"
+          aria-label="Main"
+        >
           <ul className="site-header__list">
             <li>
               <Link href="/" className="site-header__link">
@@ -48,12 +56,15 @@ export function BlogHeader() {
               </Link>
             </li>
             <li>
+              {/* `aria-current="page"` is what the active styling keys off, so
+                  the outline and what a screen reader announces cannot drift
+                  apart — one attribute drives both. */}
               <Link
                 href="/blog"
                 className="site-header__link"
                 aria-current="page"
               >
-                Writing
+                Blog
               </Link>
             </li>
           </ul>

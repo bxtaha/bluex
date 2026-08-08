@@ -14,6 +14,7 @@ import {
   Home,
   Layers,
   MessagesSquare,
+  PenLine,
   PhoneCall,
   Route,
   ShieldCheck,
@@ -34,15 +35,17 @@ import {
  * crossing the middle of the viewport, which relies on index order matching
  * page order.
  *
- * Anchors only, and every one of them is a section that always renders. The
- * blog teaser is deliberately absent: it hides itself below three published
- * posts, and a dock row that scrolls nowhere is worse than no row. The blog is
- * reachable as a route instead — see the entry below the divider in
- * `SectionNav`, and the `/blog` link in the header — which is the more useful
- * destination anyway.
+ * Anchors, all of them — "Blog" scrolls to the teaser on this page rather than
+ * navigating to `/blog`. The index is one click further on, from the teaser's
+ * own "Read everything".
  *
- * `#final-cta` is also absent. It is the closing flourish rather than a place
- * anyone navigates to, and the observer holds the last active item across it.
+ * One caveat that comes with that: `BlogTeaser` renders nothing below three
+ * published posts, so if the blog is ever trimmed to two this row scrolls
+ * nowhere. `scrollToSection` no-ops on a missing element rather than throwing,
+ * so it fails quietly rather than badly.
+ *
+ * `#final-cta` is absent. It is the closing flourish rather than a place anyone
+ * navigates to, and the observer holds the last active item across it.
  */
 export const SECTIONS = [
   { id: "top", label: "Home", Icon: Home },
@@ -55,6 +58,7 @@ export const SECTIONS = [
   { id: "work", label: "Selected work", Icon: Briefcase },
   { id: "pricing", label: "Pricing", Icon: Tag },
   { id: "faq", label: "Questions", Icon: MessagesSquare },
+  { id: "writing", label: "Blog", Icon: PenLine },
   { id: "contact", label: "Get a call", Icon: CalendarCheck },
 ] as const;
 

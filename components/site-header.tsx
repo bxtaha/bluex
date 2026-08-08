@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import {
   useSections,
@@ -20,28 +19,24 @@ import { CallCta } from "@/components/ui/call-cta";
  * "Process" and "Outcomes" are still one tap away in the dock.
  *
  * The result is deliberately *narrower* than what it replaces — the same eight
- * items, 52 characters of label against 61 — so it cannot overflow anywhere
+ * items, 49 characters of label against 61 — so it cannot overflow anywhere
  * the previous list fitted. That is the argument, not a measurement; the pill's
  * rendered width has not been checked in a browser.
  *
- * `Writing` is a route rather than a section, and the two are kept distinct in
- * the type: the indicator tracks scroll position on this page and has nothing
- * to point at once you have left it. The `SectionId` annotation on the rest is
- * what stops an id being listed here that the observer does not watch.
+ * Every entry is an anchor on this page, `Blog` included — it scrolls to the
+ * teaser rather than leaving for the index, which is one click further on from
+ * there. The `SectionId` annotation is what stops an id being listed here that
+ * the observer does not watch.
  */
-type HeaderLink =
-  | { kind: "section"; id: SectionId; label: string }
-  | { kind: "route"; href: string; label: string };
-
-const LINKS: readonly HeaderLink[] = [
-  { kind: "section", id: "top", label: "Home" },
-  { kind: "section", id: "services", label: "Services" },
-  { kind: "section", id: "how-it-works", label: "How it works" },
-  { kind: "section", id: "work", label: "Work" },
-  { kind: "section", id: "pricing", label: "Pricing" },
-  { kind: "section", id: "faq", label: "FAQ" },
-  { kind: "route", href: "/blog", label: "Writing" },
-  { kind: "section", id: "contact", label: "Contact" },
+const LINKS: readonly { id: SectionId; label: string }[] = [
+  { id: "top", label: "Home" },
+  { id: "services", label: "Services" },
+  { id: "how-it-works", label: "How it works" },
+  { id: "work", label: "Work" },
+  { id: "pricing", label: "Pricing" },
+  { id: "faq", label: "FAQ" },
+  { id: "writing", label: "Blog" },
+  { id: "contact", label: "Contact" },
 ];
 
 /** Scroll distance after which the pill contracts and lifts. */
@@ -65,12 +60,7 @@ export function SiteHeader() {
   const indicatorRef = useRef<HTMLLIElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  // Only section links can be current. A route link is never "here", and
-  // `findIndex` returning -1 is already the case the indicator handles by
-  // fading out where it stands.
-  const activeLink = LINKS.findIndex(
-    (link) => link.kind === "section" && link.id === activeId,
-  );
+  const activeLink = LINKS.findIndex((link) => link.id === activeId);
 
   useEffect(() => {
     const el = headerRef.current;
@@ -165,36 +155,20 @@ export function SiteHeader() {
             <li className="site-header__indicator" ref={indicatorRef} aria-hidden />
 
             {LINKS.map((link, i) => (
-              <li key={link.kind === "section" ? link.id : link.href}>
-                {/* A plain anchor for a section: SmoothScroll intercepts hash
-                    links globally and hands them to Lenis, so it needs no
-                    click handler, and `next/link` on a fragment would only add
-                    a router round trip to a scroll. A route gets `next/link`,
-                    which prefetches and navigates client-side. Both are still
-                    ordinary links before the bundle has loaded, and both take
-                    the ref the indicator measures. */}
-                {link.kind === "route" ? (
-                  <Link
-                    ref={(el) => {
-                      itemRefs.current[i] = el;
-                    }}
-                    href={link.href}
-                    className="site-header__link"
-                  >
-                    {link.label}
-                  </Link>
-                ) : (
-                  <a
-                    ref={(el) => {
-                      itemRefs.current[i] = el;
-                    }}
-                    href={`#${link.id}`}
-                    className="site-header__link"
-                    aria-current={activeLink === i ? "page" : undefined}
-                  >
-                    {link.label}
-                  </a>
-                )}
+              <li key={link.id}>
+                {/* A real anchor: SmoothScroll intercepts hash links globally
+                    and hands them to Lenis, so this needs no click handler and
+                    still works as a link when JavaScript has not loaded. */}
+                <a
+                  ref={(el) => {
+                    itemRefs.current[i] = el;
+                  }}
+                  href={`#${link.id}`}
+                  className="site-header__link"
+                  aria-current={activeLink === i ? "page" : undefined}
+                >
+                  {link.label}
+                </a>
               </li>
             ))}
           </ul>

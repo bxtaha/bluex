@@ -3652,7 +3652,7 @@
   list-style: none;
 }
 
-/* Twelve rows now, not eight: eleven sections plus the link off to the blog.
+/* Twelve rows now, not eight.
    At 44px each with a 0.15rem gap that is ~554px of list, and about 640px once
    the close button and the panel's own padding are added — so a single column
    needs roughly an 820px viewport after the 11rem the panel holds clear for
@@ -3711,17 +3711,6 @@
   .nav-panel {
     padding-block: 0.5rem;
   }
-}
-
-/* The blog sits under a rule, because it is the one row that leaves the page.
-   `grid-column: 1 / -1` keeps it on its own line once the list has wrapped
-   into columns, where it would otherwise land beside a section and read as
-   one of them. */
-.nav-panel__row--route {
-  grid-column: 1 / -1;
-  margin-top: 0.35rem;
-  padding-top: 0.45rem;
-  border-top: 1px solid rgb(255 255 255 / 10%);
 }
 
 /* Rows arrive one after another rather than all at once. The delay is only on
@@ -3965,4 +3954,30 @@
     transition-duration: 0.01ms !important;
   }
 
+}
+
+/* The blog's own header carries a static "you are here" outline rather than the
+   marketing header's sliding indicator.
+
+   That indicator is measured from the DOM and animated between items, which is
+   right when the current item changes as you scroll and pointless when it can
+   only change by loading a different page. This is the same `--edge-lit-*`
+   treatment worn by the header pill and the section dock, so all three say "you
+   are here" the same way — it is simply not in motion. */
+.site-header__pill--static {
+  /* The marketing pill hides below 1150px because eight items will not fit.
+     Two will, so this one stays until there is genuinely no room beside the
+     logo and the call button. */
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .site-header__pill--static {
+    display: flex;
+  }
+}
+
+.site-header__pill--static .site-header__link[aria-current="page"] {
+  color: #fff;
+  box-shadow: inset 0 0 0 1px var(--edge-lit-color), var(--edge-lit-glow);
 }

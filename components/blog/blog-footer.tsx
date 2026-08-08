@@ -19,7 +19,7 @@ export function BlogFooter() {
             Back to the site
           </Link>
           <Link href="/blog" className="transition-colors hover:text-ink">
-            All writing
+            All posts
           </Link>
           <a
             href="/blog/rss.xml"
