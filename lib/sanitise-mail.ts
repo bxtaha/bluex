@@ -1,5 +1,9 @@
 import sanitizeHtml from "sanitize-html";
 
+// Re-exported so mail code has one import to reach for; the implementation is
+// shared with the blog, which needs the same flattening for excerpts.
+export { htmlToText } from "./html-text.ts";
+
 /**
  * Incoming mail is hostile input, and it is rendered inside the admin panel —
  * the one page on this site where a script would run with a live session
@@ -57,26 +61,4 @@ const OPTIONS: sanitizeHtml.IOptions = {
 export function sanitiseMailHtml(html: string): string {
   if (!html) return "";
   return sanitizeHtml(html, OPTIONS);
-}
-
-/**
- * Flattens HTML to text, for the list snippet and as a body of last resort when
- * a message arrives with no text/plain part.
- */
-export function htmlToText(html: string): string {
-  if (!html) return "";
-  const withBreaks = html
-    .replace(/<\/(p|div|tr|h[1-6]|li)>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n");
-  return (
-    sanitizeHtml(withBreaks, { allowedTags: [], allowedAttributes: {} })
-      // Whitespace survives stripping exactly as the source had it, and mail
-      // HTML is indented for the machine, not the reader. Edges first, then
-      // the blank-line runs — collapsing runs before trimming the indentation
-      // leaves lines that are "blank" apart from four spaces, so the collapse
-      // does not see them and the result stays full of holes.
-      .replace(/[ \t]*\n[ \t]*/g, "\n")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim()
-  );
 }

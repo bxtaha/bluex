@@ -1124,6 +1124,754 @@
   }
 }
 
+/* ── Blog cards ──────────────────────────────────────────────────────────────
+   The card itself is `.bx-card .bx-hairline .bx-lift` like every other card on
+   the site; what is described here is the media well, the pill and the layout
+   the featured variant switches to. */
+
+.bx-post-card {
+  overflow: hidden;
+  /* Cards sit in a grid row, so they stretch to the tallest — this makes the
+     inner link fill that height instead of leaving dead space below a short
+     excerpt that is still part of the card and still not clickable. */
+  display: flex;
+  height: 100%;
+}
+
+.bx-post-card__link {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bx-post-card__link:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: -3px;
+  border-radius: inherit;
+}
+
+.bx-post-card__media {
+  position: relative;
+  /* A fixed ratio, so a row of cards with differently-shaped covers still has
+     its titles on one line. Without it the grid's rows are decided by whichever
+     image happens to be tallest. */
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: rgb(255 255 255 / 3%);
+}
+
+.bx-post-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-post-card__link:hover .bx-post-card__image {
+    transform: scale(1.04);
+  }
+}
+
+.bx-post-card__placeholder {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(
+      120% 100% at 20% 0%,
+      color-mix(in oklab, var(--color-electric) 22%, transparent),
+      transparent 60%
+    ),
+    rgb(255 255 255 / 2%);
+}
+
+.bx-post-card__pill,
+.bx-post-card__pill--static {
+  position: absolute;
+  top: 0.875rem;
+  left: 0.875rem;
+  padding: 0.3125rem 0.6875rem;
+  border-radius: 999px;
+  background: rgb(10 11 15 / 72%);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 14%);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+
+/* The same pill in the post header, where there is no image to sit on top of. */
+.bx-post-card__pill--static {
+  position: static;
+  display: inline-block;
+  background: color-mix(in oklab, var(--color-electric) 16%, transparent);
+  color: var(--color-electric-glow);
+  text-decoration: none;
+  transition: background var(--hover-duration) var(--ease-reveal);
+}
+
+.bx-post-card__pill--static:hover {
+  background: color-mix(in oklab, var(--color-electric) 28%, transparent);
+}
+
+.bx-post-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.5rem;
+}
+
+.bx-post-card__title {
+  font-size: 1.25rem;
+  line-height: 1.15;
+  color: var(--color-ink);
+}
+
+.bx-post-card__excerpt {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: var(--color-ink-muted);
+  /* Two lines, then an ellipsis. The excerpt is up to 400 characters and the
+     cards are in a grid — one long one would set the height of the whole row. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.bx-post-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  /* Pinned to the bottom of the tallest card, so the row of dates lines up. */
+  margin-top: auto;
+  padding-top: 1.25rem;
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+.bx-post-card__dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.bx-post-card__read {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+/* The index's lead item: the same card turned on its side, so the cover has
+   room to be a picture rather than a strip. */
+@media (min-width: 900px) {
+  .bx-post-card--featured .bx-post-card__link {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .bx-post-card--featured .bx-post-card__media {
+    flex: 0 0 55%;
+    aspect-ratio: auto;
+  }
+
+  .bx-post-card--featured .bx-post-card__body {
+    justify-content: center;
+    padding: 2.5rem;
+  }
+
+  .bx-post-card--featured .bx-post-card__title {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+  }
+
+  .bx-post-card--featured .bx-post-card__excerpt {
+    font-size: 1rem;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* ── Category pills and pagination ───────────────────────────────────────── */
+
+.bx-cat-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.bx-cat-pill {
+  display: inline-flex;
+  align-items: center;
+  /* 44px high on touch, because these are the page's primary control. */
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 3%);
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  transition:
+    border-color var(--hover-duration) var(--ease-reveal),
+    background var(--hover-duration) var(--ease-reveal),
+    color var(--hover-duration) var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-cat-pill:hover {
+    border-color: rgb(255 255 255 / 24%);
+    color: var(--color-ink);
+  }
+}
+
+.bx-cat-pill[aria-current="page"] {
+  border-color: transparent;
+  background: var(--color-electric);
+  color: #ffffff;
+}
+
+.bx-cat-pill:focus-visible,
+.bx-pagination__page:focus-visible,
+.bx-pagination__step:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+.bx-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.bx-pagination__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.bx-pagination__page {
+  display: grid;
+  place-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  transition:
+    background var(--hover-duration) var(--ease-reveal),
+    color var(--hover-duration) var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-pagination__page:hover {
+    background: rgb(255 255 255 / 6%);
+    color: var(--color-ink);
+  }
+}
+
+.bx-pagination__page[aria-current="page"] {
+  background: var(--color-electric);
+  color: #ffffff;
+}
+
+.bx-pagination__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .bx-pagination__step:hover {
+    color: var(--color-ink);
+  }
+}
+
+/* ── Reading progress ────────────────────────────────────────────────────────
+   Along the top of the viewport, above everything except a modal. The site's
+   own `.scroll-progress` is along the bottom and measures the document; this
+   one measures the article. */
+
+.bx-reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 55;
+  background: rgb(255 255 255 / 6%);
+  pointer-events: none;
+}
+
+.bx-reading-progress__fill {
+  display: block;
+  height: 100%;
+  /* Scaled from the left rather than animating `width`: a transform is composited
+     and a width is a layout change, and this runs on every scroll frame. */
+  transform-origin: left center;
+  transform: scaleX(0);
+  background: linear-gradient(
+    90deg,
+    var(--color-electric),
+    var(--color-electric-glow)
+  );
+  will-change: transform;
+}
+
+.bx-post-preview {
+  position: sticky;
+  top: 0;
+  z-index: 54;
+  padding: 0.625rem 1.25rem;
+  background: color-mix(in oklab, var(--color-electric) 22%, #0a0b0f);
+  box-shadow: inset 0 -1px 0 rgb(255 255 255 / 12%);
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--color-ink);
+}
+
+.bx-post-preview a {
+  color: var(--color-electric-glow);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── Post page ───────────────────────────────────────────────────────────── */
+
+/* ~70ch. The measure is the single biggest lever on whether long prose is
+   readable — much past this and the eye loses the start of the next line. */
+.bx-prose-width {
+  max-width: 70ch;
+  margin-inline: auto;
+}
+
+.bx-post-cover {
+  max-width: 90rem;
+  margin: 3.5rem auto 0;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+}
+
+.bx-post-cover__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ── Post prose ──────────────────────────────────────────────────────────────
+   Everything here styles HTML that came out of the editor, so the selectors are
+   element selectors under one root rather than classes — there is no way to put
+   a class on a paragraph an author wrote. */
+
+.bx-prose {
+  margin-top: 3.5rem;
+  font-size: 1.0625rem;
+  /* Long-form line height. The site's UI copy sits at 1.5–1.65; prose meant to
+     be read for six minutes wants more air than prose meant to be scanned. */
+  line-height: 1.8;
+  color: color-mix(in oklab, var(--color-ink) 88%, transparent);
+}
+
+@media (min-width: 640px) {
+  .bx-prose {
+    font-size: 1.125rem;
+  }
+}
+
+.bx-prose > * + * {
+  margin-top: 1.5em;
+}
+
+.bx-prose h2,
+.bx-prose h3,
+.bx-prose h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-ink);
+  /* Asymmetric: a heading belongs to what follows it, so the gap above is the
+     larger one. Set with `margin-top` on the element rather than through the
+     lobotomised-owl rule above, which it overrides. */
+  margin-top: 2.25em;
+  margin-bottom: 0.75em;
+}
+
+.bx-prose h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.bx-prose h3 {
+  font-size: clamp(1.25rem, 2.4vw, 1.5rem);
+}
+
+.bx-prose h4 {
+  font-size: 1.125rem;
+}
+
+.bx-prose a {
+  color: var(--color-electric-glow);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  /* Clear of the descenders, so an underline does not cut through a "g". */
+  text-underline-offset: 0.2em;
+  transition: color var(--hover-duration) var(--ease-reveal);
+}
+
+.bx-prose a:hover {
+  color: var(--color-ink);
+}
+
+.bx-prose strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.bx-prose ul,
+.bx-prose ol {
+  padding-left: 1.5em;
+}
+
+.bx-prose ul {
+  list-style: disc;
+}
+
+.bx-prose ol {
+  list-style: decimal;
+}
+
+.bx-prose li::marker {
+  color: var(--color-ink-muted);
+}
+
+.bx-prose li + li {
+  margin-top: 0.5em;
+}
+
+.bx-prose blockquote {
+  padding-left: 1.25em;
+  border-left: 2px solid var(--color-electric);
+  font-size: 1.0625em;
+  color: var(--color-ink);
+  font-style: normal;
+}
+
+.bx-prose hr {
+  border: 0;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  margin-block: 3em;
+}
+
+.bx-prose img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 0.875rem;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+}
+
+.bx-prose figure {
+  margin-block: 2.5em;
+}
+
+.bx-prose figcaption {
+  margin-top: 0.75em;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--color-ink-muted);
+}
+
+/* Inline code. Not the same treatment as a fence — this sits inside a sentence
+   and must not break the line rhythm. */
+.bx-prose :not(pre) > code {
+  padding: 0.15em 0.4em;
+  border-radius: 0.375rem;
+  background: rgb(255 255 255 / 7%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+  font-size: 0.875em;
+  color: var(--color-ink);
+}
+
+/* Code fences. The colours come from Shiki, applied on the server as inline
+   styles, so nothing here sets a foreground — only the frame. */
+.bx-prose pre {
+  padding: 1.25rem 1.375rem;
+  border-radius: 0.875rem;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 9%);
+  /* Both axes stated. `overflow-x: auto` alone computes `overflow-y` to `auto`
+     as well and grows a phantom vertical scrollbar on short blocks. */
+  overflow: auto hidden;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  /* A long line scrolls this block; it does not widen the page. */
+  max-width: 100%;
+}
+
+.bx-prose pre code {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  background: none;
+  padding: 0;
+  box-shadow: none;
+  font-size: inherit;
+}
+
+/* Shiki writes the theme's own background onto the <pre>. Overridden so a code
+   block reads as part of this page's surface rather than as a pasted-in
+   screenshot of somebody else's editor. */
+.bx-prose pre.shiki,
+.bx-prose pre.shiki span {
+  background-color: transparent !important;
+}
+
+.bx-prose pre.shiki {
+  background: rgb(255 255 255 / 4%);
+}
+
+.bx-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.bx-prose th,
+.bx-prose td {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid rgb(255 255 255 / 10%);
+  text-align: left;
+}
+
+.bx-prose th {
+  background: rgb(255 255 255 / 4%);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* ── Post CTA and prev/next ──────────────────────────────────────────────── */
+
+.bx-post-cta {
+  padding: 2rem;
+}
+
+@media (min-width: 640px) {
+  .bx-post-cta {
+    padding: 2.5rem;
+  }
+}
+
+.bx-post-nav {
+  display: grid;
+  gap: 1rem;
+  /* Two named columns rather than auto-flow, so a post with only a "next"
+     neighbour leaves the left column empty instead of sliding right into it. */
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .bx-post-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bx-post-nav__item--next {
+    grid-column: 2;
+    text-align: right;
+    align-items: flex-end;
+  }
+}
+
+.bx-post-nav__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.25rem 1.375rem;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 0.875rem;
+  background: rgb(255 255 255 / 2%);
+  text-decoration: none;
+  transition:
+    border-color var(--hover-duration) var(--ease-reveal),
+    background var(--hover-duration) var(--ease-reveal);
+}
+
+@media (hover: hover) {
+  .bx-post-nav__item:hover {
+    border-color: color-mix(in oklab, var(--color-electric) 45%, transparent);
+    background: rgb(255 255 255 / 5%);
+  }
+}
+
+.bx-post-nav__item:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+.bx-post-nav__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.bx-post-nav__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  line-height: 1.3;
+  color: var(--color-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-post-card__image,
+  .bx-cat-pill,
+  .bx-pagination__page,
+  .bx-post-nav__item,
+  .bx-prose a {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Post editor ─────────────────────────────────────────────────────────────
+   ProseMirror renders into a contenteditable div, so the writing surface is
+   styled by element under one root — there is no way to put a class on a
+   paragraph someone is typing. Deliberately close to `.bx-prose` in rhythm and
+   deliberately not identical in colour: this is a light admin panel, and an
+   editor that renders white-on-black inside it would be a preview pretending
+   to be an input. The real preview is one toggle away. */
+
+.bx-editor__surface {
+  min-height: 22rem;
+  padding: 1.25rem 1.375rem;
+  outline: none;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.bx-editor__surface > * + * {
+  margin-top: 1em;
+}
+
+.bx-editor__surface h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 1.75em;
+}
+
+.bx-editor__surface h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 1.5em;
+}
+
+.bx-editor__surface h4 {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  margin-top: 1.4em;
+}
+
+.bx-editor__surface ul {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+
+.bx-editor__surface ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+}
+
+.bx-editor__surface blockquote {
+  padding-left: 1em;
+  border-left: 3px solid rgb(59 130 246 / 60%);
+}
+
+.bx-editor__surface a {
+  color: rgb(37 99 235);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.dark .bx-editor__surface a {
+  color: rgb(96 165 250);
+}
+
+.bx-editor__surface code {
+  padding: 0.15em 0.35em;
+  border-radius: 0.3rem;
+  background: rgb(0 0 0 / 6%);
+  font-size: 0.875em;
+}
+
+.dark .bx-editor__surface code {
+  background: rgb(255 255 255 / 10%);
+}
+
+.bx-editor__surface pre {
+  padding: 1rem 1.125rem;
+  border-radius: 0.625rem;
+  background: rgb(15 23 42);
+  color: rgb(226 232 240);
+  overflow: auto hidden;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.bx-editor__surface pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.bx-editor__surface img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.bx-editor__surface hr {
+  border: 0;
+  border-top: 1px solid rgb(0 0 0 / 12%);
+  margin-block: 1.5em;
+}
+
+.dark .bx-editor__surface hr {
+  border-top-color: rgb(255 255 255 / 14%);
+}
+
+/* Tiptap's placeholder. Rendered as a pseudo-element on the first empty
+   paragraph, so it cannot be selected, copied, or submitted as content. */
+.bx-editor__surface p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: rgb(156 163 175);
+}
+
 /* ── Horizontal services track ───────────────────────────────────────────── */
 
 /* Below the pin breakpoint the track is a native snap carousel — pinning and

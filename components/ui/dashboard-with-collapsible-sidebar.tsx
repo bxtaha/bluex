@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import type { PricingTier } from "@/lib/pricing";
 import type { Faq } from "@/lib/faq";
 import type { ContactSettings } from "@/lib/contact-store";
+import type { PostCard } from "@/lib/blog-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
 import { AdminFaqManager } from "@/components/ui/admin-faq-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
+import { AdminBlogManager } from "@/components/ui/admin-blog-manager";
 import {
   Home,
   DollarSign,
@@ -33,6 +35,7 @@ import {
   MessagesSquare,
   Inbox,
   AtSign,
+  PenLine,
   User,
 } from "lucide-react";
 
@@ -54,6 +57,7 @@ export function AdminDashboard({
   tiers,
   faqs,
   contact,
+  posts,
   unread,
 }: {
   /** The signed-in account, resolved on the server by the page's guard. */
@@ -63,6 +67,7 @@ export function AdminDashboard({
   tiers: PricingTier[];
   faqs: Faq[];
   contact: ContactSettings;
+  posts: PostCard[];
   /** Unread conversations at page load. The inbox keeps it current after that. */
   unread: number;
 }) {
@@ -100,6 +105,7 @@ export function AdminDashboard({
           tiers={tiers}
           faqs={faqs}
           contact={contact}
+          posts={posts}
           unread={unreadCount}
           onUnreadChange={handleUnread}
         />
@@ -192,6 +198,13 @@ function Sidebar({
         <Option
           Icon={MessagesSquare}
           title="FAQ"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
+        />
+        <Option
+          Icon={PenLine}
+          title="Blog"
           selected={selected}
           setSelected={setSelected}
           open={open}
@@ -516,6 +529,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "FAQ",
     subtitle: "Questions shown in the FAQ section of the site",
   },
+  Blog: {
+    title: "Blog",
+    subtitle: "Posts, drafts and everything scheduled",
+  },
   Contact: {
     title: "Contact",
     subtitle: "Details shown in the contact section of the site",
@@ -536,6 +553,7 @@ function DashboardContent({
   tiers,
   faqs,
   contact,
+  posts,
   unread,
   onUnreadChange,
 }: {
@@ -546,6 +564,7 @@ function DashboardContent({
   tiers: PricingTier[];
   faqs: Faq[];
   contact: ContactSettings;
+  posts: PostCard[];
   unread: number;
   onUnreadChange: (count: number) => void;
 }) {
@@ -608,6 +627,7 @@ function DashboardContent({
       {selected === "Settings" && <AdminChangePassword email={email} />}
       {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
       {selected === "FAQ" && <AdminFaqManager initial={faqs} />}
+      {selected === "Blog" && <AdminBlogManager initial={posts} />}
       {selected === "Contact" && <AdminContactManager initial={contact} />}
       {isOverview && (
         <>

@@ -9,6 +9,7 @@ import {
   type ContactSettings,
 } from "@/lib/contact";
 import { unreadThreadCount } from "@/lib/message-store";
+import { listAllPosts, type PostCard } from "@/lib/blog";
 import { AdminDashboard } from "@/components/ui/dashboard-with-collapsible-sidebar";
 
 /**
@@ -45,13 +46,15 @@ export default async function AdminPage() {
   // would be stale before anyone read it; the count is cheap and it has to be
   // right in the sidebar before the Inbox view is ever opened.
   let unread = 0;
+  let posts: PostCard[] = [];
 
   try {
-    [tiers, faqs, contact, unread] = await Promise.all([
+    [tiers, faqs, contact, unread, posts] = await Promise.all([
       listAllTiers(),
       listAllFaqs(),
       getContactSettings(),
       unreadThreadCount(),
+      listAllPosts(),
     ]);
   } catch (error) {
     // The dashboard is still worth showing without them; the pricing view will
@@ -66,6 +69,7 @@ export default async function AdminPage() {
       tiers={tiers}
       faqs={faqs}
       contact={contact}
+      posts={posts}
       unread={unread}
     />
   );
