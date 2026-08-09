@@ -28,25 +28,27 @@ export function ContactPanel({ settings }: { settings: ContactSettings }) {
       id="contact"
       className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16"
     >
-      <div className="max-w-2xl">
-        <Reveal as="p" className="bx-eyebrow">
-          Get in touch
-        </Reveal>
-        <SplitText
-          as="h2"
-          className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
-        >
-          Start with a call, or just send a note.
-        </SplitText>
-      </div>
-
-      {/* `items-start` so the left column keeps its natural height instead of
-          stretching to match a form card that is much taller. */}
-      <div className="mt-14 grid items-start gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
+      {/* The heading sits inside the left column rather than above the grid, so
+          the form card starts level with "Get in touch" instead of below the
+          whole title block. `items-start` so the left column keeps its natural
+          height instead of stretching to match a form card that is taller. */}
+      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-16">
         <div>
+          <div className="max-w-2xl">
+            <Reveal as="p" className="bx-eyebrow">
+              Get in touch
+            </Reveal>
+            <SplitText
+              as="h2"
+              className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
+            >
+              Start with a call, or just send a note.
+            </SplitText>
+          </div>
+
           <Reveal
             as="p"
-            className="max-w-md text-base leading-relaxed text-ink-muted sm:text-lg"
+            className="mt-14 max-w-md text-base leading-relaxed text-ink-muted sm:text-lg"
           >
             {settings.intro}
           </Reveal>
