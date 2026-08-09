@@ -28,7 +28,19 @@ export default function AdminLayout({
       {/* Before paint, not in an effect — see ADMIN_THEME_SCRIPT. */}
       <script dangerouslySetInnerHTML={{ __html: ADMIN_THEME_SCRIPT }} />
       <AdminThemeProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+        {/* Not translatable, and this is load-bearing rather than a preference.
+            Chrome's page translation rewrites text nodes in place — it wraps
+            them in `<font>` elements of its own — and React still holds
+            references to the originals. The next update that inserts a sibling
+            before one of those nodes calls `insertBefore` against a node that is
+            no longer a child of its parent, which throws and takes the whole
+            dashboard down; uploading an image did exactly that. `translate="no"`
+            is what Chrome reads, `notranslate` is what the Google Translate
+            extension reads, and the admin area is staff-only English anyway. */}
+        <div
+          translate="no"
+          className="notranslate min-h-screen bg-gray-50 dark:bg-gray-950"
+        >
           {children}
         </div>
       </AdminThemeProvider>

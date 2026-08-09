@@ -139,7 +139,12 @@ export function ImageField({
           ) : (
             <ImagePlus className="h-4 w-4" aria-hidden />
           )}
-          {busy ? "Uploading…" : "Upload"}
+          {/* The label is wrapped rather than left as a bare text node. React
+              swaps the icon above with `insertBefore(newIcon, nextSibling)`, so
+              whatever follows it is the insertion reference — and a bare text
+              node is the one thing a page translator will move out from under
+              React. An element survives that. */}
+          <span>{busy ? "Uploading…" : "Upload"}</span>
         </button>
 
         <input
