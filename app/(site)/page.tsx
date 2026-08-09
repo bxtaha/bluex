@@ -4,9 +4,9 @@ import { SpeedHook } from "@/components/sections/speed-hook";
 import { Services } from "@/components/sections/services";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { ExperienceIt } from "@/components/sections/experience-it";
-import { WhyBluex } from "@/components/sections/why-bluex";
 import { Process } from "@/components/sections/process";
 import { Outcomes } from "@/components/sections/outcomes";
+import { WhyBluex } from "@/components/sections/why-bluex";
 import { Portfolio } from "@/components/sections/portfolio";
 import { Pricing } from "@/components/sections/pricing";
 import { Faq } from "@/components/sections/faq";
@@ -26,7 +26,16 @@ import { SiteFooter } from "@/components/sections/site-footer";
  */
 export const revalidate = 60;
 
-// Order follows the brief.
+/**
+ * Order follows the brief, with one deliberate departure: "Why BlueX" now sits
+ * after "What you get" rather than before the process. The four reasons read as
+ * an answer to the outcome the reader has just been shown, instead of a claim
+ * they have to take on trust.
+ *
+ * `SECTIONS` in `section-provider.tsx` mirrors this order and must be changed
+ * with it — the observer picks the topmost section in its band by index, so a
+ * list out of document order makes both navigations point at the wrong place.
+ */
 export default function Home() {
   return (
     <>
@@ -36,9 +45,9 @@ export default function Home() {
       <Services />
       <HowItWorks />
       <ExperienceIt />
-      <WhyBluex />
       <Process />
       <Outcomes />
+      <WhyBluex />
       <Portfolio />
       <Pricing />
       <Faq />
