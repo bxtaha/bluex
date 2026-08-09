@@ -122,7 +122,7 @@ export async function generateMetadata({
  * `JSON.stringify` escapes quotes but not `<`, so a title containing
  * `</script>` would close the tag early and drop the rest of the document into
  * the page as markup. This content is typed into the admin panel, so it is
- * input and gets treated as such — the same reasoning as the FAQ section.
+ * input and gets treated as such — the same reasoning as the pricing section.
  */
 function serialiseJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");

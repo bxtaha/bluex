@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, getSessionUser } from "@/lib/admin-auth";
 import { listAllTiers, type PricingTier } from "@/lib/pricing";
-import { listAllFaqs, type Faq } from "@/lib/faq";
 import {
   DEFAULT_CONTACT,
   getContactSettings,
@@ -45,7 +44,6 @@ export default async function AdminPage() {
   // the editor then renders with its rows already present instead of flashing
   // an empty list, and there is no second round trip after the page arrives.
   let tiers: PricingTier[] = [];
-  let faqs: Faq[] = [];
   let contact: ContactSettings = DEFAULT_CONTACT;
   // The badge, not the inbox itself. The thread list is fetched by the client
   // because mail arrives while the tab is open and a server snapshot of it
@@ -57,10 +55,9 @@ export default async function AdminPage() {
   let footnote = DEFAULT_FOOTNOTE;
 
   try {
-    [tiers, faqs, contact, unread, posts, projects, footnote] =
+    [tiers, contact, unread, posts, projects, footnote] =
       await Promise.all([
         listAllTiers(),
-        listAllFaqs(),
         getContactSettings(),
         unreadThreadCount(),
         listAllPosts(),
@@ -78,7 +75,6 @@ export default async function AdminPage() {
       email={user.email}
       name={user.name}
       tiers={tiers}
-      faqs={faqs}
       contact={contact}
       posts={posts}
       projects={projects}

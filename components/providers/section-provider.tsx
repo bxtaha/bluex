@@ -13,7 +13,6 @@ import {
   CalendarCheck,
   Home,
   Layers,
-  MessagesSquare,
   PenLine,
   PhoneCall,
   Route,
@@ -57,7 +56,6 @@ export const SECTIONS = [
   { id: "why-bluex", label: "Why BlueX", Icon: ShieldCheck },
   { id: "work", label: "Selected work", Icon: Briefcase },
   { id: "pricing", label: "Pricing", Icon: Tag },
-  { id: "faq", label: "Questions", Icon: MessagesSquare },
   { id: "writing", label: "Blog", Icon: PenLine },
   { id: "contact", label: "Get a call", Icon: CalendarCheck },
 ] as const;

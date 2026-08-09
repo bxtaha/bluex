@@ -25,7 +25,7 @@ const EMPTY_TESTIMONIAL: Testimonial = { quote: "", author: "", role: "" };
 /**
  * Selected-work editor.
  *
- * Same shape as the FAQ manager, deliberately — edits held locally and saved
+ * Same shape as the pricing manager, deliberately — edits held locally and saved
  * per row, drag-to-reorder with arrow buttons beside it as the keyboard path,
  * and the whole id sequence written on every reorder. Two editors on one
  * dashboard that behave differently is a worse cost than a little repetition.

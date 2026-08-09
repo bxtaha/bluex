@@ -25,7 +25,7 @@ import type { Message, ThreadFilter, ThreadSummary } from "@/lib/message-store";
  * conversation side by side means neither is readable.
  *
  * Everything is fetched rather than passed in from the server page. Unlike the
- * pricing and FAQ editors, this data goes stale on its own: mail arrives while
+ * pricing editor, this data goes stale on its own: mail arrives while
  * the tab is open. A server-rendered snapshot would be wrong within minutes and
  * would have to be refetched anyway.
  */

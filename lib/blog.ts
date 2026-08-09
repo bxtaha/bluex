@@ -10,7 +10,7 @@ import {
 /**
  * The Next-facing half of the blog.
  *
- * **This one caches differently from pricing, FAQ and contact, on purpose.**
+ * **This one caches differently from pricing and contact, on purpose.**
  * Those wrap their reads in `unstable_cache` with a tag and no expiry, because
  * their content only changes when an admin changes it — so an invalidation on
  * save is a complete answer.

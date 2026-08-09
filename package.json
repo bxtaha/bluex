@@ -9,7 +9,6 @@
     "lint": "eslint",
     "seed:admin": "node --experimental-strip-types --no-warnings scripts/seed-admin.ts",
     "seed:pricing": "node --experimental-strip-types --no-warnings scripts/seed-pricing.ts",
-    "seed:faq": "node --experimental-strip-types --no-warnings scripts/seed-faq.ts",
     "seed:blog": "node --experimental-strip-types --no-warnings scripts/seed-blog.ts",
     "seed:projects": "node --experimental-strip-types --no-warnings scripts/seed-projects.ts"
   },

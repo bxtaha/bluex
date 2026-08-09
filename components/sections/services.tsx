@@ -1,22 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { gsap, ScrollTrigger, MOTION_QUERIES } from "@/lib/gsap";
+import { useRef } from "react";
+import { usePinnedTrack } from "@/components/motion/use-pinned-track";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
-
-/** Breathing room left after the final panel when the track is fully scrolled. */
-const TRAIL = 96;
-
-/** Movement, in px, before a swipe is judged horizontal or vertical. */
-const AXIS_THRESHOLD = 8;
-
-/** Share of its speed a flick keeps each frame after the finger lifts. */
-const GLIDE_DECAY = 0.94;
-
-/** Speed below which the glide has arrived, in px per frame. */
-const GLIDE_MIN = 0.25;
 
 const SERVICES = [
   {
@@ -96,172 +84,19 @@ export function Services() {
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    const track = trackRef.current;
-    if (!section || !track) return;
-
-    const ctx = gsap.matchMedia();
-
-    // Every width, not just desktop. Vertical scrolling drives the track
-    // sideways on a phone exactly as it does on a laptop — the alternative was
-    // a swipe carousel, which hid the later panels behind a gesture nobody
-    // knows to make.
-    ctx.add(MOTION_QUERIES.motion, () => {
-      // `offsetLeft` and `scrollWidth` are layout values, unaffected by the
-      // transform this tween is applying — reading getBoundingClientRect here
-      // would feed the tween's own output back into its input on refresh.
-      const distance = () => {
-        const overflow =
-          track.offsetLeft + track.scrollWidth - window.innerWidth + TRAIL;
-        return Math.max(0, overflow);
-      };
-
-      // On a wide enough viewport the panels already fit, and there is nothing
-      // to scrub. Pinning anyway would freeze the page against a zero-length
-      // (or negative) timeline, so the section is simply left static.
-      if (distance() === 0) return;
-
-      const tween = gsap.to(track, {
-        x: () => -distance(),
-        ease: "none",
-        scrollTrigger: {
-          trigger: section,
-          start: "top top",
-          // Pin for exactly as long as the track needs to travel, so scroll
-          // distance and horizontal distance stay 1:1 at any viewport width.
-          end: () => `+=${distance()}`,
-          pin: true,
-          scrub: 1,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-
-      // Swiping sideways moves the panels sideways. Scroll position is the only
-      // thing that actually drives the track, so the drag does not touch the
-      // track at all — it scrolls the page by the same distance the finger
-      // travelled, and the pin turns that back into horizontal movement. One
-      // source of truth, and letting go leaves scroll exactly where the panels
-      // say it should be.
-      const trigger = tween.scrollTrigger;
-      let tracking = false;
-      let horizontal: boolean | null = null;
-      let startX = 0;
-      let startY = 0;
-      let lastX = 0;
-      let lastTime = 0;
-      let velocity = 0;
-      let glide = 0;
-
-      const onPointerDown = (event: PointerEvent) => {
-        // Mice and trackpads already scrub this by scrolling; hijacking a
-        // click-drag there would break text selection for no gain.
-        if (event.pointerType === "mouse") return;
-        cancelAnimationFrame(glide);
-        tracking = true;
-        horizontal = null;
-        startX = lastX = event.clientX;
-        startY = event.clientY;
-        lastTime = event.timeStamp;
-        velocity = 0;
-      };
-
-      const onPointerMove = (event: PointerEvent) => {
-        if (!tracking) return;
-
-        // Which way this gesture is going is decided once, after it has moved
-        // far enough to mean something, and never revisited — otherwise a
-        // diagonal swipe flickers between scrolling the page and dragging.
-        if (horizontal === null) {
-          const dx = Math.abs(event.clientX - startX);
-          const dy = Math.abs(event.clientY - startY);
-          if (dx < AXIS_THRESHOLD && dy < AXIS_THRESHOLD) return;
-          horizontal = dx > dy;
-          if (horizontal) track.setPointerCapture?.(event.pointerId);
-        }
-        if (!horizontal) return;
-
-        const dx = event.clientX - lastX;
-        const dt = event.timeStamp - lastTime;
-        // Per frame rather than per millisecond, so the glide below can just
-        // add it once per frame.
-        if (dt > 0) velocity = (-dx / dt) * 16;
-        lastX = event.clientX;
-        lastTime = event.timeStamp;
-
-        // Dragging content to the left is scrolling forwards.
-        window.scrollBy(0, -dx);
-      };
-
-      const onPointerUp = () => {
-        if (!tracking) return;
-        const wasHorizontal = horizontal;
-        tracking = false;
-        horizontal = null;
-        if (!wasHorizontal || Math.abs(velocity) < GLIDE_MIN) return;
-
-        // A flick should coast. Native scrolling has momentum and a carousel
-        // that stops dead the instant the finger lifts feels broken beside it.
-        const step = () => {
-          velocity *= GLIDE_DECAY;
-          if (Math.abs(velocity) < GLIDE_MIN) return;
-          window.scrollBy(0, velocity);
-          glide = requestAnimationFrame(step);
-        };
-        glide = requestAnimationFrame(step);
-      };
-
-      // Only while the section owns the screen. Outside the pin the same drag
-      // would scroll the page sideways-to-vertically for no visible reason.
-      const guard = (handler: (event: PointerEvent) => void) => {
-        return (event: PointerEvent) => {
-          if (!trigger?.isActive) return;
-          handler(event);
-        };
-      };
-
-      const down = guard(onPointerDown);
-      track.addEventListener("pointerdown", down);
-      track.addEventListener("pointermove", onPointerMove);
-      track.addEventListener("pointerup", onPointerUp);
-      track.addEventListener("pointercancel", onPointerUp);
-
-      return () => {
-        cancelAnimationFrame(glide);
-        track.removeEventListener("pointerdown", down);
-        track.removeEventListener("pointermove", onPointerMove);
-        track.removeEventListener("pointerup", onPointerUp);
-        track.removeEventListener("pointercancel", onPointerUp);
-        tween.scrollTrigger?.kill();
-        tween.kill();
-        gsap.set(track, { x: 0 });
-      };
-    });
-
-    // Fonts change text metrics, which changes track width, which changes the
-    // pin distance. Without this the last panel can end up unreachable.
-    let cancelled = false;
-    document.fonts?.ready.then(() => {
-      if (!cancelled) ScrollTrigger.refresh();
-    });
-
-    return () => {
-      cancelled = true;
-      ctx.revert();
-    };
-  }, []);
+  // Reversed is the other section's business: here the panels arrive from
+  // the right, which is the direction the copy reads in.
+  usePinnedTrack(sectionRef, trackRef);
 
   return (
     <section
       ref={sectionRef}
       id="services"
-      /* The track is far wider than the viewport by design — it is scrubbed
-         sideways. Without clipping, that width becomes document overflow: the
-         page scrolls horizontally on desktop, and mobile browsers zoom out to
-         fit, shrinking the whole site. `clip` rather than `hidden` so this
-         does not become a scroll container, which would fight the pin. */
-      className="relative h-dvh overflow-x-clip"
+      /* `.bx-slider` carries the clipping and the viewport height. Both used to
+         be Tailwind utilities here, but the height must only apply while the
+         track is actually being scrubbed — see `usePinnedTrack`, which is what
+         sets `data-pinned`. */
+      className="bx-slider"
     >
       <div className="flex h-full flex-col justify-center">
         <div className="mx-auto mb-8 w-full max-w-[100rem] px-6 sm:px-10 md:mb-14 lg:px-16">

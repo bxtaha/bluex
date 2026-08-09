@@ -1,6 +1,6 @@
 import { getFootnote, getVisibleProjects, renderFootnote } from "@/lib/projects";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { PortfolioRows } from "@/components/sections/portfolio-rows";
+import { PortfolioCards } from "@/components/sections/portfolio-cards";
 
 /**
  * Serialises JSON-LD for a `<script>` tag.
@@ -8,7 +8,7 @@ import { PortfolioRows } from "@/components/sections/portfolio-rows";
  * `JSON.stringify` escapes quotes but not `<`, so a client name containing
  * `</script>` would close the tag early and drop the rest of the document into
  * the page as markup. Client names are typed into the admin panel, so they are
- * input — the same reasoning as the FAQ and blog sections.
+ * input — the same reasoning as the pricing and blog sections.
  */
 function serialiseJsonLd(value: unknown): string {
   return JSON.stringify(value).replace(/</g, "\\u003c");
@@ -70,7 +70,7 @@ export async function Portfolio() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serialiseJsonLd(jsonLd) }}
       />
-      <PortfolioRows projects={projects} footnote={footnote} />
+      <PortfolioCards projects={projects} footnote={footnote} />
     </>
   );
 }

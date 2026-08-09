@@ -1,27 +1,29 @@
+import type { CSSProperties } from "react";
 import { ArrowUpRight, Quote } from "lucide-react";
-import { Reveal } from "@/components/motion/reveal";
-import { SplitText } from "@/components/motion/split-text";
+import { PortfolioSlider } from "@/components/sections/portfolio-slider";
 import { coverImageUrl } from "@/lib/blog-format";
 import type { Project } from "@/lib/project-store";
 
 /**
- * The portfolio rows.
+ * The project cards.
  *
- * Editorial, not a grid: each project is a full-width row that alternates
- * image-left / image-right down the page. The alternation is decided by index
- * parity in CSS-friendly markup rather than by two different components, which
- * is what makes it survive an odd number of projects — with a grid, three
- * items leave a hole and five leave two, and every "fix" for that is a
- * placeholder card. Rows have no such failure mode: three works, four works,
- * twenty works.
+ * These used to be full-width editorial rows alternating down the page. They
+ * are now panels on a horizontal track that the pinned section scrubs sideways,
+ * which is the same treatment "What we build" gets — with the direction
+ * reversed, so the cards travel left to right.
+ *
+ * The argument for rows was that they survive any project count where a grid
+ * does not: three items leave a hole in a grid, five leave two, and every fix
+ * for that is a placeholder card. A track keeps that property for the same
+ * reason — it has no columns to leave holes in — so three projects work, four
+ * work, twenty work. The count only changes how far the track travels.
  *
  * Still a server component. Every interaction here — the lift, the glow, the
- * slow zoom on the screenshot — is CSS on `:hover`, and the reveal is the
- * site's shared observer setting one attribute. Nothing about this section
- * needs to ship JavaScript, and the section that exists to prove the sites are
- * fast should not be the one that slows the page down.
+ * slow zoom on the screenshot — is CSS on `:hover`, and the only JavaScript the
+ * section ships is the scrub itself, which lives in the client shell these
+ * cards are passed into.
  */
-export function PortfolioRows({
+export function PortfolioCards({
   projects,
   footnote,
 }: {
@@ -29,64 +31,31 @@ export function PortfolioRows({
   footnote: string;
 }) {
   return (
-    <section
-      id="work"
-      className="relative mx-auto max-w-[100rem] px-6 py-24 sm:px-10 md:py-32 lg:px-16"
-    >
-      <div className="max-w-2xl">
-        <Reveal as="p" className="bx-eyebrow">
-          Selected work
-        </Reveal>
-        <SplitText
-          as="h2"
-          className="bx-display mt-3 text-[clamp(2rem,5vw,3.75rem)] text-ink"
+    <PortfolioSlider footnote={footnote}>
+      {projects.map((project, i) => (
+        <article
+          key={project.id}
+          className="bx-work bx-work--card bx-card bx-hairline"
+          /* Lays the track out back to front so a rightward-travelling track
+             still meets project 1 first. A custom property rather than the
+             `order` property itself, because `.bx-track--mirror` only applies
+             it while the scrub is live — without the pin the natural order is
+             the correct one. */
+          style={{ "--track-order": projects.length - i } as CSSProperties}
         >
-          Sites that are live right now.
-        </SplitText>
-        <Reveal
-          as="p"
-          index={1}
-          className="mt-5 text-base leading-relaxed text-ink-muted sm:text-lg"
-        >
-          Every one of these is in production. Click through and see for
-          yourself.
-        </Reveal>
-      </div>
-
-      <div className="mt-16 space-y-8 md:mt-20 md:space-y-16">
-        {projects.map((project, i) => (
-          <Reveal
-            as="div"
-            key={project.id}
-            index={i + 2}
-            className="bx-work"
-            // Parity drives the column order in CSS. An attribute rather than a
-            // class so the rule reads as "every other row" instead of the
-            // component having to know what "flipped" means.
-            data-flip={i % 2 === 1}
-          >
-            <ProjectRow project={project} />
-          </Reveal>
-        ))}
-      </div>
-
-      <Reveal
-        as="p"
-        index={projects.length + 2}
-        className="mt-14 text-sm text-ink-muted"
-      >
-        {footnote}
-      </Reveal>
-    </section>
+          <ProjectCard project={project} />
+        </article>
+      ))}
+    </PortfolioSlider>
   );
 }
 
-function ProjectRow({ project }: { project: Project }) {
+function ProjectCard({ project }: { project: Project }) {
   const shot = coverImageUrl(project.screenshot, 1400);
   const host = hostOf(project.url);
 
   return (
-    <article className="bx-work__inner">
+    <div className="bx-work__inner">
       <div className="bx-work__media">
         {/* The browser frame. Decorative, and `aria-hidden` for that reason —
             a screen reader announcing "three circles" before every project
@@ -125,12 +94,12 @@ function ProjectRow({ project }: { project: Project }) {
       <div className="bx-work__body">
         {project.year && <p className="bx-eyebrow">{project.year}</p>}
 
-        <h3 className="bx-display mt-2 text-[clamp(1.75rem,3.5vw,2.75rem)] text-ink">
+        <h3 className="bx-display mt-2 text-[clamp(1.35rem,2.4vw,2.25rem)] text-ink">
           {project.clientName}
         </h3>
 
         {project.description && (
-          <p className="mt-4 max-w-md text-base leading-relaxed text-ink-muted">
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">
             {project.description}
           </p>
         )}
@@ -181,7 +150,7 @@ function ProjectRow({ project }: { project: Project }) {
           </a>
         )}
       </div>
-    </article>
+    </div>
   );
 }
 

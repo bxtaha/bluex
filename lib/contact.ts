@@ -7,7 +7,7 @@ import {
 
 /**
  * The Next-facing half of the contact settings — the same split as pricing and
- * FAQ, for the same reason: `contact-store.ts` has no framework imports, so a
+ * pricing, for the same reason: `contact-store.ts` has no framework imports, so a
  * script or a job can read it without a bundler.
  */
 

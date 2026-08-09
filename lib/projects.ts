@@ -11,7 +11,7 @@ import {
 /**
  * The Next-facing half of the portfolio.
  *
- * Tag-cached with no expiry, like pricing and FAQ and unlike the blog: a
+ * Tag-cached with no expiry, like pricing and unlike the blog: a
  * project becomes visible when an admin makes it visible and at no other time,
  * so invalidating on save is a complete answer and the homepage keeps being
  * served from a prerender.

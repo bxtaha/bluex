@@ -824,136 +824,6 @@
   }
 }
 
-/* ── FAQ accordion ───────────────────────────────────────────────────────────
-   Rows separated by a hairline, and a panel that eases open on a grid track. */
-
-.bx-faq__row {
-  border-top: 1px solid rgb(255 255 255 / 9%);
-}
-
-.bx-faq__row:last-child {
-  border-bottom: 1px solid rgb(255 255 255 / 9%);
-}
-
-.bx-faq__trigger {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  width: 100%;
-  /* Generous vertical padding is what makes the whole row a comfortable tap
-     target on a phone, rather than just the text. */
-  padding: 1.5rem 0;
-  border: 0;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  color: var(--color-ink);
-  transition: color var(--hover-duration) var(--ease-reveal);
-}
-
-@media (hover: hover) {
-  .bx-faq__trigger:hover {
-    color: var(--color-electric-glow);
-  }
-}
-
-.bx-faq__trigger:focus-visible {
-  outline: 2px solid var(--color-electric-glow);
-  outline-offset: -2px;
-}
-
-.bx-faq__question {
-  font-family: var(--font-display);
-  font-size: clamp(1rem, 2.2vw, 1.25rem);
-  line-height: 1.4;
-}
-
-/* ── The plus that becomes a minus ───────────────────────────────────────── */
-
-.bx-faq__icon {
-  position: relative;
-  flex-shrink: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 999px;
-  color: var(--color-electric);
-}
-
-.bx-faq__bar {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0.875rem;
-  height: 1.5px;
-  border-radius: 1px;
-  background: currentColor;
-  translate: -50% -50%;
-  transition: rotate 320ms var(--ease-reveal);
-}
-
-/* Only the upright bar turns. It lands flat on top of the horizontal one, so
-   the plus reads as folding into a minus rather than spinning. */
-.bx-faq__bar--vertical {
-  rotate: 90deg;
-}
-
-.bx-faq__row[data-open="true"] .bx-faq__bar--vertical {
-  rotate: 0deg;
-}
-
-/* ── The panel ───────────────────────────────────────────────────────────────
-   `grid-template-rows: 0fr → 1fr` is the height animation. `height: auto` does
-   not animate; a measured pixel height needs JS on every resize and font swap,
-   and a max-height guess either clips a long answer or eases through dead
-   space. The grid track eases to the content's real height and needs no
-   measurement. */
-
-.bx-faq__panel {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 380ms var(--ease-reveal);
-}
-
-.bx-faq__row[data-open="true"] .bx-faq__panel {
-  grid-template-rows: 1fr;
-}
-
-/* The `0fr` track only collapses if the child cannot force it open, which means
-   the overflow has to be hidden here, on the row's own child. */
-.bx-faq__panel-inner {
-  /* The shorthand states both axes at once, which is what this codebase wants
-     everywhere — `overflow-y` alone computes `overflow-x` to `auto`. */
-  overflow: hidden;
-  min-height: 0;
-}
-
-.bx-faq__answer {
-  padding: 0 0 1.75rem;
-  max-width: 60ch;
-  font-size: 0.9375rem;
-  line-height: 1.75;
-  color: var(--color-ink-muted);
-  /* Fades in behind the height so the text is not legible while squashed. */
-  opacity: 0;
-  transition: opacity 240ms var(--ease-reveal);
-}
-
-.bx-faq__row[data-open="true"] .bx-faq__answer {
-  opacity: 1;
-  transition-delay: 120ms;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .bx-faq__panel,
-  .bx-faq__bar,
-  .bx-faq__answer,
-  .bx-faq__trigger {
-    transition-duration: 0.01ms !important;
-    transition-delay: 0ms !important;
-  }
-}
-
 /* ── Contact ─────────────────────────────────────────────────────────────────
    The form card is `.bx-card .bx-hairline` like every other card on the page.
    What is described here is the field treatment — which the lead dialog writes
@@ -1755,13 +1625,14 @@
 }
 
 /* ── Selected work ───────────────────────────────────────────────────────────
-   Full-width editorial rows that alternate side to side, rather than a grid.
-   A grid of three leaves a hole, five leaves two, and every fix for that is a
-   placeholder card; rows have no such failure mode at any count. */
+   Panels on a horizontal track rather than a grid. A grid of three leaves a
+   hole, five leaves two, and every fix for that is a placeholder card; a track
+   has no columns to leave holes in, so any count works. */
 
 .bx-work {
-  /* The row is the hover target, not the card inside it, so moving the pointer
-     between the screenshot and the copy does not retrigger the transition. */
+  /* The panel is the hover target, not the frame inside it, so moving the
+     pointer between the screenshot and the copy does not retrigger the
+     transition. */
   position: relative;
   border-radius: 1.5rem;
   transition:
@@ -1775,27 +1646,47 @@
   align-items: center;
 }
 
-/* Mobile is one column with the image above the text, which is the source
-   order — so the stacked layout needs no rule at all and cannot get out of
-   step with the markup. */
+/* ── Card variant ────────────────────────────────────────────────────────────
+   What a project looks like once it is a panel on the track rather than a
+   full-width row: narrower, so the type steps down and the two columns split
+   evenly instead of favouring the screenshot. */
+
+.bx-work--card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem;
+  /* Same specificity as `.bx-work` and declared after it, which is the only
+     reason this radius is the one that lands. `.bx-hairline::before` inherits
+     it, so the ring follows the corner instead of sitting proud of it. */
+  border-radius: 1.25rem;
+}
+
+.bx-work--card .bx-work__inner {
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .bx-work--card {
+    padding: 1.75rem;
+  }
+}
+
+/* Stacked below this, which is the source order — image above text — so the
+   narrow layout needs no rule at all and cannot get out of step with the
+   markup. */
 @media (min-width: 900px) {
   .bx-work__inner {
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
     gap: 3.5rem;
   }
 
-  /* Every other row flips. `grid-column` rather than `direction` or `order` on
-     a flex container: both of those also reverse the reading order for a
-     screen reader, and the client name should be read after its screenshot
-     whichever side the screenshot is on. */
-  .bx-work[data-flip="true"] .bx-work__media {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .bx-work[data-flip="true"] .bx-work__body {
-    grid-column: 1;
-    grid-row: 1;
+  .bx-work--card .bx-work__inner {
+    /* An even split rather than the row's 1.15fr: the card is at most 46rem
+       wide, and giving the screenshot the larger share of that leaves the copy
+       too narrow to read. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 1.75rem;
   }
 }
 
@@ -2138,26 +2029,75 @@
   color: rgb(156 163 175);
 }
 
-/* ── Horizontal services track ───────────────────────────────────────────── */
+/* ── Pinned horizontal tracks ────────────────────────────────────────────────
+   Two sections ride on this: "What we build" and "Selected work". The only
+   difference between them is which way the track travels, which is a flag on
+   `usePinnedTrack` and the `--mirror` modifier below.
 
-/* Below the pin breakpoint the track is a native snap carousel — pinning and
-   scrubbing x on touch fights the browser's own scrolling and feels broken. */
+   Everything that assumes the pin is keyed off `data-pinned`, which the hook
+   writes only once it has a live scrub. There are three ways to end up without
+   one — reduced motion, no JavaScript, and a viewport wide enough that the
+   panels already fit — and a section that is a viewport tall with a track
+   running off the side of it is only correct in the fourth case. Without the
+   attribute this degrades to a wrapping row of panels at the section's own
+   height, which is readable rather than clipped. */
+
+.bx-slider {
+  position: relative;
+  /* Both axes stated. `overflow-x: clip` alone computes `overflow-y` to clip as
+     well, which is right while pinned and wrong for the wrapping fallback — so
+     say `clip` on purpose, and let the fallback's height come from its content
+     rather than from a fixed 100dvh it would then overflow.
+
+     Clipped rather than hidden: `hidden` would make this a scroll container and
+     fight the pin. Unclipped, the track's width becomes document overflow — the
+     page scrolls sideways on desktop and phones zoom the whole site out. */
+  overflow: clip;
+}
+
+.bx-slider[data-pinned="true"] {
+  height: 100dvh;
+}
+
 .bx-track {
   display: flex;
   gap: 1.25rem;
-  /* Driven by ScrollTrigger at every width, so the track is never a scroll
-     container of its own — the page's vertical scroll moves it sideways. */
+  /* Wraps by default so a track with nothing driving it is still readable. The
+     pin turns this off, because a wrapping track has no horizontal travel to
+     scrub. */
+  flex-wrap: wrap;
+  /* Driven by ScrollTrigger, so the track is never a scroll container of its
+     own — the page's vertical scroll moves it sideways. */
   overflow: visible;
   will-change: transform;
   /* The browser keeps vertical panning, which is ordinary page scrolling and
      should stay native. Horizontal is left alone for the swipe handler in
-     services.tsx to read, which it cannot do if the browser claims the gesture
-     first. */
+     `usePinnedTrack` to read, which it cannot do if the browser claims the
+     gesture first. */
   touch-action: pan-y;
+}
+
+.bx-slider[data-pinned="true"] .bx-track {
+  flex-wrap: nowrap;
 }
 
 .bx-track > * {
   flex: 0 0 min(86vw, 30rem);
+}
+
+/* A mirrored track travels left to right, which means the reader starts at its
+   right-hand end and works leftwards. Laying the panels out back to front is
+   what keeps the first one in the markup the first one seen.
+
+   `order` rather than `row-reverse`: reversing the flex direction makes the
+   overflow spill off the start edge, where `scrollWidth` does not count it and
+   the pin distance comes out as zero. `order` leaves the box model alone.
+
+   Scoped to the pinned state on purpose — the fallback above lays the panels
+   out in their natural order, and reversing them there would put the last
+   project first for exactly the readers who cannot scrub past it. */
+.bx-slider[data-pinned="true"] .bx-track--mirror > * {
+  order: var(--track-order, 0);
 }
 
 @media (min-width: 768px) {

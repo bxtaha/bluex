@@ -24,8 +24,8 @@ type HeaderLink = {
  *
  * The pill is one horizontal row between the logo and the call button, so its
  * width is a hard budget — the dock, which unfolds vertically, has no such
- * limit and lists every section. Eight items is what fits, but the page has
- * twelve, so four of them are covered by an item that names the range rather
+ * limit and lists every section. Seven items is what fits, but the page has
+ * eleven, so four of them are covered by an item that names the range rather
  * than the section:
  *
  *   "How it works"  → how-it-works, experience, process, outcomes
@@ -34,8 +34,8 @@ type HeaderLink = {
  * That is what `match` is for. It matters because those four sections are one
  * continuous argument — how the agent works, hear it, the process, what you
  * get — and an indicator that fades out halfway through reads as the reader
- * having wandered somewhere unmapped. With `match` every one of the twelve
- * sections now lights exactly one header item, so the indicator is never blank
+ * having wandered somewhere unmapped. With `match` every one of the eleven
+ * sections lights exactly one header item, so the indicator is never blank
  * between the hero and the footer.
  *
  * Where an item covers a range, it scrolls to the section its label names, not
@@ -43,7 +43,7 @@ type HeaderLink = {
  * reasons this works" two screens above it. A label that lies about its
  * destination is worse than one that starts you slightly late.
  *
- * At 58 characters of label this is still shorter than the 61 it replaced, so
+ * At 55 characters of label this is still shorter than the 61 it replaced, so
  * it cannot overflow anywhere the original fitted. That is the argument, not a
  * measurement; the pill's rendered width has not been checked in a browser.
  *
@@ -62,7 +62,6 @@ const LINKS: readonly HeaderLink[] = [
   },
   { id: "work", label: "Our Portfolio", match: ["why-bluex", "work"] },
   { id: "pricing", label: "Pricing" },
-  { id: "faq", label: "FAQ" },
   { id: "writing", label: "Blog" },
   { id: "contact", label: "Contact" },
 ];
@@ -77,7 +76,7 @@ const CONTRACT_AT = 24;
  *
  * The indicator still handles a section it has no entry for by fading out where
  * it stands, rather than jumping somewhere arbitrary. With `match` covering all
- * twelve sections nothing reaches that branch today, but the day a section is
+ * eleven sections nothing reaches that branch today, but the day a section is
  * added and not mapped it is the difference between an indicator that steps
  * aside and one that lies.
  */

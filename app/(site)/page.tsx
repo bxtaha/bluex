@@ -9,7 +9,6 @@ import { Outcomes } from "@/components/sections/outcomes";
 import { WhyBluex } from "@/components/sections/why-bluex";
 import { Portfolio } from "@/components/sections/portfolio";
 import { Pricing } from "@/components/sections/pricing";
-import { Faq } from "@/components/sections/faq";
 import { BlogTeaser } from "@/components/sections/blog-teaser";
 import { Contact } from "@/components/sections/contact";
 import { FinalCta } from "@/components/sections/final-cta";
@@ -18,7 +17,7 @@ import { SiteFooter } from "@/components/sections/site-footer";
 /**
  * The homepage revalidates on a timer as well as on demand.
  *
- * Pricing, FAQ and contact only change when an admin changes them, and each
+ * Pricing and contact only change when an admin changes them, and each
  * invalidates its own cache on save. The blog teaser adds a second way for this
  * page to go stale: a post scheduled for Tuesday becomes public on Tuesday with
  * nobody touching anything. A minute is the ceiling on how long the homepage
@@ -50,7 +49,6 @@ export default function Home() {
       <WhyBluex />
       <Portfolio />
       <Pricing />
-      <Faq />
       <BlogTeaser />
       <Contact />
       <FinalCta />

@@ -3,14 +3,12 @@
 import React, { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PricingTier } from "@/lib/pricing";
-import type { Faq } from "@/lib/faq";
 import type { ContactSettings } from "@/lib/contact-store";
 import type { PostCard } from "@/lib/blog-store";
 import type { Project } from "@/lib/project-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
-import { AdminFaqManager } from "@/components/ui/admin-faq-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
 import { AdminBlogManager } from "@/components/ui/admin-blog-manager";
@@ -33,7 +31,6 @@ import {
   Bell,
   Settings,
   HelpCircle,
-  MessagesSquare,
   Inbox,
   AtSign,
   PenLine,
@@ -57,7 +54,6 @@ export function AdminDashboard({
   email,
   name,
   tiers,
-  faqs,
   contact,
   posts,
   projects,
@@ -69,7 +65,6 @@ export function AdminDashboard({
   name?: string;
   /** Read on the server so the editors have data before they are opened. */
   tiers: PricingTier[];
-  faqs: Faq[];
   contact: ContactSettings;
   posts: PostCard[];
   projects: Project[];
@@ -109,7 +104,6 @@ export function AdminDashboard({
           selected={selected}
           email={email}
           tiers={tiers}
-          faqs={faqs}
           contact={contact}
           posts={posts}
           projects={projects}
@@ -191,13 +185,6 @@ function Sidebar({
         <Option
           Icon={Tag}
           title="Pricing"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        <Option
-          Icon={MessagesSquare}
-          title="FAQ"
           selected={selected}
           setSelected={setSelected}
           open={open}
@@ -541,10 +528,6 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "Pricing",
     subtitle: "Tiers shown in the pricing section of the site",
   },
-  FAQ: {
-    title: "FAQ",
-    subtitle: "Questions shown in the FAQ section of the site",
-  },
   Work: {
     title: "Selected work",
     subtitle: "Projects shown in the portfolio section of the site",
@@ -571,7 +554,6 @@ function DashboardContent({
   selected,
   email,
   tiers,
-  faqs,
   contact,
   posts,
   projects,
@@ -584,7 +566,6 @@ function DashboardContent({
   selected: string;
   email: string;
   tiers: PricingTier[];
-  faqs: Faq[];
   contact: ContactSettings;
   posts: PostCard[];
   projects: Project[];
@@ -650,7 +631,6 @@ function DashboardContent({
       {selected === "Inbox" && <AdminInbox onUnreadChange={onUnreadChange} />}
       {selected === "Settings" && <AdminChangePassword email={email} />}
       {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
-      {selected === "FAQ" && <AdminFaqManager initial={faqs} />}
       {selected === "Work" && (
         <AdminProjectsManager initial={projects} initialFootnote={footnote} />
       )}

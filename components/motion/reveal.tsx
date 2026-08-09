@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
  *
  * This is not a convenience. JSX allows any hyphenated attribute on any
  * component without a type error, so `<Reveal data-open={isOpen}>` compiled
- * cleanly while the prop was dropped on the floor — the FAQ accordion shipped
- * with `.bx-faq__row[data-open="true"]` in the stylesheet and nothing ever
+ * cleanly while the prop was dropped on the floor — an accordion shipped
+ * with a `[data-open="true"]` rule in the stylesheet and nothing ever
  * setting the attribute, so no panel opened. Nothing in TypeScript or React
  * reports that; it has to be either forwarded or refused, and forwarding is
  * what every caller already assumed.
