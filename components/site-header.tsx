@@ -8,31 +8,59 @@ import {
 } from "@/components/providers/section-provider";
 import { CallCta } from "@/components/ui/call-cta";
 
+type HeaderLink = {
+  /** Where clicking lands. Always a section this page actually has. */
+  id: SectionId;
+  label: string;
+  /**
+   * Sections that light this item up, when that is more than the one it
+   * scrolls to. Defaults to `[id]`.
+   */
+  match?: readonly SectionId[];
+};
+
 /**
  * What the header offers, which is a curated subset of what the dock does.
  *
  * The pill is one horizontal row between the logo and the call button, so its
  * width is a hard budget — the dock, which unfolds vertically, has no such
- * limit and lists every section. Adding work, pricing and questions to all
- * eleven would have overflowed it well before a laptop ran out of width, so
- * four soft-content entries stepped aside for them: "Try it", "Why BlueX",
- * "Process" and "Outcomes" are still one tap away in the dock.
+ * limit and lists every section. Eight items is what fits, but the page has
+ * twelve, so four of them are covered by an item that names the range rather
+ * than the section:
  *
- * The result is deliberately *narrower* than what it replaces — the same eight
- * items, 49 characters of label against 61 — so it cannot overflow anywhere
- * the previous list fitted. That is the argument, not a measurement; the pill's
- * rendered width has not been checked in a browser.
+ *   "How it works"  → how-it-works, experience, process, outcomes
+ *   "Our Portfolio" → why-bluex, work
+ *
+ * That is what `match` is for. It matters because those four sections are one
+ * continuous argument — how the agent works, hear it, the process, what you
+ * get — and an indicator that fades out halfway through reads as the reader
+ * having wandered somewhere unmapped. With `match` every one of the twelve
+ * sections now lights exactly one header item, so the indicator is never blank
+ * between the hero and the footer.
+ *
+ * Where an item covers a range, it scrolls to the section its label names, not
+ * to the first of the range: "Our Portfolio" lands on the work, not on "Four
+ * reasons this works" two screens above it. A label that lies about its
+ * destination is worse than one that starts you slightly late.
+ *
+ * At 58 characters of label this is still shorter than the 61 it replaced, so
+ * it cannot overflow anywhere the original fitted. That is the argument, not a
+ * measurement; the pill's rendered width has not been checked in a browser.
  *
  * Every entry is an anchor on this page, `Blog` included — it scrolls to the
  * teaser rather than leaving for the index, which is one click further on from
  * there. The `SectionId` annotation is what stops an id being listed here that
  * the observer does not watch.
  */
-const LINKS: readonly { id: SectionId; label: string }[] = [
+const LINKS: readonly HeaderLink[] = [
   { id: "top", label: "Home" },
   { id: "services", label: "Services" },
-  { id: "how-it-works", label: "How it works" },
-  { id: "work", label: "Work" },
+  {
+    id: "how-it-works",
+    label: "How it works",
+    match: ["how-it-works", "experience", "process", "outcomes"],
+  },
+  { id: "work", label: "Our Portfolio", match: ["why-bluex", "work"] },
   { id: "pricing", label: "Pricing" },
   { id: "faq", label: "FAQ" },
   { id: "writing", label: "Blog" },
@@ -48,9 +76,10 @@ const CONTRACT_AT = 24;
  * neither can be restyled without the other following.
  *
  * The indicator still handles a section it has no entry for by fading out where
- * it stands, rather than jumping somewhere arbitrary. Nothing reaches that
- * branch while the two lists match, but the day one is trimmed it is the
- * difference between an indicator that steps aside and one that lies.
+ * it stands, rather than jumping somewhere arbitrary. With `match` covering all
+ * twelve sections nothing reaches that branch today, but the day a section is
+ * added and not mapped it is the difference between an indicator that steps
+ * aside and one that lies.
  */
 export function SiteHeader() {
   const { activeId } = useSections();
@@ -60,7 +89,12 @@ export function SiteHeader() {
   const indicatorRef = useRef<HTMLLIElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  const activeLink = LINKS.findIndex((link) => link.id === activeId);
+  // `match` when the item covers a range of sections, otherwise the one it
+  // scrolls to. First match wins, so overlapping ranges would resolve to the
+  // leftmost item rather than flickering between two.
+  const activeLink = LINKS.findIndex((link) =>
+    (link.match ?? [link.id]).includes(activeId),
+  );
 
   useEffect(() => {
     const el = headerRef.current;
