@@ -40,26 +40,31 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Check whether VPS secrets are configured
-        id: check
+      - name: Require VPS secrets
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
-          if test -n "$VPS_HOST"; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
+          missing=""
+          test -n "$VPS_HOST" || missing="$missing VPS_HOST"
+          test -n "$VPS_USER" || missing="$missing VPS_USER"
+          test -n "$VPS_SSH_KEY" || missing="$missing VPS_SSH_KEY"
+          if test -n "$missing"; then
+            echo "::error::Deploy cannot run. Missing repository secrets:$missing. Add them under Settings > Secrets and variables > Actions."
+            exit 1
           fi
       - name: Pull new image and restart container
-        if: steps.check.outputs.ready == 'true'
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          port: ${{ secrets.VPS_PORT }}
+          port: ${{ secrets.VPS_PORT || 22 }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true
           script: |
             cd /docker/bluex
             docker compose pull
             docker compose up -d
             docker image prune -f
+            docker compose ps
