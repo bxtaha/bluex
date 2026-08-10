@@ -1,0 +1,725 @@
+================================================================================
+BLUEX — FULL SITE CONTENT INVENTORY
+================================================================================
+Generated from the source on branch `main`.
+
+Three kinds of content are marked throughout:
+
+  [STATIC]  Hard-coded in the component. Changing it means editing the file.
+  [DB]      Stored in MongoDB, editable from /admin. The text below is the
+            shipped DEFAULT, shown only when the database is empty or
+            unreachable — the live site may differ.
+  [SEO]     Not visible on the page. Titles, meta descriptions, structured
+            data, image alt text.
+
+Site-wide constants live in lib/site.ts.
+
+--------------------------------------------------------------------------------
+SITE-WIDE VALUES                                              lib/site.ts [STATIC]
+--------------------------------------------------------------------------------
+Site name .......... BlueX
+Tagline ............ Every lead called back in five minutes
+Description ........ A web and AI-automation studio. We build the websites that
+                     bring you leads and the AI voice agents that call them
+                     within five minutes.
+Contact email ...... hey@bluex.agency
+Canonical URL ...... https://bluex.agency   (override: NEXT_PUBLIC_SITE_URL)
+Theme colour ....... #0a0b0f
+Language ........... en
+
+
+================================================================================
+PAGE 1 — HOMEPAGE  ( / )
+================================================================================
+File: app/(site)/page.tsx — sections render in the order below.
+
+--------------------------------------------------------------------------------
+[SEO] HOMEPAGE METADATA                                        app/layout.tsx
+--------------------------------------------------------------------------------
+Title ............. BlueX — Every lead called back in five minutes
+Description ....... A web and AI-automation studio. We build the websites that
+                    bring you leads and the AI voice agents that call them
+                    within five minutes.
+Canonical ......... /
+Open Graph ........ type: website · same title and description · site name BlueX
+Twitter ........... summary_large_image · same title and description
+Robots ............ index, follow · max-image-preview: large
+
+[SEO] OG IMAGE (app/opengraph-image.tsx) — generated image, 1200×630
+  Alt text ........ BlueX — Every lead called back in five minutes
+  Image text ...... Every lead called back in five minutes.
+                    bluex.agency
+
+[SEO] STRUCTURED DATA (app/(site)/layout.tsx) — schema.org ProfessionalService
+  name ............ BlueX
+  description ..... (site description above)
+  email ........... hey@bluex.agency
+  areaServed ...... AE, SA, QA, CA, AU
+  serviceType ..... AI voice agents — outbound lead callback ·
+                    AI voice agents — inbound call answering ·
+                    Web design and development · E-commerce development
+
+--------------------------------------------------------------------------------
+HEADER (persistent)                                  components/site-header.tsx
+--------------------------------------------------------------------------------
+[STATIC] Logo image alt: "BlueX"   ·   Logo link label: "BlueX — home"
+
+Navigation items (each may cover a range of sections):
+  Home
+  Services
+  How it works        (covers how-it-works, experience, process, outcomes)
+  Our Portfolio       (covers why-bluex, work)
+  Pricing
+  Blog
+  Contact
+
+--------------------------------------------------------------------------------
+SIDE NAVIGATION DOCK (persistent)         components/providers/section-provider.tsx
+--------------------------------------------------------------------------------
+[STATIC] Labels shown in the right-edge dock and its panel:
+  Home · What we build · How it works · Try the agent · Process · Outcomes ·
+  Why BlueX · Selected work · Pricing · Blog · Get a call
+
+  Dock button label ..... "Sections — currently {current section}"
+  Panel label ........... "Sections"
+  Close button .......... "Close navigation"
+
+--------------------------------------------------------------------------------
+SECTION 1 — HERO  ( #top )                     components/sections/hero.tsx [STATIC]
+--------------------------------------------------------------------------------
+Badge (with pulsing dot):
+  AI voice agents · Web & e-commerce
+
+H1:
+  Every lead called back in five minutes.
+
+Paragraph:
+  We build the websites that bring you leads and the AI voice agents that call
+  them before your competitors even open the email.
+
+Buttons:
+  [primary]  Get a call within 5 minutes
+  [ghost]    See what we build          → scrolls to #services
+
+Stats row:
+  < 5 min    Callback time
+  24/7       Always answering
+  100%       Custom built
+
+--------------------------------------------------------------------------------
+SECTION 2 — TRUST STRIP                  components/sections/trust-strip.tsx [STATIC]
+--------------------------------------------------------------------------------
+Accessible section label: "What we promise"
+
+Line above the marquee:
+  Built for teams in the UAE, Saudi Arabia, Qatar, Canada & Australia
+
+Scrolling chips:
+  5-minute response
+  24/7 AI answering
+  100% custom build
+  No templates
+  Calls, qualifies, books
+  Built by developers
+
+--------------------------------------------------------------------------------
+SECTION 3 — SPEED TO LEAD  ( #speed )    components/sections/speed-hook.tsx [STATIC]
+--------------------------------------------------------------------------------
+LEFT COLUMN
+
+Eyebrow:  Speed to lead
+
+H2:
+  The first five minutes decide it.
+
+Paragraph:
+  A lead who fills in your form is comparing you against three other businesses
+  right now. Whoever reaches them while the problem is still on their mind gets
+  the conversation — everyone else gets voicemail. Most companies take hours to
+  reply. That gap is where the money leaks out.
+
+Counter block:
+  Eyebrow ......... Your response time
+  Counter ......... 0:00 → animates up to 5:00
+  Beside it ....... minutes, every time
+
+  Timeline under the progress bar:
+    0 min   Lead submits
+    4 min   Agent calls
+    9 min   Meeting booked
+
+  Closing line:
+    The agent does not get busy, forget, or go home. It answers the 2am enquiry
+    exactly as fast as the 2pm one.
+
+Button:  See how fast it is
+
+NOTE — there is a disabled statistic block in this section (SOURCED_STAT, set to
+null). It renders nothing until a figure and a checked source are filled in.
+
+RIGHT COLUMN — RESEARCH CARD
+The same content appears in the card and, at a larger size, in the dialog that
+opens when the card is clicked.
+
+  Lockup ......... Harvard Business Review  (shield image + set type)
+  Title .......... The short life of Online Sales Leads
+
+  Body: a summary attributed to Harvard Business Review and MIT stating that
+  responding to a new lead within 5 minutes makes a business 100 times more
+  likely to make contact and 21 times more likely to qualify the lead; that the
+  average business takes 47 hours to respond; that the first responder wins 78%
+  of deals; and that lead quality drops 80% after 5 minutes. Compiled, it says,
+  from 8 major studies, with home service businesses named as the example
+  vertical.
+
+  Link ........... Check In Harvard website → hbs.edu (opens in a new tab)
+  Expand button .. "View the full research"
+  Dialog title ... The short life of Online Sales Leads
+
+  CAVEAT recorded in the source file: these figures and the "home service
+  businesses" phrasing were transcribed from supplied artwork, not verified
+  against the underlying papers. The logo asset is the Harvard Business SCHOOL
+  shield while the copy cites Harvard Business REVIEW.
+
+--------------------------------------------------------------------------------
+SECTION 4 — WHAT WE BUILD  ( #services )   components/sections/services.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  What we build
+
+H2:
+  Three things, all done properly.
+
+PANEL 01 — Outbound: Speed to Lead
+  Summary:
+    A lead fills in your form and the phone rings before they've closed the tab.
+  Points:
+    · Calls within five minutes, day or night
+    · Qualifies against your own criteria
+    · Books straight into your calendar
+    · Hands you the transcript and the outcome
+  Visual: animated waveform (a voice going out)
+
+PANEL 02 — Inbound: Call Answering
+  Summary:
+    The calls you miss are usually the ones that were ready to buy.
+  Points:
+    · Answers every call, including evenings and weekends
+    · Books appointments straight into your calendar
+    · Handles the routine questions so your team doesn't
+    · Every call recorded, transcribed and scored
+  Visual: rings converging on a handset (a call coming in) — the deliberate
+          mirror of panel 01, since these two are one product sold in two
+          directions
+
+PANEL 03 — Custom Websites & E-commerce
+  Summary:
+    Built from scratch around how you actually sell — no templates, no page
+    builders.
+  Points:
+    · Designed and coded for your offer
+    · Engineered to load fast on real networks
+    · Storefronts wired to real payments
+    · Structured so the agent plugs straight in
+
+PANEL 04 — closing panel
+  Eyebrow ....... Not sure which?
+  Heading ....... Ask the agent yourself.
+  Paragraph:
+    Leave your number and it will call you back in under five minutes — the
+    fastest way to see whether this fits.
+  Button ........ Get a call within 5 minutes
+
+--------------------------------------------------------------------------------
+SECTION 5 — HOW IT WORKS  ( #how-it-works )
+                                       components/sections/how-it-works.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  How the agent works
+
+H2:
+  Nine minutes from form to booked meeting.
+
+Paragraph:
+  Speed is the whole advantage. A lead who hears from you first has usually
+  stopped shopping by the time anyone else replies — and most businesses take
+  hours.
+
+Steps:
+
+  0 min — The lead submits
+    Someone fills in your form, at any hour. The agent picks it up immediately —
+    no queue, no inbox, nobody who has to be available.
+
+  4 min — Hermes calls them
+    Our voice agent dials out while they are still on your site and the problem
+    is still fresh in their mind.
+
+  5 min — It qualifies the conversation
+    A real conversation against your criteria: budget, timeline, what they
+    actually need. Not a phone tree.
+
+  9 min — The meeting is booked
+    It lands in your calendar, and you get the transcript and outcome before you
+    have picked up your phone.
+
+--------------------------------------------------------------------------------
+SECTION 6 — EXPERIENCE IT  ( #experience )
+                                      components/sections/experience-it.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  Experience it
+
+H2:
+  Don't take our word for it.
+
+Paragraph:
+  This is the same agent your leads would get. Put your number in and it will
+  call you — the demo and the product are the same thing.
+
+FORM
+  Field 1 ......... First name
+  Field 2 ......... Phone (with country code)      placeholder: +971 ...
+  Small print ..... One call. No sequence, no newsletter.
+  Button .......... Call me now   (while sending: "Connecting…")
+
+  Progress stages shown while sending:
+    Request received
+    Handing off to the agent
+    Queued to dial
+
+SUCCESS STATE — two versions, depending on whether the call was actually
+dispatched to the agent (see HERMES_WEBHOOK_URL in the notes at the end):
+
+  Dispatched:
+    Heading ....... Your phone is about to ring
+    Body .......... The agent is dialling {phone} now. That is exactly what your
+                    own leads would experience.
+
+  Not dispatched:
+    Heading ....... Got your number
+    Body .......... We have {phone} on file and will be in touch shortly.
+
+ERROR MESSAGES
+  Network problem — please try again.
+  Please check your details and try again.
+
+--------------------------------------------------------------------------------
+SECTION 7 — PROCESS  ( #process )          components/sections/process.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  Process
+
+H2:
+  Five weeks, start to live.
+
+  01 — Discovery — Week 1
+    We work out how leads actually reach you today, where they go cold, and what
+    a booked meeting is worth. That decides everything we build.
+
+  02 — Build — Weeks 2–4
+    Site and agent are built in parallel. You see working software as it lands,
+    not a slide deck describing it.
+
+  03 — Launch — Week 5
+    We go live, watch the first real calls together and tune what the agent says
+    until it sounds like your business.
+
+  04 — Ongoing — From week 6
+    Transcripts, outcomes and conversion tracked monthly. The agent keeps getting
+    sharper as we learn what your buyers ask.
+
+--------------------------------------------------------------------------------
+SECTION 8 — WHAT YOU GET  ( #outcomes )   components/sections/outcomes.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  What you get
+
+H2:
+  Your site stops being a brochure.
+
+Paragraph:
+  It becomes the thing that answers, qualifies and books — the best salesperson
+  you have, working every hour you are not.
+
+Cards:
+
+  Never again — A lead goes unanswered
+    Every enquiry gets a call, including the ones that arrive at 2am on a Sunday.
+    Nothing sits in an inbox until Monday.
+
+  First — Voice they hear is yours
+    Most businesses reply in hours. Reaching someone while they are still
+    comparing options is the difference between a conversation and a voicemail.
+
+  Every call — Written down and scored
+    Transcript, qualification and outcome for each one. You stop guessing which
+    leads are worth chasing.
+
+  Zero — Hours spent chasing
+    Your calendar fills with meetings that are already qualified, so your time
+    goes to the pitch instead of the follow-up.
+
+NOTE recorded in the source: the stat lines are deliberately qualitative. No
+percentages or client counts are claimed anywhere, and each entry is written so a
+real figure can replace the stat line once there is one to report.
+
+--------------------------------------------------------------------------------
+SECTION 9 — WHY BLUEX  ( #why-bluex )    components/sections/why-bluex.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  Why BlueX
+
+H2:
+  Four reasons this works.
+
+  Speed is the product
+    Not a feature we added. The whole system is built around reaching a lead
+    before anyone else does, because that is what decides who wins the job.
+
+  Written, not assembled
+    No templates, no page builders, no theme you share with a thousand other
+    businesses. Your site is built for your offer and nobody else's.
+
+  You talk to the developer
+    Not an account manager relaying messages to a subcontractor. The person who
+    builds it is the person you brief, which is why changes take hours instead of
+    weeks.
+
+  Markets nobody is serving properly
+    The Gulf, Canada and Australia have serious businesses running on software
+    that does not match their ambition. That gap is the entire opportunity.
+
+--------------------------------------------------------------------------------
+SECTION 10 — SELECTED WORK  ( #work )
+                    components/sections/portfolio.tsx + portfolio-slider.tsx + -cards.tsx
+--------------------------------------------------------------------------------
+[STATIC] Eyebrow:  Selected work
+
+[STATIC] H2:
+  Sites that are live right now.
+
+[STATIC] Paragraph:
+  Every one of these is in production. Click through and see for yourself.
+
+[DB] PROJECT CARDS — managed at /admin → Projects. Each card carries:
+  · Year (eyebrow)
+  · Client name (heading)
+  · One-line description
+  · Tags
+  · Screenshot, shown in a browser frame with the site's host in the URL bar
+  · Optional testimonial: quote, author, role
+    (only printed when BOTH a quote and an author exist)
+  · "Visit site" link, opening in a new tab
+
+  Screenshot alt text: "Screenshot of the {client name} website"
+
+[DB] FOOTNOTE below the track — editable, default:
+  Three of the sites we've shipped. More on request.
+  (The number word is substituted from the real project count when the caption
+  uses the placeholder, so the sentence cannot contradict the cards.)
+
+The whole section renders nothing at all if every project is hidden.
+
+[SEO] Structured data: schema.org ItemList of CreativeWork entries, one per
+project, each with name, description, url, image, dateCreated, keywords and
+BlueX as creator.
+
+--------------------------------------------------------------------------------
+SECTION 11 — PRICING  ( #pricing )
+                          components/sections/pricing.tsx + pricing-cards.tsx
+--------------------------------------------------------------------------------
+[STATIC] Eyebrow:  Pricing
+
+[STATIC] H2:
+  Priced around what it's worth to you.
+
+[STATIC] Footnote under the grid:
+  Every project is scoped individually. Book a call and you'll get a fixed quote
+  — no retainers you didn't ask for.
+
+[STATIC] Badge on the featured card:  Most popular
+
+[DB] TIERS — managed at /admin → Pricing. Shipped defaults:
+
+  01 — Launch
+    Tagline ..... For businesses that need a proper site, fast.
+    Price ....... (blank — deliberate, there is no list price)
+    Features:
+      · Custom designed and coded, no templates
+      · Built to load fast and convert
+      · Mobile-first, SEO-ready
+      · Delivered in weeks, not months
+    Button ...... Get a quote            → scrolls to the contact section
+
+  02 — Voice Agent          ★ featured
+    Tagline ..... For businesses losing leads to slow follow-up.
+    Price ....... (blank)
+    Features:
+      · AI agent calls every lead within five minutes
+      · Qualifies against your own criteria
+      · Books straight into your calendar
+      · One-time setup, then a flat monthly plan
+    Button ...... Get a call within 5 minutes   → opens the callback dialog
+
+  03 — Full Stack
+    Tagline ..... Website and voice agent, built to work as one system.
+    Price ....... (blank)
+    Features:
+      · Everything in Launch and Voice Agent
+      · Site structured so the agent plugs straight in
+      · Ongoing support and optimisation
+      · Priority turnaround
+    Button ...... Talk to us             → scrolls to the contact section
+
+The section renders nothing if every tier is hidden.
+
+--------------------------------------------------------------------------------
+SECTION 12 — WRITING  ( #writing )    components/sections/blog-teaser.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  Writing
+
+H2:
+  What we've learned building this.
+
+Link:  Read everything  → /blog
+
+Below: the three most recent published posts as cards. [DB]
+
+The entire section hides itself when fewer than three posts are published — a
+deliberate rule, so the homepage never advertises an empty blog.
+
+--------------------------------------------------------------------------------
+SECTION 13 — GET IN TOUCH  ( #contact )
+                          components/sections/contact.tsx + contact-panel.tsx
+--------------------------------------------------------------------------------
+[STATIC] Eyebrow:  Get in touch
+
+[STATIC] H2:
+  Start with a call, or just send a note.
+
+[DB] Intro paragraph — editable at /admin → Contact. Default:
+  If you want to hear the agent, use the call button — it rings you in five
+  minutes. If you'd rather write, this reaches the same place.
+
+[DB] Contact rows:
+  Email ......... (default: the address from mail config)
+  WhatsApp ...... (default: empty — the row is not rendered at all when unset,
+                   rather than showing a dead link)
+
+[STATIC] Button:  Get a call within 5 minutes
+
+CONTACT FORM (right column)        components/ui/contact-form.tsx [STATIC]
+  Eyebrow ....... Send a note
+  Heading ....... Tell us what you need.
+
+  Fields:
+    Name                        (required)
+    Email                       (required)
+    Phone (with country code)
+    Company
+    What do you need?  — select:  Outbound lead callback
+                                  Inbound call answering
+                                  Website or E-commerce
+                                  More than one of these
+                                  Something else
+    Message                     (required)
+    Website                     — hidden bot trap, never seen by a person
+
+  Button ........ Send message   (while sending: "Sending…")
+
+  Success state:
+    Got it.
+    You'll hear back within one business day.
+
+  Error ......... Something went wrong. Please try again.
+
+--------------------------------------------------------------------------------
+SECTION 14 — FINAL CTA  ( #final-cta )   components/sections/final-cta.tsx [STATIC]
+--------------------------------------------------------------------------------
+Eyebrow:  Ready when you are
+
+H2:
+  Let the agent call you first.
+
+Paragraph:
+  Leave your number and you'll hear the whole thing working within five minutes.
+  That is the pitch and the demo at the same time.
+
+Button:  Get a call within 5 minutes
+
+(This section has no entry in either navigation — it is a closing flourish, not
+a destination.)
+
+--------------------------------------------------------------------------------
+FOOTER                                 components/sections/site-footer.tsx [STATIC]
+--------------------------------------------------------------------------------
+Logo alt: "BlueX"
+
+Blurb:
+  A web and AI-automation studio for businesses in the Gulf, Canada and
+  Australia.
+
+Column — Services:
+  Outbound voice agents      → #services
+  Inbound call answering     → #services
+  Websites & e-commerce      → #services
+  How it works               → #how-it-works
+
+Column — Contact:
+  hey@bluex.agency           → mailto
+  Book a call                → #top
+
+Legal line:
+  © {current year} BlueX. All rights reserved.
+
+NOTE: the footer prints hey@bluex.agency, which is hard-coded here and does NOT
+follow the admin-editable contact email used by the contact section. Changing the
+address in /admin will leave this one behind.
+
+
+================================================================================
+SHARED — CALLBACK DIALOG
+================================================================================
+components/ui/lead-form.tsx [STATIC] — one instance, opened by every "Get a call
+within 5 minutes" button across the site and by the blog's post CTA.
+
+Eyebrow ........ Five minute callback
+Heading ........ Tell us where to call.
+Paragraph:
+  Our AI agent rings you back in under five minutes, qualifies what you need and
+  books the meeting.
+
+Fields:
+  Your name                     (required)
+  Business name                 (required)
+  Phone (with country code)     (required)
+  Email (optional)
+
+Buttons:  Cancel  ·  Call me now   (while sending: "Starting the call…")
+
+Success state — dispatched:
+  You're in the queue
+  Keep your phone nearby — our agent will call {phone} within five minutes.
+
+Success state — not dispatched:
+  Got your details
+  We have your number as {phone} and will be in touch shortly.
+
+Closing button:  Close
+
+
+================================================================================
+PAGE 2 — BLOG INDEX  ( /blog )
+================================================================================
+File: app/(blog)/blog/page.tsx
+
+[SEO] Title ........... Writing — BlueX
+[SEO] Description ..... Notes on building fast websites and AI voice agents that
+                        call leads back within five minutes.
+[SEO] Canonical ....... /blog   ·   RSS: /blog/rss.xml
+
+[STATIC] Eyebrow:  Writing
+
+[STATIC] H1:
+  What we've learned building this.
+  (When a category filter is active, the category name replaces this heading.)
+
+[STATIC] Paragraph:
+  Notes from the work — what actually moved a number, what turned out not to,
+  and the things that cost us a week.
+
+[DB] Below: category filter pills, a featured post card (unfiltered first page
+only), the remaining post cards, and pagination.
+
+Pagination labels:  Newer · Older
+
+EMPTY STATES [STATIC]
+  No posts at all:
+    Nothing published yet.
+    The first pieces are being written. Check back shortly, or subscribe to the
+    feed.
+
+  No posts in the chosen category:
+    Nothing in {category} yet.
+    Try another category — there is writing in the others.
+    [button] See everything
+
+
+================================================================================
+PAGE 3 — BLOG POST  ( /blog/[slug] )
+================================================================================
+File: app/(blog)/blog/[slug]/page.tsx
+
+[SEO] Title, description, canonical, Open Graph and schema.org BlogPosting are
+all built from the post's own fields. A missing post is titled "Not found".
+
+[DB] Post content — written at /admin → Blog. Each post supplies:
+  category · publish date · read time · title · excerpt · author ("By {author}")
+  · cover image · body · optional featured flag
+
+[STATIC] Chrome around the post:
+
+  Draft preview banner (only when previewing an unpublished post):
+    Draft preview — this post is not public.  [Leave preview]
+
+  Closing CTA block:
+    Eyebrow ..... The pitch, briefly
+    Heading ..... Want every lead called back in five minutes?
+    Paragraph:
+      Leave your number and our agent rings you back. That is the pitch and the
+      demonstration at the same time.
+    Button ...... Get a call within 5 minutes
+
+  Related posts heading:
+    More on {category}
+
+  Previous / next post navigation at the foot of the article.
+
+BLOG FOOTER [STATIC]
+  © {current year} BlueX
+  Back to the site  ·  All posts  ·  RSS
+
+
+================================================================================
+PAGE 4 — ADMIN  ( /admin, /admin/login )
+================================================================================
+Staff-only, noindex/nofollow, and excluded from the sitemap. Not public content —
+listed here only for completeness.
+
+[SEO] Title:  Admin — BlueX
+
+Login page heading:  Admin sign in
+  Email placeholder ....... you@example.com
+  Password placeholder .... ••••••••
+  Button .................. Sign in   (while sending: "Signing in…")
+  Errors .................. Sign in failed. Try again.
+                            Could not reach the server. Check your connection.
+
+The dashboard manages: Projects · Pricing · Blog · Contact settings · Inbox ·
+Password. All of it edits the [DB] content marked above.
+
+
+================================================================================
+MACHINE-READABLE ROUTES (no visible content)
+================================================================================
+  /robots.txt          — allows crawling, points at the sitemap, excludes /admin
+  /sitemap.xml         — homepage, /blog, and every published post
+  /blog/rss.xml        — the feed linked in the blog footer
+  /opengraph-image     — the generated social card described above
+
+
+================================================================================
+NOTES WORTH KNOWING BEFORE EDITING
+================================================================================
+1. The email address appears in three places that do NOT stay in sync: the
+   footer (hard-coded), lib/site.ts (used in structured data), and the contact
+   section (admin-editable, from the database).
+
+2. Two success messages on the site — in the callback dialog and the inline
+   demo — change wording depending on whether the call was actually placed. With
+   HERMES_WEBHOOK_URL unset, no call is dispatched and the honest "we have your
+   number" version is shown instead of "your phone is about to ring".
+
+3. Numbers used as claims: "five minutes", "nine minutes from form to booked
+   meeting", "five weeks start to live", and the timeline steps. The only
+   third-party statistics on the site are inside the research card in the Speed
+   to Lead section, and the source file records that they were transcribed from
+   artwork rather than verified against the papers.
+
+4. No client counts, conversion percentages or revenue figures are claimed
+   anywhere. The Outcomes section is deliberately written to avoid them.
