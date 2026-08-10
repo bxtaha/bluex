@@ -1,15 +1,23 @@
 "use client";
 
 import { useRef } from "react";
+import { PhoneIncoming } from "lucide-react";
 import { usePinnedTrack } from "@/components/motion/use-pinned-track";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
 
+/**
+ * The two voice panels are a mirrored pair — outbound chases, inbound catches —
+ * and their visuals say so: a waveform pushing a voice out, and rings arriving
+ * on a handset. They are deliberately the same weight as each other and heavier
+ * than the web panel's browser mock, because they are the same product sold in
+ * two directions rather than two unrelated offers.
+ */
 const SERVICES = [
   {
     index: "01",
-    title: "AI Voice Automation",
+    title: "Outbound: Speed to Lead",
     summary:
       "A lead fills in your form and the phone rings before they've closed the tab.",
     points: [
@@ -22,6 +30,19 @@ const SERVICES = [
   },
   {
     index: "02",
+    title: "Inbound: Call Answering",
+    summary:
+      "The calls you miss are usually the ones that were ready to buy.",
+    points: [
+      "Answers every call, including evenings and weekends",
+      "Books appointments straight into your calendar",
+      "Handles the routine questions so your team doesn't",
+      "Every call recorded, transcribed and scored",
+    ],
+    visual: "inbound",
+  },
+  {
+    index: "03",
     title: "Custom Websites & E-commerce",
     summary:
       "Built from scratch around how you actually sell — no templates, no page builders.",
@@ -29,7 +50,7 @@ const SERVICES = [
       "Designed and coded for your offer",
       "Engineered to load fast on real networks",
       "Storefronts wired to real payments",
-      "Structured so the AI agent plugs straight in",
+      "Structured so the agent plugs straight in",
     ],
     visual: "web",
   },
@@ -52,6 +73,33 @@ function VoiceVisual() {
           }}
         />
       ))}
+    </div>
+  );
+}
+
+/**
+ * The inbound counterpart to the waveform.
+ *
+ * Rings converge on the handset rather than radiating from it — the call is
+ * arriving, not being placed. Delays are a fixed sequence for the same reason
+ * the waveform's heights are: a stable rhythm reads as a ringing phone, and
+ * random values change on every render. Scale and opacity only, so this stays
+ * on the compositor like everything else that moves on this page.
+ */
+function InboundVisual() {
+  const delays = [0, 0.8, 1.6];
+  return (
+    <div className="bx-inbound" aria-hidden>
+      {delays.map((delay) => (
+        <span
+          key={delay}
+          className="bx-inbound__ring"
+          style={{ animationDelay: `${delay}s` }}
+        />
+      ))}
+      <span className="bx-inbound__core">
+        <PhoneIncoming className="size-1/2" strokeWidth={1.6} />
+      </span>
     </div>
   );
 }
@@ -107,7 +155,7 @@ export function Services() {
             as="h2"
             className="bx-display mt-3 max-w-2xl text-[clamp(2rem,5vw,3.75rem)] text-ink"
           >
-            Two things, both done properly.
+            Three things, all done properly.
           </SplitText>
         </div>
 
@@ -154,15 +202,18 @@ export function Services() {
                     the card's own overflow. The decorative visual is what
                     gives way, not the text. */}
                 <div className="mt-4 h-16 shrink-0 sm:mt-8 sm:h-40 md:mt-0 md:h-56 md:w-72">
-                  {service.visual === "voice" ? <VoiceVisual /> : <WebVisual />}
+                  {service.visual === "voice" && <VoiceVisual />}
+                  {service.visual === "inbound" && <InboundVisual />}
+                  {service.visual === "web" && <WebVisual />}
                 </div>
               </article>
             ))}
 
             {/* Closing panel. It gives the track guaranteed travel on wide
-                screens — two panels alone fit inside a large desktop viewport
-                and the pin would have nothing to scrub — and puts a conversion
-                point at the moment someone has just read both offers. */}
+                screens — the service panels alone can fit inside a large
+                desktop viewport, and the pin would have nothing to scrub — and
+                puts a conversion point at the moment someone has just read
+                every offer. */}
             <article className="bx-card bx-hairline bx-lift flex flex-col justify-center p-7 text-center sm:p-9 md:p-11">
               <p className="bx-eyebrow">Not sure which?</p>
               <h3 className="bx-display mt-3 text-[clamp(1.6rem,3.4vw,2.6rem)] text-ink">

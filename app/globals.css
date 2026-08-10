@@ -2127,6 +2127,60 @@
   animation: bx-wave 1.8s ease-in-out infinite;
 }
 
+/* Inbound call rings — the waveform's mirror image. The bars above push a voice
+   outward; these arrive from the edge and land on the handset, which is the
+   whole difference between the two voice services.
+
+   Scale and opacity only, so both visuals stay on the compositor, and the
+   global reduced-motion rule at the foot of this file stops them the same way
+   it stops the bars. */
+@keyframes bx-inbound-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0.32);
+    opacity: 0;
+  }
+}
+
+.bx-inbound {
+  position: relative;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sized off the container's height with a square aspect ratio, so one rule
+   covers the 4rem box on a phone and the 14rem one on a desktop. */
+.bx-inbound__ring {
+  position: absolute;
+  height: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--color-electric-glow);
+  border-radius: 9999px;
+  animation: bx-inbound-ring 2.4s ease-out infinite;
+}
+
+.bx-inbound__core {
+  position: relative;
+  display: flex;
+  height: 32%;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-electric) 16%, transparent);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--color-electric-glow) 34%, transparent);
+  color: var(--color-electric-glow);
+}
+
 /* ── Scroll animation system ─────────────────────────────────────────────────
    House values live here as tokens so every reveal on the site moves the same
    way. Changing the feel is a change to these five lines, not a sweep through

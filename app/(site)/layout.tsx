@@ -25,9 +25,12 @@ const JSON_LD = {
   url: SITE_URL,
   description: SITE_DESCRIPTION,
   email: CONTACT_EMAIL,
-  areaServed: ["AE", "CA"],
+  // The five markets the trust strip names. Listing two of them here while the
+  // copy claims five is the kind of contradiction a crawler can see.
+  areaServed: ["AE", "SA", "QA", "CA", "AU"],
   serviceType: [
-    "AI voice agents",
+    "AI voice agents — outbound lead callback",
+    "AI voice agents — inbound call answering",
     "Web design and development",
     "E-commerce development",
   ],

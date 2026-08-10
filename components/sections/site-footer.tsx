@@ -4,7 +4,8 @@ const COLUMNS = [
   {
     heading: "Services",
     links: [
-      { label: "AI voice automation", href: "#services" },
+      { label: "Outbound voice agents", href: "#services" },
+      { label: "Inbound call answering", href: "#services" },
       { label: "Websites & e-commerce", href: "#services" },
       { label: "How it works", href: "#how-it-works" },
     ],

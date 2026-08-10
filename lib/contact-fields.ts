@@ -11,9 +11,10 @@
 
 /** The closed set the select offers. Stored verbatim on the message. */
 export const NEED_OPTIONS = [
-  "AI Voice Agent",
+  "Outbound lead callback",
+  "Inbound call answering",
   "Website or E-commerce",
-  "Both",
+  "More than one of these",
   "Something else",
 ] as const;
 
