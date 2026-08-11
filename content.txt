@@ -157,29 +157,37 @@ Button:  See how fast it is
 NOTE — there is a disabled statistic block in this section (SOURCED_STAT, set to
 null). It renders nothing until a figure and a checked source are filled in.
 
-RIGHT COLUMN — RESEARCH CARD
-The same content appears in the card and, at a larger size, in the dialog that
-opens when the card is clicked.
+RIGHT COLUMN — EVIDENCE CARD
+A light "paper" surface inside the dark card. Static — it no longer opens a
+dialog, and carries no logo, crest or outbound link.
 
-  Lockup ......... Harvard Business Review  (shield image + set type)
-  Title .......... The short life of Online Sales Leads
+  Eyebrow ........ Why speed wins
 
-  Body: a summary attributed to Harvard Business Review and MIT stating that
-  responding to a new lead within 5 minutes makes a business 100 times more
-  likely to make contact and 21 times more likely to qualify the lead; that the
-  average business takes 47 hours to respond; that the first responder wins 78%
-  of deals; and that lead quality drops 80% after 5 minutes. Compiled, it says,
-  from 8 major studies, with home service businesses named as the example
-  vertical.
+  Big stat ....... 7×
 
-  Link ........... Check In Harvard website → hbs.edu (opens in a new tab)
-  Expand button .. "View the full research"
-  Dialog title ... The short life of Online Sales Leads
+  Stat line:
+    Firms that contact a new lead within an hour are nearly seven times more
+    likely to have a qualifying conversation than those that wait even 60
+    minutes longer — and more than sixty times more likely than those who wait
+    a day.
 
-  CAVEAT recorded in the source file: these figures and the "home service
-  businesses" phrasing were transcribed from supplied artwork, not verified
-  against the underlying papers. The logo asset is the Harvard Business SCHOOL
-  shield while the copy cites Harvard Business REVIEW.
+  Source line (small, muted, directly beneath):
+    Source: Harvard Business Review, "The Short Life of Online Sales Leads."
+
+    "Source: Harvard Business Review," is plain muted text. Only the article
+    title is a link — in link blue, underlined — opening the HBR article at
+    hbr.org/2011/03/the-short-life-of-online-sales-leads in a new tab.
+
+  Supporting line (below a hairline rule, smaller and muted):
+    And the first five minutes matter most — separate lead-response research
+    shows the odds of qualifying a lead drop sharply once you pass that window.
+    Our agent calls before it closes.
+
+  ATTRIBUTION RULE, enforced by the layout: the 7× figure and its HBR citation
+  sit ABOVE the rule; our own five-minute claim sits BELOW it and is attributed
+  to "separate lead-response research" with no Harvard reference. The rule is
+  there so the two claims cannot read as one sourced sentence. Do not move the
+  citation across it.
 
 --------------------------------------------------------------------------------
 SECTION 4 — WHAT WE BUILD  ( #services )   components/sections/services.tsx [STATIC]

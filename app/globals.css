@@ -459,160 +459,105 @@
   color: var(--color-ink-muted);
 }
 
-/* ── The Harvard slide ───────────────────────────────────────────────────────
-   A deliberately light surface inside a dark card: it is a quotation of a
-   printed page, and it only reads as one if it is the colour of paper. Every
-   value here is local to this slide — none of it comes from the `--color-*`
-   tokens, because none of it should follow the site's dark palette. */
+/* ── The evidence slide ──────────────────────────────────────────────────────
+   A deliberately light surface inside a dark card: it reads as a page torn from
+   something printed, and only does so if it is the colour of paper. Every value
+   here is local to this slide — none of it comes from the `--color-*` tokens,
+   because none of it should follow the site's dark palette.
+
+   There is no institutional lockup any more, and that is the point rather than
+   an omission. A crest on this card claimed an endorsement nobody gave; the
+   publication is now named in the sentence, in type, like any other citation. */
 
 .bx-quote-slide {
-  /* Not flat #fff — the source has a soft vignette toward the edges, which is
-     what keeps a white block inside a dark card from looking like a hole. */
+  /* Not flat #fff — a soft vignette toward the edges is what keeps a white
+     block inside a dark card from looking like a hole. */
   background:
     radial-gradient(120% 90% at 50% 0%, #ffffff 40%, #f2f3f5 100%);
   color: #3c4149;
-}
-
-/* Shield, rule and wordmark set as one lockup. The rule is a border on the
-   wordmark rather than an element of its own, so it can never fall out of step
-   with the text's height. */
-.bx-quote-slide__lockup {
   display: flex;
-  align-items: stretch;
-  gap: 0.875rem;
+  flex-direction: column;
 }
 
-.bx-quote-slide__shield {
-  width: auto;
-  /* Overhangs the wordmark's three-line block (3 × 1.5rem) top and bottom. The
-     shield is the recognisable half of the lockup, so it leads rather than
-     matching the type's height exactly. */
-  height: 5.25rem;
-  flex-shrink: 0;
-}
-
-.bx-quote-slide__wordmark {
-  border-left: 2px solid #12141a;
-  padding-left: 0.875rem;
-  color: #12141a;
-  font-weight: 700;
-  font-size: 1.375rem;
-  line-height: 1.5rem;
-  letter-spacing: -0.015em;
-  /* Optically centres the three lines against the shield. */
-  align-self: center;
-}
-
-.bx-quote-slide__title {
-  color: #12141a;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.bx-quote-slide__body strong {
-  color: #12141a;
-  font-weight: 700;
-}
-
-/* The highlighter. `box-decoration-break` is what keeps the band unbroken when
-   a highlighted run wraps across lines — without it only the first line gets
-   the padding and the mark looks torn. */
-.bx-quote-slide__mark {
-  background: #ffe94a;
-  color: #12141a;
-  padding: 0.08em 0.12em;
-  box-decoration-break: clone;
-}
-
-/* ── Opening the research ─────────────────────────────────────────────────── */
-
-.bx-quote-slide__opener {
-  position: relative;
-  height: 100%;
-  cursor: zoom-in;
-}
-
-.bx-quote-slide__expand {
-  position: absolute;
-  top: 0.875rem;
-  right: 0.875rem;
-  z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 0;
-  border-radius: 0.625rem;
-  background: rgb(15 18 26 / 6%);
-  color: #3c4149;
-  cursor: zoom-in;
-  transition: background 200ms ease, color 200ms ease;
-}
-
-.bx-quote-slide__opener:hover .bx-quote-slide__expand {
-  background: rgb(15 18 26 / 12%);
-  color: #12141a;
-}
-
-.bx-quote-slide__expand:focus-visible {
-  outline: 2px solid var(--color-electric);
-  outline-offset: 2px;
-}
-
-/* The link out to Harvard. Pinned to the bottom of the slide rather than left
-   to follow the prose, so it sits on the same line whichever slide length the
-   card settles at. */
-.bx-quote-slide__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4375rem;
-  margin-top: 1.75rem;
-  padding: 0.625rem 1rem;
-  border-radius: 999px;
-  background: #12141a;
-  color: #ffffff;
-  font-size: 0.8125rem;
+.bx-quote-slide__eyebrow {
+  color: #6b7280;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  transition: background 200ms ease, transform 200ms ease;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.bx-quote-slide__cta:hover {
-  background: #2b3038;
+/* The figure carries the card, so it is set at display scale rather than as
+   bold body copy. `tabular-nums` is pointless on a single digit but keeps the
+   glyph metrics consistent with the counter in the column beside it. */
+.bx-quote-slide__stat {
+  margin-top: 1.25rem;
+  color: #12141a;
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 7vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
 }
 
-.bx-quote-slide__cta:focus-visible {
+.bx-quote-slide__claim {
+  margin-top: 1rem;
+  max-width: 34ch;
+  font-size: clamp(1rem, 1.4vw, 1.125rem);
+  line-height: 1.55;
+}
+
+/* Small and muted, so it reads as a citation rather than a badge. The line
+   itself carries no decoration — only the anchor inside it does. */
+.bx-quote-slide__source {
+  margin-top: 0.875rem;
+  color: #6b7280;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+/* The article title, and only the article title.
+
+   Muted slate rather than the site's electric blue. A saturated link here was
+   the brightest thing on a light card whose whole job is to deliver the 7×,
+   and a citation that out-shouts the figure it supports has the hierarchy
+   backwards. The underline is what marks it as a link, so the colour is free to
+   sit down — offset a little, because at 13px an underline on the baseline
+   crosses the descenders. */
+.bx-quote-slide__source-link {
+  color: #4a5568;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition: color 200ms ease;
+}
+
+.bx-quote-slide__source-link:hover {
+  color: #2d3748;
+}
+
+.bx-quote-slide__source-link:focus-visible {
   outline: 2px solid var(--color-electric);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* Hidden on phones. `display: none` rather than a visual hide, deliberately —
-   it takes the link out of the tab order and the accessibility tree together,
-   so nothing focusable is left sitting invisibly in the card. The dialog's
-   focus loop filters on `offsetParent`, which a display:none element fails, so
-   it drops out of the trap on its own. The research is still reachable there:
-   the card opens the full text either way. */
-@media (max-width: 639px) {
-  .bx-quote-slide__cta {
-    display: none;
-  }
-}
+/* The second claim. It has to stay visibly apart from the figure and the
+   citation above it — separate claims on separate evidence, and they must not
+   read as one paragraph with a Harvard citation attached — but the separation
+   is now whitespace alone. A hairline here sat immediately under the source
+   line and read as an underline on it, which made a plain citation look like a
+   link. Space says the same thing without decorating the line above it.
 
-/* In the dialog the slide is a document, not a card: it scrolls on its own and
-   the corners are the panel's. */
-.bx-quote-slide--dialog {
-  height: auto;
-  border-radius: inherit;
-}
-
-.bx-quote-slide--dialog .bx-quote-slide__shield {
-  height: 6.75rem;
-}
-
-.bx-quote-slide--dialog .bx-quote-slide__wordmark {
-  font-size: 1.75rem;
-  line-height: 1.9rem;
+   `margin-top: auto` pins this to the foot of whatever height the card settles
+   at, so the gap grows rather than the block floating mid-card. */
+.bx-quote-slide__support {
+  margin-top: auto;
+  padding-top: 2.25rem;
+  color: #545b66;
+  font-size: 0.8125rem;
+  line-height: 1.6;
 }
 
 /* ── Modal ───────────────────────────────────────────────────────────────────
@@ -722,8 +667,6 @@
     animation-duration: 0.01ms !important;
   }
 
-  .bx-quote-slide__cta,
-  .bx-quote-slide__expand,
   .bx-modal__close {
     transition-duration: 0.01ms !important;
   }

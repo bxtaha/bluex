@@ -1,13 +1,10 @@
 "use client";
 
-import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUpRight, Expand } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { observeOnce } from "@/lib/reveal";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 import { CallCta } from "@/components/ui/call-cta";
-import { Modal } from "@/components/ui/modal";
 import { useReducedMotion } from "@/lib/use-media-query";
 
 /**
@@ -39,143 +36,59 @@ const TIMELINE = [
 ] as const;
 
 /**
- * The research slide, reproduced from the Harvard/MIT summary card.
+ * The evidence slide.
  *
- * A light surface on purpose — see `.bx-quote-slide`. Two notes on the source:
- * the figures and the "home service businesses" phrasing are transcribed from
- * the supplied artwork rather than checked against the underlying papers, and
- * the mark is the Harvard Business *School* shield (the only asset in
- * `public/`), while the copy cites Harvard Business *Review*.
- */
-/** Where the full paper can be read. Opens in a new tab. */
-const HARVARD_URL =
-  "https://www.hbs.edu/faculty/Pages/item.aspx?num=39955";
-
-/**
- * The research content itself, at one of two sizes.
+ * A light surface on purpose — see `.bx-quote-slide`. It is a citation, not a
+ * credential: the publication is named in the sentence and nowhere else. No
+ * crest, no wordmark, no link dressed as a badge — a card carrying an
+ * institution's mark reads as that institution vouching for this agency, which
+ * none of them has done.
  *
- * One component for the card and the dialog rather than two: they are the same
- * document, and the only thing that differs is how much room it has. Splitting
- * them is how the two copies drift apart.
+ * The two claims are kept apart deliberately. The 7× figure belongs to the HBR
+ * article named directly beneath it; the five-minute point rests on a separate
+ * body of lead-response research and says so. Letting the Harvard name drift
+ * across the rule onto our own speed claim is precisely the overreach the
+ * previous version of this card made.
  */
-function ResearchBody({ size }: { size: "card" | "dialog" }) {
-  const dialog = size === "dialog";
-
+function ResearchBody() {
   return (
-    <div
-      className={
-        dialog
-          ? "bx-quote-slide bx-quote-slide--dialog px-6 py-10 sm:px-12 sm:py-14"
-          : "bx-quote-slide h-full px-8 pb-10 pt-8 sm:px-10 sm:pt-10"
-      }
-    >
-      {/* The lockup is composed rather than a single asset: the supplied PNG is
-          the shield on its own, and setting the wordmark as type is what lets
-          it read "Review" — the only wordmark asset in `public/` says "School".
-          The shield is decorative here because the text beside it already names
-          the mark, so `alt=""` keeps a screen reader from hearing it twice. */}
-      <div className="bx-quote-slide__lockup">
-        <Image
-          src="/hbs-logo-dark.png"
-          alt=""
-          /* The file's real pixel dimensions. CSS drives the rendered size, but
-             these set the aspect ratio the box reserves before the image
-             loads — wrong numbers here are a visible shift on first paint. */
-          width={250}
-          height={298}
-          className="bx-quote-slide__shield"
-        />
-        <p className="bx-quote-slide__wordmark">
-          Harvard
-          <br />
-          Business
-          <br />
-          Review
-        </p>
-      </div>
+    <div className="bx-quote-slide h-full px-8 py-9 sm:px-10 sm:py-10">
+      <p className="bx-quote-slide__eyebrow">Why speed wins</p>
 
-      <h3
-        className={`bx-quote-slide__title mt-8 text-center leading-tight ${
-          dialog
-            ? "text-[clamp(1.75rem,3.4vw,2.75rem)]"
-            : "text-[clamp(1.25rem,2.4vw,1.75rem)]"
-        }`}
-      >
-        The short life of Online Sales Leads
-      </h3>
+      <p className="bx-quote-slide__stat">7×</p>
 
-      <div
-        className={`bx-quote-slide__body mt-6 space-y-5 leading-relaxed ${
-          dialog ? "text-[clamp(1rem,1.5vw,1.1875rem)]" : "text-[0.9375rem]"
-        }`}
-      >
-        <p>
-          Research from Harvard Business Review and MIT shows that{" "}
-          <mark className="bx-quote-slide__mark">
-            responding to a new lead within 5 minutes makes you 100 times more
-            likely to make contact and 21 times more likely to qualify the lead
-          </mark>
-          .{" "}
-          <mark className="bx-quote-slide__mark">
-            The average business takes 47 hours to respond
-          </mark>{" "}
-          — meaning the first responder wins 78% of deals. These lead response
-          time statistics, compiled from 8 major studies, prove that
-          speed-to-lead is the single biggest factor in conversion rates for
-          home service businesses and beyond.
-        </p>
+      <p className="bx-quote-slide__claim">
+        Firms that contact a new lead within an hour are nearly seven times more
+        likely to have a qualifying conversation than those that wait even 60
+        minutes longer — and more than sixty times more likely than those who
+        wait a day.
+      </p>
 
-        <p>
-          <strong>The key stat:</strong> Businesses that respond to leads within
-          5 minutes are <strong>100 times more likely</strong> to make contact
-          than those that wait 30 minutes (MIT Lead Response Management Study).
-          78% of customers buy from the first business to respond. After 5
-          minutes, lead quality drops 80% (Harvard Business Review).
-        </p>
-      </div>
+      {/* Small and muted so it reads as a citation. Only the article title is
+          the link — "Source:" and the publication stay plain text, so the
+          underline lands on the thing being cited rather than turning the whole
+          line, or the institution's name, into something that looks clickable
+          and endorsing. */}
+      <p className="bx-quote-slide__source">
+        Source: Harvard Business Review,{" "}
+        <a
+          href="https://hbr.org/2011/03/the-short-life-of-online-sales-leads"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bx-quote-slide__source-link"
+        >
+          &ldquo;The Short Life of Online Sales Leads.&rdquo;
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
+      </p>
 
-      {/* `stopPropagation` so following the link does not also trip the card's
-          open-the-dialog handler behind it. `noopener` because a new tab given
-          `window.opener` can navigate this one. */}
-      <a
-        href={HARVARD_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="bx-quote-slide__cta"
-        onClick={(event) => event.stopPropagation()}
-      >
-        Check In Harvard website
-        <ArrowUpRight className="size-4 shrink-0" strokeWidth={2} aria-hidden />
-        <span className="sr-only">(opens in a new tab)</span>
-      </a>
-    </div>
-  );
-}
-
-/**
- * The research slide as it appears in the card: the same body, made openable.
- *
- * The whole surface takes a click because that is what the box invites, but a
- * div with an `onClick` is invisible to a keyboard — so the expand control is a
- * real button, and it is the thing that carries the accessible name. The div's
- * handler is a convenience on top of it, not the only way in.
- */
-function ResearchSlide({ onOpen }: { onOpen: () => void }) {
-  return (
-    <div className="bx-quote-slide__opener" onClick={onOpen} role="presentation">
-      <button
-        type="button"
-        className="bx-quote-slide__expand"
-        aria-label="View the full research"
-        onClick={(event) => {
-          event.stopPropagation();
-          onOpen();
-        }}
-      >
-        <Expand className="size-4" strokeWidth={1.8} aria-hidden />
-      </button>
-
-      <ResearchBody size="card" />
+      {/* Set apart by the gap above it, and unattributed to Harvard on
+          purpose — see the note at the top of this component. */}
+      <p className="bx-quote-slide__support">
+        And the first five minutes matter most — separate lead-response research
+        shows the odds of qualifying a lead drop sharply once you pass that
+        window. Our agent calls before it closes.
+      </p>
     </div>
   );
 }
@@ -184,8 +97,6 @@ export function SpeedHook() {
   const reduced = useReducedMotion();
   const ref = useRef<HTMLElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
-  const [researchOpen, setResearchOpen] = useState(false);
-  const closeResearch = useCallback(() => setResearchOpen(false), []);
 
   useEffect(() => {
     const el = ref.current;
@@ -350,20 +261,12 @@ export function SpeedHook() {
           </Reveal>
         </div>
 
-        {/* The research, on its own now. The card is only the frame —
+        {/* The evidence, on its own. The card is only the frame —
             `overflow-hidden` so the light surface is clipped to its corners. */}
         <Reveal index={2} className="bx-card bx-hairline overflow-hidden">
-          <ResearchSlide onOpen={() => setResearchOpen(true)} />
+          <ResearchBody />
         </Reveal>
       </div>
-
-      <Modal
-        open={researchOpen}
-        onClose={closeResearch}
-        title="The short life of Online Sales Leads"
-      >
-        <ResearchBody size="dialog" />
-      </Modal>
     </section>
   );
 }
