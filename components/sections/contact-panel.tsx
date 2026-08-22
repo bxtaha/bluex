@@ -1,11 +1,11 @@
 "use client";
 
-import { Mail, MessageCircle, PhoneCall } from "lucide-react";
+import { Mail, MessageCircle, Phone, PhoneCall } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
 import { SplitText } from "@/components/motion/split-text";
 import { useLeadForm } from "@/components/providers/lead-form-provider";
 import { ContactForm } from "@/components/ui/contact-form";
-import { whatsappHref } from "@/lib/contact-fields";
+import { telHref, whatsappHref } from "@/lib/contact-fields";
 import type { ContactSettings } from "@/lib/contact-store";
 
 /**
@@ -19,9 +19,48 @@ import type { ContactSettings } from "@/lib/contact-store";
  * dialog every other "call me" on the page opens — one dialog instance, from
  * `LeadFormProvider`.
  */
+/**
+ * The flag beside the phone label.
+ *
+ * Drawn, not typed. A 🇺🇸 emoji is two regional-indicator codepoints that the
+ * font is asked to fuse into one glyph, and Chrome and Edge on Windows refuse —
+ * they render the letters "US" instead. That is not an edge case for this site:
+ * the audience is deliberately international and Windows is most of it.
+ *
+ * Stars are omitted on purpose. The canton is about six pixels wide at this
+ * size, so fifty of anything inside it is noise that costs bytes and renders as
+ * a smudge; stripes and a blue canton are already unmistakable.
+ */
+function UnitedStatesFlag() {
+  return (
+    <svg
+      className="bx-contact__row-flag"
+      viewBox="0 0 19 10"
+      // Decorative. The label already says Phone and the number already carries
+      // its +1 — a screen reader announcing "United States flag" here would be
+      // reading out the decoration and not the fact.
+      aria-hidden
+      focusable="false"
+    >
+      <rect width="19" height="10" fill="#fff" />
+      <g fill="#b31942">
+        <rect width="19" height="0.77" y="0" />
+        <rect width="19" height="0.77" y="1.54" />
+        <rect width="19" height="0.77" y="3.08" />
+        <rect width="19" height="0.77" y="4.62" />
+        <rect width="19" height="0.77" y="6.15" />
+        <rect width="19" height="0.77" y="7.69" />
+        <rect width="19" height="0.77" y="9.23" />
+      </g>
+      <rect width="7.6" height="5.38" fill="#0a3161" />
+    </svg>
+  );
+}
+
 export function ContactPanel({ settings }: { settings: ContactSettings }) {
   const { open } = useLeadForm();
   const whatsapp = whatsappHref(settings.whatsapp);
+  const phone = telHref(settings.phone);
 
   return (
     <section
@@ -67,9 +106,28 @@ export function ContactPanel({ settings }: { settings: ContactSettings }) {
             </Reveal>
 
             {/* Absent, not empty. An unset number renders no row at all rather
-                than a dead link labelled WhatsApp. */}
-            {whatsapp && (
+                than a dead link labelled Phone. */}
+            {phone && (
               <Reveal index={2}>
+                <a className="bx-contact__row" href={phone}>
+                  <span className="bx-contact__row-icon" aria-hidden>
+                    <Phone className="size-4" strokeWidth={1.8} />
+                  </span>
+                  <span className="bx-contact__row-text">
+                    <span className="bx-contact__row-label">
+                      Phone
+                      <UnitedStatesFlag />
+                    </span>
+                    <span className="bx-contact__row-value">
+                      {settings.phone}
+                    </span>
+                  </span>
+                </a>
+              </Reveal>
+            )}
+
+            {whatsapp && (
+              <Reveal index={3}>
                 <a
                   className="bx-contact__row"
                   href={whatsapp}
@@ -91,7 +149,7 @@ export function ContactPanel({ settings }: { settings: ContactSettings }) {
             )}
           </div>
 
-          <Reveal index={3} className="mt-8">
+          <Reveal index={4} className="mt-8">
             <button type="button" onClick={open} className="bx-btn bx-btn--ghost">
               <PhoneCall className="size-4" strokeWidth={1.8} aria-hidden />
               Get a call within 5 minutes

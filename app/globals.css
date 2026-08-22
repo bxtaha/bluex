@@ -903,10 +903,24 @@
 }
 
 .bx-contact__row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
   font-size: 0.6875rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
+}
+
+/* Sized in `em` so it tracks the label it sits beside rather than needing a
+   second edit if that type scale ever moves. The hairline border stops a white
+   stripe from dissolving into the card on the light-on-dark surface. */
+.bx-contact__row-flag {
+  flex: 0 0 auto;
+  width: 1.25em;
+  height: auto;
+  border-radius: 0.125rem;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 18%);
 }
 
 .bx-contact__row-value {

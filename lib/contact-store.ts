@@ -18,6 +18,12 @@ export type ContactSettings = {
   email: string;
   /** As typed, for display: "+880 1712 345678". */
   whatsapp: string;
+  /**
+   * The number to ring, as typed. Separate from `whatsapp` because they are
+   * not the same promise — one is a line someone picks up, the other is a chat
+   * thread — and a business may well publish one without the other.
+   */
+  phone: string;
   intro: string;
 };
 
@@ -28,6 +34,7 @@ const DOC_ID = "contact";
 export const DEFAULT_CONTACT: ContactSettings = {
   email: DEFAULT_CONTACT_EMAIL,
   whatsapp: "",
+  phone: "+1 240 820 3149",
   intro:
     "If you want to hear the agent, use the call button — it rings you in five minutes. If you'd rather write, this reaches the same place.",
 };
@@ -41,6 +48,7 @@ function toSettings(doc: Partial<ContactDoc> | null): ContactSettings {
   return {
     email: doc?.email?.trim() || DEFAULT_CONTACT.email,
     whatsapp: doc?.whatsapp?.trim() ?? DEFAULT_CONTACT.whatsapp,
+    phone: doc?.phone?.trim() ?? DEFAULT_CONTACT.phone,
     intro: doc?.intro?.trim() || DEFAULT_CONTACT.intro,
   };
 }
@@ -58,6 +66,9 @@ function sanitise(input: ContactSettingsInput): ContactSettingsInput {
   if (typeof input.email === "string") out.email = input.email.trim().slice(0, 160);
   if (typeof input.whatsapp === "string") {
     out.whatsapp = input.whatsapp.trim().slice(0, 40);
+  }
+  if (typeof input.phone === "string") {
+    out.phone = input.phone.trim().slice(0, 40);
   }
   if (typeof input.intro === "string") out.intro = input.intro.trim().slice(0, 600);
   return out;

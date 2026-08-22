@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { CallStatus, Lead, LeadFilter } from "@/lib/lead-store";
+import type { LeadSource } from "@/lib/lead";
 
 /**
  * Callback leads and what the agent did with them.
@@ -58,6 +59,22 @@ const STATUS_STYLES: Record<CallStatus, { label: string; className: string }> = 
       "bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
   },
 };
+
+/**
+ * Which form on the site this came from.
+ *
+ * Named rather than interpolated. `{lead.source} form` rendered "form form" for
+ * the main path, and the fix is not to special-case the word — the two sources
+ * differ in what they collect (the inline widget skips the business name), so
+ * an admin reading a lead with no business wants to know whether that field was
+ * skipped or left blank.
+ *
+ * "Callback", not "contact": this site has a separate contact form, and its
+ * submissions live in the Inbox rather than here.
+ */
+function sourceLabel(source: LeadSource): string {
+  return source === "inline" ? "inline widget" : "callback form";
+}
 
 export function AdminLeads({
   onAttentionChange,
@@ -371,7 +388,7 @@ function LeadDetail({
             {lead.name}
           </p>
           <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-            Submitted {formatFull(lead.createdAt)} · {lead.source} form
+            Submitted {formatFull(lead.createdAt)} · {sourceLabel(lead.source)}
           </p>
         </div>
 

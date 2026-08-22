@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ExternalLink, Loader2 } from "lucide-react";
-import { whatsappHref } from "@/lib/contact-fields";
+import { telHref, whatsappHref } from "@/lib/contact-fields";
 import type { ContactSettings } from "@/lib/contact-store";
 
 const FIELD =
@@ -97,6 +97,37 @@ export function AdminContactManager({ initial }: { initial: ContactSettings }) {
         <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
           Used for the <code>mailto:</code> link on the site, and as the address
           new contact-form submissions are announced to.
+        </p>
+
+        <label className={`mt-6 ${LABEL}`} htmlFor="contact-phone">
+          Phone number
+        </label>
+        <input
+          id="contact-phone"
+          type="tel"
+          placeholder="+1 240 820 3149"
+          className={`mt-1.5 ${FIELD}`}
+          value={values.phone}
+          onChange={(event) => update("phone", event.target.value)}
+        />
+        <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          {values.phone.trim() === "" ? (
+            "Leave blank to hide the phone row entirely."
+          ) : telHref(values.phone) ? (
+            <>
+              Shown as typed, and dialled as{" "}
+              <span className="font-mono text-blue-600 dark:text-blue-400">
+                {telHref(values.phone)}
+              </span>
+              . The flag beside the label is a fixed US one — changing to a
+              number in another country needs a code change.
+            </>
+          ) : (
+            <span className="text-amber-600 dark:text-amber-400">
+              Too short to dial — include the country code, or the row stays
+              hidden.
+            </span>
+          )}
         </p>
 
         <label className={`mt-6 ${LABEL}`} htmlFor="contact-whatsapp">

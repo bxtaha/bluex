@@ -72,3 +72,23 @@ export function whatsappHref(value: string): string | null {
   // nowhere is worse than no link.
   return digits.length >= 8 ? `https://wa.me/${digits}` : null;
 }
+
+/**
+ * A `tel:` link from the displayed number.
+ *
+ * Spaces and dashes are stripped because diallers are inconsistent about them,
+ * but a leading `+` is kept: without it a phone treats the number as local to
+ * wherever the caller happens to be standing, and this site is read from the
+ * Gulf, Canada and Australia. Same single-source-of-truth reasoning as
+ * `whatsappHref` — the link is derived from the one field an admin edits, so
+ * the two can never drift apart.
+ */
+export function telHref(value: string | null | undefined): string | null {
+  // Total on purpose. Its whole contract is "null when this cannot be dialled",
+  // and a missing value is the clearest possible case of that — throwing there
+  // would take a page down over an absent optional field.
+  const trimmed = value?.trim() ?? "";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length < 7) return null;
+  return `tel:${trimmed.startsWith("+") ? "+" : ""}${digits}`;
+}

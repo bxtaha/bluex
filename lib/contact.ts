@@ -36,10 +36,22 @@ export function publishContact(): void {
   revalidatePath("/");
 }
 
-/** What the public section renders. Never throws. */
+/**
+ * What the public section renders. Never throws.
+ *
+ * Spread over the defaults rather than returned directly, and that is not
+ * belt-and-braces — it is the fix for a real crash. A cache entry is JSON
+ * written by whichever version of this code was running when it was stored, so
+ * after a field is *added* to `ContactSettings` the cache keeps serving objects
+ * that predate it. TypeScript cannot see that: it types the return of
+ * `readContactSettings` from today's source while the value came from
+ * yesterday's. Adding `phone` took the whole home page down with
+ * "Cannot read properties of undefined (reading 'trim')" until this line
+ * existed, and the next field added would have done it again.
+ */
 export async function getContactSettings(): Promise<ContactSettings> {
   try {
-    return await readContactSettings();
+    return { ...DEFAULT_CONTACT, ...(await readContactSettings()) };
   } catch (error) {
     console.error("[contact] falling back to defaults:", error);
     return DEFAULT_CONTACT;
