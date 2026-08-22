@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PricingTier } from "@/lib/pricing";
 import type { ContactSettings } from "@/lib/contact-store";
@@ -12,6 +12,7 @@ import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
 import { AdminLeads } from "@/components/ui/admin-leads";
+import { AdminCalls, VIEW_LEADS_EVENT } from "@/components/ui/admin-calls";
 import { AdminBlogManager } from "@/components/ui/admin-blog-manager";
 import { AdminProjectsManager } from "@/components/ui/admin-projects-manager";
 import {
@@ -26,6 +27,7 @@ import {
   AtSign,
   PenLine,
   PhoneCall,
+  PhoneIncoming,
   Briefcase,
 } from "lucide-react";
 
@@ -91,6 +93,18 @@ export function AdminDashboard({
     (count: number) => setAttentionCount(count),
     [],
   );
+
+  // The Calls panel renders with no props (`<AdminCalls />`), so a "view this
+  // lead" click there cannot call `setSelected` directly — it dispatches
+  // `VIEW_LEADS_EVENT` on `window` instead, and this is the one place that
+  // owns the sidebar's selection and can act on it.
+  useEffect(() => {
+    function handleViewLeads() {
+      setSelected("Leads");
+    }
+    window.addEventListener(VIEW_LEADS_EVENT, handleViewLeads);
+    return () => window.removeEventListener(VIEW_LEADS_EVENT, handleViewLeads);
+  }, []);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -180,6 +194,15 @@ function Sidebar({
           setSelected={setSelected}
           open={open}
           notifs={attention > 0 ? attention : undefined}
+        />
+        {/* No `notifs` prop — "unread" is not a concept that applies to an
+            archive. */}
+        <Option
+          Icon={PhoneIncoming}
+          title="Calls"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
         />
         <Option
           Icon={Inbox}
@@ -424,6 +447,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "Leads",
     subtitle: "Callback requests and what the voice agent did with them",
   },
+  Calls: {
+    title: "Calls",
+    subtitle: "Every conversation the agent has had, inbound and outbound",
+  },
   Inbox: {
     title: "Inbox",
     subtitle: "Contact-form submissions and email, in one place",
@@ -509,6 +536,7 @@ function DashboardContent({
       {selected === "Leads" && (
         <AdminLeads onAttentionChange={onAttentionChange} />
       )}
+      {selected === "Calls" && <AdminCalls />}
       {selected === "Inbox" && <AdminInbox onUnreadChange={onUnreadChange} />}
       {selected === "Settings" && <AdminChangePassword email={email} />}
       {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
