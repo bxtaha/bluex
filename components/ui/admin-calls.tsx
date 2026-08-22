@@ -549,6 +549,13 @@ function CallDetail({
                   >
                     {turn.role === "agent" ? "Agent" : "Caller"}
                   </span>
+                  {/* A gutter, not content — quiet enough to ignore, there
+                      when someone wants to know when in the call this was
+                      said. `tabular-nums` keeps the colon from drifting as
+                      the digits change width down a whole transcript. */}
+                  <span className="mr-2 tabular-nums text-[0.65rem] text-gray-400 dark:text-gray-500">
+                    {formatDuration(turn.at)}
+                  </span>
                   {turn.message}
                 </li>
               ))}
@@ -591,7 +598,8 @@ function CallDetail({
           </>
         ) : (
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            The caller withheld their number, so there is no lead to call back.
+            No number was recorded for this conversation, so there is no lead
+            to call back.
           </span>
         )}
       </div>

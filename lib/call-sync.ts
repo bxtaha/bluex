@@ -30,6 +30,14 @@ async function stateCollection(): Promise<Collection<SyncStateDoc>> {
 
 export async function syncCalls(): Promise<CallSyncResult> {
   if (!isConfigured()) {
+    // Recorded like any other run, not skipped — otherwise the panel keeps
+    // showing whatever "last ran" it had before the keys were removed, which
+    // reads as the sync still working when it has stopped running at all.
+    // `lastError` stays null rather than restating "not configured": that
+    // banner already comes from `getCallSyncState`'s own `isConfigured()`
+    // check below, and duplicating it here would make one true fact read as
+    // two different problems.
+    await recordState(null);
     return { ok: false, imported: 0, message: "The voice agent is not configured." };
   }
 

@@ -116,6 +116,11 @@ export function AdminLeads({
   onAttentionChange?: (count: number) => void;
 }) {
   const [filter, setFilter] = useState<LeadFilter>("all");
+  // Independent of `filter`: "" means every stage. The two compose — asking
+  // for "Needs you" and "Qualified" together is answered by `leadFilterFor`
+  // on the server, which `$and`s them rather than letting one clobber the
+  // other.
+  const [stage, setStage] = useState<LeadStage | "">("");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [configured, setConfigured] = useState(true);
@@ -151,7 +156,9 @@ export function AdminLeads({
 
     void (async () => {
       try {
-        const response = await fetch(`/api/admin/leads?filter=${filter}`);
+        const params = new URLSearchParams({ filter });
+        if (stage) params.set("stage", stage);
+        const response = await fetch(`/api/admin/leads?${params.toString()}`);
         const data = await response.json();
         // The filter changed while this was in flight: writing the answer now
         // would replace a newer list with an older one.
@@ -176,7 +183,7 @@ export function AdminLeads({
     return () => {
       cancelled = true;
     };
-  }, [filter, reloadKey, onAttentionChange]);
+  }, [filter, stage, reloadKey, onAttentionChange]);
 
   // Keyed on `selectedId` alone, not on `reloadKey` — a note or a stage change
   // reloads the lead list, but it does not change what was already said on a
@@ -314,6 +321,42 @@ export function AdminLeads({
               }`}
             >
               {option.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-1" role="group" aria-label="Stage">
+          <button
+            type="button"
+            onClick={() => {
+              setStage("");
+              setSelectedId(null);
+            }}
+            aria-pressed={stage === ""}
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              stage === ""
+                ? "bg-blue-600 text-white"
+                : "border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+            }`}
+          >
+            All stages
+          </button>
+          {STAGES.map((option) => (
+            <button
+              key={option}
+              type="button"
+              onClick={() => {
+                setStage(option);
+                setSelectedId(null);
+              }}
+              aria-pressed={stage === option}
+              className={`rounded-full px-3 py-2 text-sm font-medium transition-colors ${
+                stage === option
+                  ? "bg-blue-600 text-white"
+                  : STAGE_STYLES[option].className
+              }`}
+            >
+              {STAGE_STYLES[option].label}
             </button>
           ))}
         </div>
@@ -846,6 +889,13 @@ function CallHistoryItem({ call }: { call: Call }) {
                   }`}
                 >
                   {turn.role === "agent" ? "Agent" : "Caller"}
+                </span>
+                {/* A gutter, not content — quiet enough to ignore, there
+                    when someone wants to know when in the call this was
+                    said. `tabular-nums` keeps the colon from drifting as
+                    the digits change width down a whole transcript. */}
+                <span className="mr-2 tabular-nums text-[0.65rem] text-gray-400 dark:text-gray-500">
+                  {formatDuration(turn.at)}
                 </span>
                 {turn.message}
               </li>

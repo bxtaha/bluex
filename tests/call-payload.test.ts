@@ -76,3 +76,20 @@ test("phoneKey keeps only digits", () => {
   assert.equal(phoneKey("(240) 820-3149"), "2408203149");
   assert.equal(phoneKey(""), "");
 });
+
+test("phoneKey agrees on the same international number however it is spaced", () => {
+  // The form and the provider's webhook should never split one caller into
+  // two leads just because one wrote spaces and the other didn't.
+  assert.equal(phoneKey("+44 7123 456789"), phoneKey("+447123456789"));
+});
+
+test("phoneKey strips a leading trunk zero but does not guess a country", () => {
+  // "07123456789" (what a UK visitor types) and "+447123456789" (what the
+  // provider reports for the same call) still differ — this function cannot
+  // know the "0" stands for "+44" without information the site never
+  // collects. The honest move is to strip only the zero, not to fabricate a
+  // country code. See lib/lead.ts's validateLead for where this is actually
+  // resolved: it now requires the "+" up front.
+  assert.equal(phoneKey("07123456789"), "7123456789");
+  assert.notEqual(phoneKey("07123456789"), phoneKey("+447123456789"));
+});

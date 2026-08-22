@@ -47,9 +47,25 @@ function number(value: unknown, key: string): number {
   return typeof found === "number" && Number.isFinite(found) ? found : 0;
 }
 
-/** Digits only. The join key between a call and the person on the other end. */
+/**
+ * Digits only. The join key between a call and the person on the other end.
+ *
+ * A `+` prefix means the string is already international, so its digits are
+ * kept as-is. Otherwise a single leading `0` is a national trunk prefix
+ * (`07123 456789`), not part of the subscriber number, so it is stripped —
+ * but that is the most this function can safely do. Turning `7123456789`
+ * into the same key as `447123456789` needs a country code, and this site
+ * never collects one: guessing would silently merge two different people's
+ * numbers, which is worse than leaving the two forms unresolved. The honest
+ * fix lives upstream, in `validateLead` (lib/lead.ts), which now requires a
+ * leading `+` on every number a person types into this site — a call this
+ * function still receives without one is the provider's own report, already
+ * in E.164, or a legacy record from before that requirement existed.
+ */
 export function phoneKey(value: string): string {
-  return value.replace(/\D/g, "");
+  const digits = value.replace(/\D/g, "");
+  if (value.trim().startsWith("+")) return digits;
+  return digits.replace(/^0+/, "");
 }
 
 /**

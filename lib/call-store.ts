@@ -189,19 +189,3 @@ export async function listCalls(
   const docs = await cursor.limit(limit).toArray();
   return docs.map((doc) => toCall(doc as CallDoc & { _id: ObjectId }));
 }
-
-export async function getCall(id: string): Promise<Call | null> {
-  if (!ObjectId.isValid(id)) return null;
-  const calls = await collection();
-  const doc = await calls.findOne({ _id: new ObjectId(id) });
-  return doc ? toCall(doc as CallDoc & { _id: ObjectId }) : null;
-}
-
-export async function getCallByConversationId(
-  conversationId: string,
-): Promise<Call | null> {
-  if (!conversationId) return null;
-  const calls = await collection();
-  const doc = await calls.findOne({ conversationId });
-  return doc ? toCall(doc as CallDoc & { _id: ObjectId }) : null;
-}
