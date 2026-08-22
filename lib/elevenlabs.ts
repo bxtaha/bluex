@@ -161,6 +161,78 @@ function extractError(body: unknown): string {
   return "";
 }
 
+/* ── Reading conversations back ──────────────────────────────────────────── */
+
+/**
+ * Recent conversation ids, newest first.
+ *
+ * Ids only. The list endpoint does not carry transcripts, and pretending it
+ * might would mean two shapes to parse for one kind of object — so the sync
+ * fetches each one properly rather than storing half a record.
+ */
+export async function listConversations(
+  pageSize = 50,
+): Promise<{ ok: true; ids: string[] } | { ok: false; reason: string }> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
+
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_BASE}/conversations?page_size=${Math.min(pageSize, 100)}`,
+      {
+        headers: { "xi-api-key": apiKey },
+        signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
+      },
+    );
+  } catch (error) {
+    console.error("[elevenlabs] list threw:", error);
+    return { ok: false, reason: "Could not reach the voice provider." };
+  }
+
+  const body = await readJson(response);
+  if (!response.ok) {
+    return { ok: false, reason: extractError(body) || `HTTP ${response.status}` };
+  }
+
+  const rows = pickArray(body, "conversations");
+  const ids = rows
+    .map((row) => stringField(row, "conversation_id"))
+    .filter((id) => id.length > 0);
+
+  return { ok: true, ids };
+}
+
+export async function getConversation(
+  id: string,
+): Promise<{ ok: true; payload: unknown } | { ok: false; reason: string }> {
+  const apiKey = process.env.ELEVENLABS_API_KEY;
+  if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/conversations/${encodeURIComponent(id)}`, {
+      headers: { "xi-api-key": apiKey },
+      signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    console.error("[elevenlabs] fetch threw:", error);
+    return { ok: false, reason: "Could not reach the voice provider." };
+  }
+
+  const body = await readJson(response);
+  if (!response.ok) {
+    return { ok: false, reason: extractError(body) || `HTTP ${response.status}` };
+  }
+  return { ok: true, payload: body };
+}
+
+function pickArray(body: unknown, key: string): unknown[] {
+  if (typeof body !== "object" || body === null) return [];
+  const value = (body as Record<string, unknown>)[key];
+  return Array.isArray(value) ? value : [];
+}
+
 /* ── Webhook verification ────────────────────────────────────────────────── */
 
 /**
