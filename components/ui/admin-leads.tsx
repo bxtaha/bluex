@@ -665,7 +665,7 @@ function LeadDetail({
           </div>
           {lead.followUpAt && overdue && (
             <p className="mt-2 text-xs font-medium text-red-600 dark:text-red-400">
-              Overdue — this follow-up was due {formatFull(lead.followUpAt)}.
+              Overdue — this follow-up was due {formatFollowUpDate(lead.followUpAt)}.
             </p>
           )}
         </div>
@@ -673,10 +673,19 @@ function LeadDetail({
         {/* Notes: append-only, so the box beneath it says so before anyone
             goes looking for an edit or delete control that isn't there. */}
         <div className="mt-6">
-          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <h3
+            id="lead-notes-heading"
+            className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+          >
             Notes
           </h3>
+          {/* The heading above already says what this field is for, so it
+              doubles as the label via `aria-labelledby` rather than
+              duplicating it in a hidden `<label>` — a placeholder alone
+              isn't one: it vanishes on focus and screen readers don't
+              reliably announce it. */}
           <textarea
+            aria-labelledby="lead-notes-heading"
             value={noteDraft}
             onChange={(event) => setNoteDraft(event.target.value)}
             placeholder="Add a note about this lead…"
@@ -703,13 +712,23 @@ function LeadDetail({
           {lead.notes.length > 0 ? (
             // Stored oldest-first (`$push` appends); rendered newest first.
             // `.slice()` first — never `.reverse()` the prop array in place.
+            //
+            // Keyed on the note's own fields, not its index. The transcript
+            // list below can use an index because a transcript is written
+            // once and never reordered; this list reorders relative to its
+            // keys on every append (appending shifts every existing index by
+            // one once reversed for display), so an index key would make
+            // React think every older note had changed identity each time a
+            // new one arrived. `at` plus `author` plus `body` is stable per
+            // note because notes have no id of their own and are immutable
+            // once written.
             <ul className="mt-3 space-y-2">
               {lead.notes
                 .slice()
                 .reverse()
-                .map((note, index) => (
+                .map((note) => (
                   <li
-                    key={index}
+                    key={`${note.at}-${note.author}-${note.body}`}
                     className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                   >
                     <p className="whitespace-pre-wrap">{note.body}</p>
@@ -912,6 +931,31 @@ function toDateInputValue(value: Date | string | null): string {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * `followUpAt` is a date, not a moment — the server parses a bare
+ * `YYYY-MM-DD` as UTC midnight, same as `toDateInputValue` above reads it
+ * back. `formatFull` is right for a call time or a note timestamp, which are
+ * genuine instants and belong in the viewer's local zone; it is wrong here,
+ * because "local zone" is exactly the thing a date-only value doesn't have.
+ * An admin in Los Angeles who picks 25 August would be told, in their own
+ * evening, that it was due the 24th. Pinning the render to `timeZone: "UTC"`
+ * keeps the display agreeing with the input and with the overdue check
+ * below, so the day the admin chose is the day they see quoted back.
+ */
+function formatFollowUpDate(value: Date | string): string {
+  return new Date(value).toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * Comparing two instants, not two dates — `Date.getTime()` is always UTC
+ * epoch milliseconds regardless of the machine's zone, so unlike the two
+ * formatters above this needs no `timeZone` override to be correct.
+ */
 function isOverdue(value: Date | string): boolean {
   return new Date(value).getTime() < Date.now();
 }
