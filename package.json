@@ -11,7 +11,8 @@
     "seed:admin": "node --experimental-strip-types --no-warnings scripts/seed-admin.ts",
     "seed:pricing": "node --experimental-strip-types --no-warnings scripts/seed-pricing.ts",
     "seed:blog": "node --experimental-strip-types --no-warnings scripts/seed-blog.ts",
-    "seed:projects": "node --experimental-strip-types --no-warnings scripts/seed-projects.ts"
+    "seed:projects": "node --experimental-strip-types --no-warnings scripts/seed-projects.ts",
+    "seed:backfill": "node --experimental-strip-types --no-warnings --env-file=.env.local scripts/backfill-leads.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

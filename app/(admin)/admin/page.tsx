@@ -8,7 +8,7 @@ import {
   type ContactSettings,
 } from "@/lib/contact";
 import { unreadThreadCount } from "@/lib/message-store";
-import { attentionLeadCount } from "@/lib/lead-store";
+import { needsAttentionCount } from "@/lib/lead-store";
 import { listAllPosts, type PostCard } from "@/lib/blog";
 import {
   DEFAULT_FOOTNOTE,
@@ -65,7 +65,7 @@ export default async function AdminPage() {
         listAllTiers(),
         getContactSettings(),
         unreadThreadCount(),
-        attentionLeadCount(),
+        needsAttentionCount(),
         listAllPosts(),
         listAllProjects(),
         getFootnote(),

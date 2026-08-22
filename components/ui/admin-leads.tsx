@@ -424,61 +424,6 @@ function LeadDetail({
           </p>
         )}
 
-        {lead.callStatus === "completed" && (
-          <div className="mt-4 rounded-lg border border-gray-200 p-4 dark:border-gray-800">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Outcome
-            </p>
-            <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">
-              {formatDuration(lead.durationSeconds)}
-              {lead.callSuccessful !== "unknown" &&
-                ` · agent reported ${lead.callSuccessful}`}
-            </p>
-            {lead.summary && (
-              <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                {lead.summary}
-              </p>
-            )}
-          </div>
-        )}
-
-        {lead.transcript.length > 0 && (
-          <div className="mt-4">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Transcript
-            </p>
-            <ol className="space-y-2">
-              {lead.transcript.map((turn, index) => (
-                <li
-                  // The turn index is the key because a transcript is an ordered
-                  // log that is written once and never reordered — there is no
-                  // identity to preserve across renders.
-                  key={index}
-                  className={`rounded-lg px-3 py-2 text-sm ${
-                    turn.role === "agent"
-                      ? "bg-blue-50 text-blue-950 dark:bg-blue-900/20 dark:text-blue-50"
-                      : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
-                  }`}
-                >
-                  {/* The speaker label tints with its own bubble. Grey on the
-                      blue one reads as washed-out rather than secondary — a
-                      muted shade of the background colour keeps the hierarchy
-                      without losing the contrast. */}
-                  <span
-                    className={`mr-2 text-[0.65rem] font-medium uppercase tracking-wide ${
-                      turn.role === "agent"
-                        ? "text-blue-700 dark:text-blue-300"
-                        : "text-gray-600 dark:text-gray-400"
-                    }`}
-                  >
-                    {turn.role === "agent" ? "Agent" : lead.name}
-                  </span>
-                  {turn.message}
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
       </div>
 
       <div className="flex items-center gap-3 border-t border-gray-200 px-4 py-3 dark:border-gray-800">
@@ -551,11 +496,4 @@ function formatFull(value: Date | string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function formatDuration(seconds: number): string {
-  if (seconds <= 0) return "No duration recorded";
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds % 60;
-  return minutes > 0 ? `${minutes}m ${rest}s on the call` : `${rest}s on the call`;
 }

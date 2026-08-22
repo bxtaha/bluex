@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { isConfigured } from "@/lib/elevenlabs";
-import { attentionLeadCount, listLeads, type LeadFilter } from "@/lib/lead-store";
+import { needsAttentionCount, listLeads, type LeadFilter } from "@/lib/lead-store";
 
 /** Anything else is treated as "all" rather than rejected — it is a view. */
 function parseFilter(value: string | null): LeadFilter {
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   try {
     const [leads, attention] = await Promise.all([
       listLeads({ filter }),
-      attentionLeadCount(),
+      needsAttentionCount(),
     ]);
 
     return NextResponse.json({

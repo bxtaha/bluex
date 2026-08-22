@@ -8,8 +8,11 @@
  * Where the lead came from. The inline demo widget trades the business name
  * for lower friction — asking for it before someone will try the thing is
  * what stops them trying it. The agent asks on the call instead.
+ *
+ * `inbound` is not a form at all: it is someone who rang the published number,
+ * created by the call rather than by a submission.
  */
-export type LeadSource = "form" | "inline";
+export type LeadSource = "form" | "inline" | "inbound";
 
 export type LeadInput = {
   name: string;
