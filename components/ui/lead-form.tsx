@@ -6,10 +6,10 @@ import { EMPTY_LEAD, validateLead, type LeadErrors, type LeadInput } from "@/lib
 type Status = "idle" | "sending" | "done" | "error";
 
 const FIELDS = [
-  { key: "name", label: "Your name", type: "text", autoComplete: "name", required: true },
-  { key: "business", label: "Business name", type: "text", autoComplete: "organization", required: true },
-  { key: "phone", label: "Phone (with country code)", type: "tel", autoComplete: "tel", required: true },
-  { key: "email", label: "Email (optional)", type: "email", autoComplete: "email", required: false },
+  { key: "name", label: "Your name", type: "text", autoComplete: "name", placeholder: undefined, required: true },
+  { key: "business", label: "Business name", type: "text", autoComplete: "organization", placeholder: undefined, required: true },
+  { key: "phone", label: "Phone (with country code)", type: "tel", autoComplete: "tel", placeholder: "+971 ...", required: true },
+  { key: "email", label: "Email (optional)", type: "email", autoComplete: "email", placeholder: undefined, required: false },
 ] as const;
 
 /**
@@ -169,6 +169,7 @@ export function LeadForm({
                     name={field.key}
                     type={field.type}
                     autoComplete={field.autoComplete}
+                    placeholder={field.placeholder}
                     value={values[field.key]}
                     onChange={(e) => update(field.key, e.target.value)}
                     aria-invalid={!!error}
