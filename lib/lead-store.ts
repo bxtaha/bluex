@@ -440,12 +440,33 @@ function matchFor(filter: LeadFilter): Filter<LeadDoc> {
   return {};
 }
 
+/**
+ * The Mongo filter behind `listLeads`, factored out and exported so its
+ * composition can be pinned down without a database.
+ *
+ * `needsAttentionFilter` already constrains `stage` (excluding `won`/`lost`),
+ * so a caller asking for `attention` *and* a specific stage cannot just have
+ * `filter.stage = options.stage` assigned over the top — a bare assignment
+ * silently discards the `$nin` exclusion and replaces it with an equality
+ * match, which is exactly the kind of thing no test catches until the day a
+ * caller actually passes both. `$and` keeps both constraints instead of
+ * letting the second overwrite the first.
+ */
+export function leadFilterFor(options: {
+  filter?: LeadFilter;
+  stage?: LeadStage;
+}): Filter<LeadDoc> {
+  const base = matchFor(options.filter ?? "all");
+  if (!options.stage) return base;
+  if ("stage" in base) return { $and: [base, { stage: options.stage }] };
+  return { ...base, stage: options.stage };
+}
+
 export async function listLeads(
   options: { filter?: LeadFilter; stage?: LeadStage; limit?: number } = {},
 ): Promise<Lead[]> {
   const leads = await collection();
-  const filter = matchFor(options.filter ?? "all");
-  if (options.stage) filter.stage = options.stage;
+  const filter = leadFilterFor(options);
 
   const docs = await leads
     .find(filter)
