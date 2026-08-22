@@ -25,14 +25,11 @@ import type { CallDirection } from "@/lib/call-payload";
  * the Leads panel — the same reasoning applies, and two panels in one
  * dashboard behaving differently is worse than either behaviour.
  *
- * Rendered with no props (`<AdminCalls />` in the sidebar). The "view this
- * lead" link therefore cannot call back into the sidebar directly — it
- * dispatches `VIEW_LEADS_EVENT`, which `AdminDashboard` listens for and turns
- * into a tab switch. That is the only channel between this panel and the
- * sidebar's `selected` state.
+ * The "view this lead" link cannot switch the sidebar's own tab itself — that
+ * state lives two components up, in `AdminDashboard` — so it is handed an
+ * `onViewLeads` callback the same way `AdminInbox` and `AdminLeads` are
+ * handed `onUnreadChange` and `onAttentionChange`.
  */
-export const VIEW_LEADS_EVENT = "bx-admin:view-leads";
-
 type DirectionFilter = "" | CallDirection;
 
 const DIRECTION_FILTERS: { value: DirectionFilter; label: string }[] = [
@@ -75,7 +72,7 @@ type SyncState = {
   configured: boolean;
 };
 
-export function AdminCalls() {
+export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
   const [query, setQuery] = useState("");
   const [direction, setDirection] = useState<DirectionFilter>("");
   const [calls, setCalls] = useState<Call[]>([]);
@@ -108,16 +105,19 @@ export function AdminCalls() {
     setReloadKey((key) => key + 1);
   }, []);
 
-  // Distinguishes "the query changed while the user is typing" (debounce)
-  // from "a reload was explicitly asked for" (search submit, Refresh, Sync
-  // now, a completed call) — the latter should not wait 300ms behind the
-  // former just because they share one effect.
-  const previousReloadKey = useRef(reloadKey);
+  // Debounce the query text only — not the direction filter, not a reload.
+  // A filter button or Refresh is a deliberate click and must feel instant;
+  // only typing needs 300ms to keep from firing a request per keystroke.
+  // Comparing against the *previous* query (not reloadKey) is what makes
+  // that distinction, so don't reach for reloadKey here again: that was
+  // tried before and it debounced the filter buttons and the first mount
+  // right along with typing.
+  const previousQuery = useRef(query);
 
   useEffect(() => {
     let cancelled = false;
-    const isExplicitReload = previousReloadKey.current !== reloadKey;
-    previousReloadKey.current = reloadKey;
+    const isTyping = previousQuery.current !== query;
+    previousQuery.current = query;
 
     const timer = setTimeout(
       () => {
@@ -152,7 +152,7 @@ export function AdminCalls() {
           }
         })();
       },
-      isExplicitReload ? 0 : 300,
+      isTyping ? 300 : 0,
     );
 
     return () => {
@@ -203,10 +203,6 @@ export function AdminCalls() {
     } finally {
       setSyncing(false);
     }
-  }
-
-  function viewLead() {
-    window.dispatchEvent(new Event(VIEW_LEADS_EVENT));
   }
 
   const isFiltered = query.trim().length > 0 || direction !== "";
@@ -328,7 +324,7 @@ export function AdminCalls() {
               calling={calling}
               onBack={() => setSelectedId(null)}
               onCallBack={() => callBack(selected)}
-              onViewLead={viewLead}
+              onViewLead={() => onViewLeads?.()}
             />
           ) : (
             <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
@@ -527,13 +523,13 @@ function CallDetail({
           </p>
         )}
 
-        {call.transcript.length > 0 && (
-          <div className="mt-4">
-            <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-              Transcript
-            </h3>
-            {/* Turn index as the key — a transcript is an ordered log written
-                once and never reordered, so there is no identity to preserve. */}
+        <div className="mt-4">
+          <h3 className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Transcript
+          </h3>
+          {call.transcript.length > 0 ? (
+            /* Turn index as the key — a transcript is an ordered log written
+               once and never reordered, so there is no identity to preserve. */
             <ul className="space-y-2">
               {call.transcript.map((turn, index) => (
                 <li
@@ -557,8 +553,15 @@ function CallDetail({
                 </li>
               ))}
             </ul>
-          </div>
-        )}
+          ) : (
+            // No transcript is a fact worth stating, not a section worth
+            // hiding — otherwise it reads identically to "still loading" or
+            // "this call predates transcripts," and only one of those is true.
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No transcript was recorded for this call.
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center gap-3 border-t border-gray-200 px-4 py-3 dark:border-gray-800">
