@@ -10,7 +10,11 @@ services:
       - "3010:3000"
     environment:
       NODE_ENV: production
-      HERMES_WEBHOOK_URL: ${HERMES_WEBHOOK_URL:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_AGENT_ID: ${ELEVENLABS_AGENT_ID:-}
+      ELEVENLABS_AGENT_PHONE_NUMBER_ID: ${ELEVENLABS_AGENT_PHONE_NUMBER_ID:-}
+      ELEVENLABS_CALL_TRANSPORT: ${ELEVENLABS_CALL_TRANSPORT:-twilio}
+      ELEVENLABS_WEBHOOK_SECRET: ${ELEVENLABS_WEBHOOK_SECRET:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.bluex.rule=Host(`bluex.agency`) || Host(`www.bluex.agency`)"

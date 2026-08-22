@@ -53,6 +53,16 @@ here" outline) in `:root`. The header pill and the side dock both read them, so
 neither can be restyled alone. Offsets/directions are local to each component —
 a pill under the top edge catches light differently from one on the right edge.
 
+**The lead flow stores before it dials.** `/api/lead` limits, validates, writes
+to the `leads` collection, *then* asks ElevenLabs to call — never the other way
+round. A lead recorded but not called can be rung from the dashboard; a lead
+called but not recorded is a conversation nobody can follow up. The dispatch is
+awaited rather than deferred because the response's `dispatched` flag is what
+the form's copy reads, and a guess there turns "your phone is about to ring"
+into a hope. `/api/lead/callback` matches the post-call webhook back to the lead
+by `conversationId` — the only handle the provider sends — and its signature
+check is not optional: the endpoint is public and it writes transcripts.
+
 **The bell** (`scroll-bell.tsx` + `bell-notify.tsx`) scales from `--bell-size`,
 not its `size` prop — `BellNotify` writes `font-size` inline, which no stylesheet
 can beat without `!important`. Progress uses **one** formula over
@@ -117,10 +127,15 @@ Run counts of 5 minimum; a single "after" number was 600ms off the median once.
 
 ## Open items
 
-- **`HERMES_WEBHOOK_URL` is not set.** `app/api/lead/route.ts` validates and
-  returns `{ ok, dispatched:false }` without it; the UI copy degrades honestly,
-  but no call is placed. This is the only thing between the site and a working
-  lead flow.
+- **The ElevenLabs keys are not set.** The lead flow is wired end to end —
+  `/api/lead` stores every submission in the `leads` collection and dispatches
+  a call, `/api/lead/callback` records the transcript, and the Leads panel in
+  `/admin` shows both — but with `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID` and
+  `ELEVENLABS_AGENT_PHONE_NUMBER_ID` unset nothing is dialled. Leads are still
+  stored and marked `not_configured`, the form still returns
+  `{ ok, dispatched:false }`, and the dashboard says which of the two it is.
+  Also needs `ELEVENLABS_WEBHOOK_SECRET`, or the callback refuses every request.
+  The old `HERMES_WEBHOOK_URL` is gone; `docker-compose.yml` still passes it.
 - `metadataBase` is `https://bluex.agency`. Deploying elsewhere first will point
   OG images and canonicals at the wrong host.
 - `app/faviconx.ico` (87KB) is tracked and unused — Next only serves

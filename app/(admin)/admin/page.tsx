@@ -8,6 +8,7 @@ import {
   type ContactSettings,
 } from "@/lib/contact";
 import { unreadThreadCount } from "@/lib/message-store";
+import { attentionLeadCount } from "@/lib/lead-store";
 import { listAllPosts, type PostCard } from "@/lib/blog";
 import {
   DEFAULT_FOOTNOTE,
@@ -50,16 +51,21 @@ export default async function AdminPage() {
   // would be stale before anyone read it; the count is cheap and it has to be
   // right in the sidebar before the Inbox view is ever opened.
   let unread = 0;
+  // Same reasoning as `unread`, and the same trade: the leads panel fetches its
+  // own list because leads arrive while the tab is open, but the badge has to
+  // be right before anyone opens it.
+  let attention = 0;
   let posts: PostCard[] = [];
   let projects: Project[] = [];
   let footnote = DEFAULT_FOOTNOTE;
 
   try {
-    [tiers, contact, unread, posts, projects, footnote] =
+    [tiers, contact, unread, attention, posts, projects, footnote] =
       await Promise.all([
         listAllTiers(),
         getContactSettings(),
         unreadThreadCount(),
+        attentionLeadCount(),
         listAllPosts(),
         listAllProjects(),
         getFootnote(),
@@ -80,6 +86,7 @@ export default async function AdminPage() {
       projects={projects}
       footnote={footnote}
       unread={unread}
+      attention={attention}
     />
   );
 }

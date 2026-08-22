@@ -1,20 +1,39 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { clientIp, hashIp } from "@/lib/client-ip";
 import { validateLead, type LeadInput, type LeadSource } from "@/lib/lead";
+import {
+  createLead,
+  recordDispatch,
+  recordDispatchFailure,
+} from "@/lib/lead-store";
+import { isConfigured, placeCall } from "@/lib/elevenlabs";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
- * Lead intake. Validates server-side, then hands off to the Hermes voice agent
- * which places the call.
+ * Lead intake.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * TODO: set HERMES_WEBHOOK_URL in .env.local to go live.
+ * The order is the design — limit, validate, **store**, then call — and the
+ * last two are in that order for the same reason the contact form writes to the
+ * database before it sends mail: a lead that was recorded but not called can be
+ * called from the dashboard, and a lead that was called but not recorded is a
+ * conversation nobody can follow up.
  *
- * Until it is set the endpoint validates and returns success without
- * dispatching, so the form is fully testable. Nothing else needs changing when
- * the URL arrives — the dispatch below is already wired.
- * ─────────────────────────────────────────────────────────────────────────────
+ * The dispatch is awaited rather than deferred. The visitor is on the page
+ * being told their phone is about to ring, and `dispatched` in the response is
+ * what decides whether the form says so — returning a guess before the provider
+ * has accepted the job would make that copy a hope rather than a fact.
+ *
+ * With no ElevenLabs credentials set the lead is still stored, marked
+ * `not_configured`, and the response reports `dispatched: false`, which the form
+ * already degrades to honestly.
  */
 
-const HERMES_WEBHOOK_URL = process.env.HERMES_WEBHOOK_URL;
+/** Three per hour, per address. Each one placed is a billable phone call. */
+const IP_LIMIT = 3;
+/** Two per hour, per number — a double submit must not ring someone twice. */
+const PHONE_LIMIT = 2;
+const WINDOW_MS = 60 * 60 * 1000;
 
 export async function POST(request: Request) {
   let body: Partial<LeadInput> & { source?: LeadSource };
@@ -41,37 +60,83 @@ export async function POST(request: Request) {
     phone: body.phone!.trim(),
     email: body.email?.trim() ?? "",
     source,
-    submittedAt: new Date().toISOString(),
   };
 
-  if (!HERMES_WEBHOOK_URL) {
-    console.warn("[lead] HERMES_WEBHOOK_URL unset — not dispatched:", lead.phone);
+  const headerList = await headers();
+  const ip = clientIp(headerList);
+  const ipHash = hashIp(ip);
+
+  // Keyed on digits only, so `+880 1712…` and `+8801712…` are one number
+  // rather than two allowances.
+  const phoneKey = lead.phone.replace(/\D/g, "");
+
+  const [byIp, byPhone] = await Promise.all([
+    rateLimit(`lead:ip:${ipHash || ip}`, IP_LIMIT, WINDOW_MS),
+    rateLimit(`lead:phone:${phoneKey}`, PHONE_LIMIT, WINDOW_MS),
+  ]);
+
+  if (!byIp.allowed || !byPhone.allowed) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          "We've already got a call queued for that number. Give it a few minutes.",
+      },
+      { status: 429 },
+    );
+  }
+
+  let stored;
+  try {
+    stored = await createLead({ ...lead, ipHash });
+  } catch (error) {
+    // Nothing downstream is worth attempting if the lead cannot be written —
+    // it would be a call with no record of who it was for.
+    console.error("[lead] could not store:", error, lead.phone);
+    return NextResponse.json(
+      { ok: false, message: "We couldn't take that just now. Please try again." },
+      { status: 503 },
+    );
+  }
+
+  if (!isConfigured()) {
+    console.warn("[lead] voice agent not configured — stored only:", stored.id);
+    await recordDispatchFailure(
+      stored.id,
+      "ElevenLabs credentials are not set.",
+      "not_configured",
+    );
+    // Still `ok`. The lead is safe, it is in the dashboard, and someone can
+    // ring it by hand — that is a success from the visitor's side, and the form
+    // already tells them a human will follow up when `dispatched` is false.
     return NextResponse.json({ ok: true, dispatched: false });
   }
 
-  try {
-    const response = await fetch(HERMES_WEBHOOK_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(lead),
-      signal: AbortSignal.timeout(10_000),
-    });
+  const call = await placeCall({
+    toNumber: lead.phone,
+    variables: {
+      name: lead.name,
+      // The agent's prompt has to say *something* here, and "your business"
+      // reads as intended in a sentence where the real name would go — the
+      // inline widget deliberately does not ask for it.
+      business: lead.business || "your business",
+      email: lead.email,
+      source: lead.source,
+    },
+  });
 
-    if (!response.ok) {
-      // The lead is far too valuable to drop silently if Hermes is down.
-      console.error("[lead] dispatch failed", response.status, lead);
-      return NextResponse.json(
-        { ok: false, message: "We couldn't start the call. Please try again." },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json({ ok: true, dispatched: true });
-  } catch (error) {
-    console.error("[lead] dispatch threw", error, lead);
+  if (!call.ok) {
+    await recordDispatchFailure(stored.id, call.reason);
     return NextResponse.json(
       { ok: false, message: "We couldn't start the call. Please try again." },
       { status: 502 },
     );
   }
+
+  await recordDispatch(stored.id, {
+    conversationId: call.conversationId,
+    callSid: call.callSid,
+  });
+
+  return NextResponse.json({ ok: true, dispatched: true });
 }
