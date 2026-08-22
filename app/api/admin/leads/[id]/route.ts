@@ -41,15 +41,39 @@ export async function PATCH(request: Request, { params }: Context) {
     );
   }
 
+  // Validate everything before writing anything. A handler that writes as it
+  // validates cannot report failure honestly: with `stage` applied first and
+  // `followUpAt` checked second, a bad date on an otherwise-valid request
+  // would return 422 after the stage change had already committed — a
+  // caller told "this failed" while part of it had, silently, succeeded.
+  let stage: LeadStage | null = null;
+  if (body.stage !== undefined) {
+    stage = parseStage(body.stage);
+    if (!stage) {
+      return NextResponse.json(
+        { ok: false, message: "Unknown stage." },
+        { status: 422 },
+      );
+    }
+  }
+
+  let followUpAt: Date | null | undefined;
+  if (body.followUpAt !== undefined) {
+    // Null clears it. An empty string is what a cleared date input sends,
+    // and treating it as "1970" would make every lead permanently overdue.
+    const raw = body.followUpAt;
+    followUpAt = raw === null || raw === "" ? null : new Date(String(raw));
+
+    if (followUpAt && Number.isNaN(followUpAt.getTime())) {
+      return NextResponse.json(
+        { ok: false, message: "That date could not be read." },
+        { status: 422 },
+      );
+    }
+  }
+
   try {
-    if (body.stage !== undefined) {
-      const stage = parseStage(body.stage);
-      if (!stage) {
-        return NextResponse.json(
-          { ok: false, message: "Unknown stage." },
-          { status: 422 },
-        );
-      }
+    if (stage) {
       const ok = await setLeadStage(id, stage);
       if (!ok) {
         return NextResponse.json(
@@ -59,22 +83,14 @@ export async function PATCH(request: Request, { params }: Context) {
       }
     }
 
-    if (body.followUpAt !== undefined) {
-      // Null clears it. An empty string is what a cleared date input sends,
-      // and treating it as "1970" would make every lead permanently overdue.
-      const raw = body.followUpAt;
-      const at =
-        raw === null || raw === ""
-          ? null
-          : new Date(String(raw));
-
-      if (at && Number.isNaN(at.getTime())) {
+    if (followUpAt !== undefined) {
+      const ok = await setLeadFollowUp(id, followUpAt);
+      if (!ok) {
         return NextResponse.json(
-          { ok: false, message: "That date could not be read." },
-          { status: 422 },
+          { ok: false, message: "No such lead." },
+          { status: 404 },
         );
       }
-      await setLeadFollowUp(id, at);
     }
 
     return NextResponse.json({ ok: true, lead: await getLead(id) });
