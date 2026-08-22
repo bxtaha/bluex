@@ -54,7 +54,7 @@ jobs:
             echo "::error::Deploy cannot run. Missing repository secrets:$missing. Add them under Settings > Secrets and variables > Actions."
             exit 1
           fi
-            - name: Pull new image and restart container (with retry)
+      - name: Pull new image and restart container (with retry)
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
