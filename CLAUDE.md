@@ -127,6 +127,11 @@ Run counts of 5 minimum; a single "after" number was 600ms off the median once.
 
 ## Open items
 
+- **SEO has its own standing note: `docs/seo.md`.** What two audit passes fixed,
+  what is left and in what order, and how each claim was measured. Read it before
+  acting on any SEO finding — several of the obvious readings were wrong. The
+  short version: on-page work is largely exhausted, and what remains is backlinks
+  (7 links, 6 domains) and putting a CDN in front of a single-region origin.
 - **The ElevenLabs keys are not set.** The lead flow is wired end to end —
   `/api/lead` stores every submission in the `leads` collection and dispatches
   a call, `/api/lead/callback` records the transcript, and the Leads panel in
