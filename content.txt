@@ -19,9 +19,13 @@ SITE-WIDE VALUES                                              lib/site.ts [STATI
 --------------------------------------------------------------------------------
 Site name .......... BlueX
 Tagline ............ Every lead called back in five minutes
-Description ........ A web and AI-automation studio. We build the websites that
-                     bring you leads and the AI voice agents that call them
-                     within five minutes.
+Description ........ Never miss a call. Never lose a lead. Smart AI agents that
+                     answer every single call 24/7 and call back every new
+                     client within five minutes.
+                     (140 characters, deliberately. Google measures the meta
+                     description in pixels and truncates around 1000; the
+                     previous 176-character version lost its closing five-minute
+                     promise to an ellipsis in search results.)
 Contact email ...... hey@bluex.agency
 Canonical URL ...... https://bluex.agency   (override: NEXT_PUBLIC_SITE_URL)
 Theme colour ....... #0a0b0f
@@ -37,9 +41,7 @@ File: app/(site)/page.tsx — sections render in the order below.
 [SEO] HOMEPAGE METADATA                                        app/layout.tsx
 --------------------------------------------------------------------------------
 Title ............. BlueX — Every lead called back in five minutes
-Description ....... A web and AI-automation studio. We build the websites that
-                    bring you leads and the AI voice agents that call them
-                    within five minutes.
+Description ....... (the site description above — one string, six consumers)
 Canonical ......... /
 Open Graph ........ type: website · same title and description · site name BlueX
 Twitter ........... summary_large_image · same title and description
@@ -54,10 +56,31 @@ Robots ............ index, follow · max-image-preview: large
   name ............ BlueX
   description ..... (site description above)
   email ........... hey@bluex.agency
+  telephone ....... read from the admin-editable contact settings, stripped to
+                    digits and a leading "+" (default +1 240 820 3149). The one
+                    field here that follows the database rather than the file,
+                    so the number a search result offers to dial and the number
+                    on the page cannot disagree.
+  address ......... 128 City Road, London EC1V 2NX, GB
+                    (no addressRegion — the record's county line is blank and
+                    London is not a county)
+  image / logo .... /bluex-logo.png, absolute
   areaServed ...... AE, SA, QA, CA, AU
   serviceType ..... AI voice agents — outbound lead callback ·
                     AI voice agents — inbound call answering ·
                     Web design and development · E-commerce development
+
+  priceRange is deliberately ABSENT. Google accepts anything from "$$" to a
+  figure, but every pricing tier on the site says "get a quote" — a price band
+  stated only to a crawler is one the page itself refuses to state to readers.
+  Google's Rich Results Test reports this as one valid item, eligible for a
+  Local Business rich result.
+
+[SEO] ICONS
+  /favicon.ico ...... app/favicon.ico
+  /apple-icon.png ... 180×180, dark brand background with the logo centred.
+                      Emitted by Next's file convention as
+                      <link rel="apple-touch-icon" sizes="180x180">.
 
 --------------------------------------------------------------------------------
 HEADER (persistent)                                  components/site-header.tsx
@@ -93,9 +116,14 @@ Badge (with pulsing dot):
 H1:
   Every lead called back in five minutes.
 
+  Rendered one character per span for the hover roll. The replacement glyph is
+  CSS generated content (content: attr(data-char)), NOT a second element — when
+  it was an element the raw HTML read "EveryEvery leadlead calledcalled" to
+  every crawler that looked. Keep it that way.
+
 Paragraph:
-  We build the websites that bring you leads and the AI voice agents that call
-  them before your competitors even open the email.
+  Smart AI agents that answer every single call 24/7 and call back every new
+  client within five minutes.
 
 Buttons:
   [primary]  Get a call within 5 minutes
@@ -136,7 +164,14 @@ Paragraph:
   A lead who fills in your form is comparing you against three other businesses
   right now. Whoever reaches them while the problem is still on their mind gets
   the conversation — everyone else gets voicemail. Most companies take hours to
-  reply. That gap is where the money leaks out.
+  reply. That gap is where the money leaks out. A lead called back inside five
+  minutes is simply not having the same conversation as one called back
+  tomorrow.
+
+  The closing sentence is load-bearing for SEO, not only for the argument: it
+  is the only place on the page that uses "called", and an audit flags a page
+  whose H1 words are absent from its body text. Do not cut it without putting
+  the word somewhere else.
 
 Counter block:
   Eyebrow ......... Your response time
@@ -294,7 +329,7 @@ FORM
     Queued to dial
 
 SUCCESS STATE — two versions, depending on whether the call was actually
-dispatched to the agent (see HERMES_WEBHOOK_URL in the notes at the end):
+dispatched to the agent (see the ElevenLabs keys in the notes at the end):
 
   Dispatched:
     Heading ....... Your phone is about to ring
@@ -406,7 +441,9 @@ SECTION 10 — SELECTED WORK  ( #work )
 
 [DB] PROJECT CARDS — managed at /admin → Projects. Each card carries:
   · Year (eyebrow)
-  · Client name (heading)
+  · Client name (styled text, NOT a heading — each card already carries a
+    "Visit site" link naming the same client, so an <h3> was the second time
+    the document outline heard it)
   · One-line description
   · Tags
   · Screenshot, shown in a browser frame with the site's host in the URL bar
@@ -559,25 +596,49 @@ FOOTER                                 components/sections/site-footer.tsx [STAT
 Logo alt: "BlueX"
 
 Blurb:
-  A web and AI-automation studio for businesses in the Gulf, Canada and
-  Australia.
+  Smart AI agents that answer every call 24/7 and call back every new client
+  within five minutes. For businesses in the Gulf, Canada and Australia.
 
 Column — Services:
   Outbound voice agents      → #services
   Inbound call answering     → #services
   Websites & e-commerce      → #services
-  How it works               → #how-it-works
+  How the callback works     → #how-it-works
+
+  The last one is NOT "How it works", which is what the header nav calls the
+  same target. Two links to one destination under identical words was the
+  page's only repeated anchor text, and anchor text is a description of the
+  destination — a second one earns its place only by describing it differently.
 
 Column — Contact:
   hey@bluex.agency           → mailto
   Book a call                → #top
 
-Legal line:
-  © {current year} BlueX. All rights reserved.
+Both column headings ("Services", "Contact") are plain text inside a
+<nav aria-label="…">, not headings. As <h2>s they put those two words into the
+document outline alongside the real sections of the same name.
 
-NOTE: the footer prints hey@bluex.agency, which is hard-coded here and does NOT
-follow the admin-editable contact email used by the contact section. Changing the
-address in /admin will leave this one behind.
+Bottom row:
+  © {current year} BlueX. All rights reserved.
+  Share · X · LinkedIn · WhatsApp · Email    (components/ui/share-links.tsx)
+
+  The share row is the first thing in this footer to reach the right edge,
+  where the back-to-top button and the section dock live. Measured at 959px it
+  ran 844–919 against the control's 886–930 and 33px of the last button was
+  covered and unclickable, which is what `pr-16` on that row is for.
+
+NOTE — the contact address does not have one source, it has three, and they do
+not all agree:
+    lib/site.ts        CONTACT_EMAIL        hey@bluex.agency   (structured data)
+    site-footer.tsx    hard-coded           hey@bluex.agency   (this footer)
+    lib/mail-config.ts DEFAULT_CONTACT_EMAIL hello@bluex.agency (the fallback
+                       behind the admin-editable contact section)
+Changing the address in /admin moves the contact section and the structured
+data's telephone sibling, and leaves the footer behind. Worse, the shipped
+default is a different mailbox from the other two: if the database is ever
+empty, the contact section advertises hello@ while the footer and the schema
+say hey@. Which address is real is a question for the business, not a thing to
+guess from the source.
 
 
 ================================================================================
@@ -673,6 +734,14 @@ all built from the post's own fields. A missing post is titled "Not found".
       demonstration at the same time.
     Button ...... Get a call within 5 minutes
 
+  Share row, directly under the article body:
+    Share this · X · LinkedIn · WhatsApp · Email
+    Four plain anchors (components/ui/share-links.tsx — the same component the
+    site footer uses). No SDK and no popup widget: every one of these services
+    takes the whole share as query parameters on a GET URL, so a share button
+    is a link, and the scripts that usually appear here exist to report the
+    click back to the network.
+
   Related posts heading:
     More on {category}
 
@@ -709,6 +778,13 @@ MACHINE-READABLE ROUTES (no visible content)
   /sitemap.xml         — homepage, /blog, and every published post
   /blog/rss.xml        — the feed linked in the blog footer
   /opengraph-image     — the generated social card described above
+  /apple-icon.png      — 180×180 touch icon
+  /llms.txt            — plain-text summary for language models
+
+Also served on every response, from next.config.ts rather than any component:
+a 301 from www to the canonical host, and six security headers (HSTS, CSP,
+X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy).
+`x-powered-by` is switched off.
 
 
 ================================================================================
@@ -720,8 +796,11 @@ NOTES WORTH KNOWING BEFORE EDITING
 
 2. Two success messages on the site — in the callback dialog and the inline
    demo — change wording depending on whether the call was actually placed. With
-   HERMES_WEBHOOK_URL unset, no call is dispatched and the honest "we have your
-   number" version is shown instead of "your phone is about to ring".
+   ELEVENLABS_API_KEY, ELEVENLABS_AGENT_ID and ELEVENLABS_AGENT_PHONE_NUMBER_ID
+   unset, no call is dispatched and the honest "we have your number" version is
+   shown instead of "your phone is about to ring". The lead is still stored
+   either way, marked `not_configured`. (HERMES_WEBHOOK_URL, which this document
+   used to cite here, no longer exists.)
 
 3. Numbers used as claims: "five minutes", "nine minutes from form to booked
    meeting", "five weeks start to live", and the timeline steps. The only
@@ -731,3 +810,16 @@ NOTES WORTH KNOWING BEFORE EDITING
 
 4. No client counts, conversion percentages or revenue figures are claimed
    anywhere. The Outcomes section is deliberately written to avoid them.
+
+5. Some copy on this page is load-bearing for search and cannot be edited purely
+   on taste. The H1's own words have to appear in the body text; anchor text has
+   to describe its destination and not repeat another link's wording; and the
+   heading count is held at twenty against ~1700 words, which is why card labels
+   (outcomes, reasons, process steps, pricing tiers, project names) are styled
+   text rather than <h3>s. `docs/seo.md` records what was measured and why.
+
+6. Positioning: the summary copy — hero paragraph, footer blurb, meta
+   description — leads with the AI agents and no longer describes BlueX as a web
+   studio. Websites and e-commerce are still sold, in the services panel, the
+   Launch pricing tier and the whole portfolio; they simply do not share the
+   billing above the fold.

@@ -33,8 +33,20 @@ export type ImapConfig = {
   mailbox: string;
 };
 
-/** The address the site presents when nothing overrides it. */
-export const DEFAULT_CONTACT_EMAIL = "hello@bluex.agency";
+/**
+ * The address the site presents when nothing overrides it.
+ *
+ * Re-exported from `lib/site.ts` rather than spelled out, because spelling it
+ * out is how it drifted. This constant is the fallback behind the
+ * admin-editable contact section and it read `hello@bluex.agency`, while
+ * `CONTACT_EMAIL` — used by the structured data and the footer — read
+ * `hey@bluex.agency`. The stored value in the database is `hey@`, so the
+ * difference only showed if the database was empty or unreachable, at which
+ * point the contact section would advertise a mailbox no other part of the
+ * site mentions. One source now; if the real address is ever neither of
+ * those, `CONTACT_EMAIL` is the single line to change.
+ */
+export { CONTACT_EMAIL as DEFAULT_CONTACT_EMAIL } from "./site.ts";
 
 function port(value: string | undefined, fallback: number): number {
   const parsed = Number.parseInt(value ?? "", 10);

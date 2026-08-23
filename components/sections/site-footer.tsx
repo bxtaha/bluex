@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { ShareLinks } from "@/components/ui/share-links";
-import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
+import { CONTACT_EMAIL, SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 
 const COLUMNS = [
   {
@@ -19,7 +19,12 @@ const COLUMNS = [
   {
     heading: "Contact",
     links: [
-      { label: "hey@bluex.agency", href: "mailto:hey@bluex.agency" },
+      /* The constant, not the literal it used to be spelled out as twice. This
+         address had three sources in the codebase and the same value in only
+         two of them; this is one of the two, and it now shares its single
+         source with the structured data rather than being a third copy that
+         has to be remembered. */
+      { label: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
       { label: "Book a call", href: "#top" },
     ],
   },
