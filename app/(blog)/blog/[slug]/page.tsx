@@ -18,7 +18,7 @@ import { ReadingProgress } from "@/components/blog/reading-progress";
 import { PostCard } from "@/components/blog/post-card";
 import { PostCta } from "@/components/blog/post-cta";
 import { PostNav } from "@/components/blog/post-nav";
-import { PostShare } from "@/components/blog/post-share";
+import { ShareLinks } from "@/components/ui/share-links";
 
 /**
  * A post.
@@ -254,7 +254,12 @@ export default async function PostPage({ params }: { params: Params }) {
         />
 
         <div className="bx-prose-width">
-          <PostShare title={post.title} slug={post.slug} />
+          <ShareLinks
+            url={url}
+            title={post.title}
+            label="Share this"
+            className="mt-14 border-t border-white/8 pt-6"
+          />
         </div>
 
         <div className="bx-prose-width mt-16">

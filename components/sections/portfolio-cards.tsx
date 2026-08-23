@@ -94,9 +94,12 @@ function ProjectCard({ project }: { project: Project }) {
       <div className="bx-work__body">
         {project.year && <p className="bx-eyebrow">{project.year}</p>}
 
-        <h3 className="bx-display mt-2 text-[clamp(1.35rem,2.4vw,2.25rem)] text-ink">
+        {/* Client name, not a subsection. Each card already carries its own
+            "Visit site" link naming the same client, so the heading was the
+            second time the outline heard it. */}
+        <p className="bx-display mt-2 text-[clamp(1.35rem,2.4vw,2.25rem)] text-ink">
           {project.clientName}
-        </h3>
+        </p>
 
         {project.description && (
           <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">

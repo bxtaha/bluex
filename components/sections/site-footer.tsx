@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { ShareLinks } from "@/components/ui/share-links";
+import { SITE_NAME, SITE_TAGLINE, SITE_URL } from "@/lib/site";
 
 const COLUMNS = [
   {
@@ -7,7 +9,11 @@ const COLUMNS = [
       { label: "Outbound voice agents", href: "#services" },
       { label: "Inbound call answering", href: "#services" },
       { label: "Websites & e-commerce", href: "#services" },
-      { label: "How it works", href: "#how-it-works" },
+      /* Not "How it works", which is what the header nav calls it. Two links
+         to the same target under the same words was the page's only repeated
+         anchor text — and anchor text is a description of the destination, so
+         a second one is only worth having if it describes it differently. */
+      { label: "How the callback works", href: "#how-it-works" },
     ],
   },
   {
@@ -75,9 +81,23 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <p className="mt-12 border-t border-white/8 pt-6 text-xs text-ink-muted">
-          &copy; {new Date().getFullYear()} BlueX. All rights reserved.
-        </p>
+        {/* `pr-16` reserves the lane the back-to-top button and the section
+            dock occupy. Nothing in this footer used to reach the right edge —
+            the copyright line is a short string on the left — so the fixed
+            controls had nothing to sit on top of. The share row does reach it,
+            and measured at 959px the last button ran 844–919 against the
+            control's 886–930: 33px of it was covered and unclickable. */}
+        <div className="mt-12 flex flex-col gap-6 border-t border-white/8 pt-6 pr-16 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-ink-muted">
+            &copy; {new Date().getFullYear()} BlueX. All rights reserved.
+          </p>
+
+          <ShareLinks
+            url={SITE_URL}
+            title={`${SITE_NAME} — ${SITE_TAGLINE}`}
+            label="Share"
+          />
+        </div>
       </div>
     </footer>
   );

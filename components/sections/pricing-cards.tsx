@@ -57,9 +57,11 @@ export function PricingCards({ tiers }: { tiers: PricingTier[] }) {
               {String(i + 1).padStart(2, "0")}
             </p>
 
-            <h3 className="bx-display mt-3 text-2xl text-ink sm:text-[1.75rem]">
+            {/* Tier name, not a subsection — same call as the outcome and
+                reason cards. */}
+            <p className="bx-display mt-3 text-2xl text-ink sm:text-[1.75rem]">
               {tier.name}
-            </h3>
+            </p>
 
             {tier.tagline && (
               <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">

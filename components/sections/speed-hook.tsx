@@ -178,7 +178,8 @@ export function SpeedHook() {
             businesses right now. Whoever reaches them while the problem is
             still on their mind gets the conversation — everyone else gets
             voicemail. Most companies take hours to reply. That gap is where the
-            money leaks out.
+            money leaks out. A lead called back inside five minutes is simply
+            not having the same conversation as one called back tomorrow.
           </Reveal>
 
           {SOURCED_STAT && (
