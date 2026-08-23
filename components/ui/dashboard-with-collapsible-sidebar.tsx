@@ -12,6 +12,7 @@ import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
 import { AdminLeads } from "@/components/ui/admin-leads";
+import { AdminCalls } from "@/components/ui/admin-calls";
 import { AdminBlogManager } from "@/components/ui/admin-blog-manager";
 import { AdminProjectsManager } from "@/components/ui/admin-projects-manager";
 import {
@@ -26,6 +27,7 @@ import {
   AtSign,
   PenLine,
   PhoneCall,
+  PhoneIncoming,
   Briefcase,
 } from "lucide-react";
 
@@ -91,6 +93,9 @@ export function AdminDashboard({
     (count: number) => setAttentionCount(count),
     [],
   );
+  // Handed down to the Calls panel so its "view this lead" link can switch
+  // the sidebar's own tab — the selection lives here, not in the panel.
+  const handleViewLeads = useCallback(() => setSelected("Leads"), []);
 
   return (
     <div className="flex min-h-screen w-full">
@@ -115,6 +120,7 @@ export function AdminDashboard({
           footnote={footnote}
           onUnreadChange={handleUnread}
           onAttentionChange={handleAttention}
+          onViewLeads={handleViewLeads}
         />
       </div>
     </div>
@@ -180,6 +186,15 @@ function Sidebar({
           setSelected={setSelected}
           open={open}
           notifs={attention > 0 ? attention : undefined}
+        />
+        {/* No `notifs` prop — "unread" is not a concept that applies to an
+            archive. */}
+        <Option
+          Icon={PhoneIncoming}
+          title="Calls"
+          selected={selected}
+          setSelected={setSelected}
+          open={open}
         />
         <Option
           Icon={Inbox}
@@ -424,6 +439,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "Leads",
     subtitle: "Callback requests and what the voice agent did with them",
   },
+  Calls: {
+    title: "Calls",
+    subtitle: "Every conversation the agent has had, inbound and outbound",
+  },
   Inbox: {
     title: "Inbox",
     subtitle: "Contact-form submissions and email, in one place",
@@ -464,6 +483,7 @@ function DashboardContent({
   footnote,
   onUnreadChange,
   onAttentionChange,
+  onViewLeads,
 }: {
   isDark: boolean;
   setIsDark: (next: boolean) => void;
@@ -476,6 +496,7 @@ function DashboardContent({
   footnote: string;
   onUnreadChange: (count: number) => void;
   onAttentionChange: (count: number) => void;
+  onViewLeads: () => void;
 }) {
   const view = VIEWS[selected] ?? OVERVIEW;
   const isOverview = view === OVERVIEW;
@@ -509,6 +530,7 @@ function DashboardContent({
       {selected === "Leads" && (
         <AdminLeads onAttentionChange={onAttentionChange} />
       )}
+      {selected === "Calls" && <AdminCalls onViewLeads={onViewLeads} />}
       {selected === "Inbox" && <AdminInbox onUnreadChange={onUnreadChange} />}
       {selected === "Settings" && <AdminChangePassword email={email} />}
       {selected === "Pricing" && <AdminPricingManager initial={tiers} />}

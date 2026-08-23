@@ -1,11 +1,30 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-guard";
 import { isConfigured } from "@/lib/elevenlabs";
-import { attentionLeadCount, listLeads, type LeadFilter } from "@/lib/lead-store";
+import {
+  needsAttentionCount,
+  listLeads,
+  type LeadFilter,
+  type LeadStage,
+} from "@/lib/lead-store";
 
 /** Anything else is treated as "all" rather than rejected — it is a view. */
 function parseFilter(value: string | null): LeadFilter {
   return value === "attention" || value === "completed" ? value : "all";
+}
+
+/**
+ * The closed set of stages, exactly as `app/api/admin/leads/[id]/route.ts`
+ * enforces on write. An unvalidated value here would reach `leadFilterFor`
+ * and, from there, a Mongo query built from a query string. Unlike the PATCH
+ * route this is a read, not a write, so a bad value is treated the same way
+ * `parseFilter` treats one — silently ignored rather than rejected — since
+ * the worst case is showing the unfiltered list, not writing anything wrong.
+ */
+const STAGES: LeadStage[] = ["new", "contacted", "qualified", "won", "lost"];
+
+function parseStage(value: string | null): LeadStage | undefined {
+  return value && STAGES.includes(value as LeadStage) ? (value as LeadStage) : undefined;
 }
 
 /**
@@ -20,12 +39,14 @@ export async function GET(request: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
 
-  const filter = parseFilter(new URL(request.url).searchParams.get("filter"));
+  const params = new URL(request.url).searchParams;
+  const filter = parseFilter(params.get("filter"));
+  const stage = parseStage(params.get("stage"));
 
   try {
     const [leads, attention] = await Promise.all([
-      listLeads({ filter }),
-      attentionLeadCount(),
+      listLeads({ filter, stage }),
+      needsAttentionCount(),
     ]);
 
     return NextResponse.json({

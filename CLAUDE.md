@@ -53,15 +53,31 @@ here" outline) in `:root`. The header pill and the side dock both read them, so
 neither can be restyled alone. Offsets/directions are local to each component —
 a pill under the top edge catches light differently from one on the right edge.
 
-**The lead flow stores before it dials.** `/api/lead` limits, validates, writes
-to the `leads` collection, *then* asks ElevenLabs to call — never the other way
-round. A lead recorded but not called can be rung from the dashboard; a lead
-called but not recorded is a conversation nobody can follow up. The dispatch is
-awaited rather than deferred because the response's `dispatched` flag is what
-the form's copy reads, and a guess there turns "your phone is about to ring"
-into a hope. `/api/lead/callback` matches the post-call webhook back to the lead
-by `conversationId` — the only handle the provider sends — and its signature
-check is not optional: the endpoint is public and it writes transcripts.
+**A lead is a person; a call is a conversation.** `lib/lead-store.ts` keyed on a
+unique `phoneKey` (digits only) so both intake paths — the form and an inbound
+ring — find-or-create instead of insert: submit twice and you're one lead with
+two calls. `lib/call-store.ts` holds every conversation in either direction,
+transcript included; the lead itself carries no transcript anymore, just
+`stage` (new/contacted/qualified/won/lost), `followUpAt`, and append-only
+`notes`. **Two writers deliberately race to record a call** — the post-call
+webhook (`/api/calls/webhook`) and the reconciliation cron
+(`/api/cron/call-sync`) both call `lib/call-intake.ts`'s `recordConversation`,
+and neither checks whether the other already got there. The unique index on
+`conversationId` in `calls` is what makes that safe: the second insert collides
+and `insertCallIfNew` returns null instead of throwing. Anyone who "fixes" that
+by checking first will reintroduce the duplicates the index exists to prevent
+— a check-then-insert is never atomic against a second writer doing the same
+check. `lib/call-payload.ts` does the pure parsing (unit tested, no network);
+`lib/call-intake.ts` is the single path both routes call afterward, which is
+why a call the cron recovers hours late is stored identically to one the
+webhook caught on time. A caller who withholds their number gets no lead —
+the call is stored with `leadId: ""` rather than merging into one fictional
+"anonymous" person. `app/api/lead/callback/route.ts` still exists as a
+deprecated alias that logs a warning and delegates to the new handler; it
+stays until the ElevenLabs dashboard is confirmed pointing at
+`/api/calls/webhook`, because the webhook URL lives in their dashboard, not
+this repo, and renaming the route without repointing it would silently drop
+every call.
 
 **The bell** (`scroll-bell.tsx` + `bell-notify.tsx`) scales from `--bell-size`,
 not its `size` prop — `BellNotify` writes `font-size` inline, which no stylesheet
@@ -110,6 +126,12 @@ Two traps in that harness:
 - **Do not `pkill -f "next start"`** — it kills the agent's own shell (exit 144).
   Kill PIDs one at a time.
 
+`npm test` runs Node's built-in test runner over pure logic only — payload
+parsing, phone-key derivation, stage transitions, filter composition — nothing
+that touches Mongo or HTTP. Anything that does (the webhook, the cron, the
+admin routes) is verified with curl against a running dev server instead;
+there is no mocked-database test suite here.
+
 ## Performance
 
 Baseline after the audit: **median LCP 2500ms** (range 2440–2552) at 390×844,
@@ -132,15 +154,25 @@ Run counts of 5 minimum; a single "after" number was 600ms off the median once.
   acting on any SEO finding — several of the obvious readings were wrong. The
   short version: on-page work is largely exhausted, and what remains is backlinks
   (7 links, 6 domains) and putting a CDN in front of a single-region origin.
-- **The ElevenLabs keys are not set.** The lead flow is wired end to end —
-  `/api/lead` stores every submission in the `leads` collection and dispatches
-  a call, `/api/lead/callback` records the transcript, and the Leads panel in
-  `/admin` shows both — but with `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID` and
-  `ELEVENLABS_AGENT_PHONE_NUMBER_ID` unset nothing is dialled. Leads are still
-  stored and marked `not_configured`, the form still returns
-  `{ ok, dispatched:false }`, and the dashboard says which of the two it is.
-  Also needs `ELEVENLABS_WEBHOOK_SECRET`, or the callback refuses every request.
-  The old `HERMES_WEBHOOK_URL` is gone; `docker-compose.yml` still passes it.
+- **Two things outstanding, both in the ElevenLabs dashboard, neither fixable
+  from this repo.** (1) The post-call webhook still needs to be repointed at
+  `/api/calls/webhook` — until that's confirmed, leave
+  `app/api/lead/callback/` in place as the deprecated alias it is; deleting it
+  first would silently drop every call. (2) The agent needs to be attached to
+  the phone number **for inbound**, or a call placed to that number rings
+  nothing — outbound dispatch works independently of this setting, which is
+  why it's easy to miss.
+- **The ElevenLabs keys *are* set** in `.env.local` — this entry previously said
+  they were not, and that had drifted. `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`
+  and `ELEVENLABS_AGENT_PHONE_NUMBER_ID` all have values, so outbound dispatch is
+  live. With them unset, leads are still stored and marked `not_configured` and
+  the form returns `{ ok, dispatched:false }`. `ELEVENLABS_WEBHOOK_SECRET` is also
+  set, without which the callback refuses every request. The old
+  `HERMES_WEBHOOK_URL` is gone; `docker-compose.yml` still passes it.
+- **There are already 10 real conversations in the `calls` collection**, inbound,
+  including a 169-second/11-turn one. They were synced from the live account while
+  this feature was being built, which is why the Calls panel has data to show the
+  moment it is deployed rather than an empty state.
 - `metadataBase` is `https://bluex.agency`. Deploying elsewhere first will point
   OG images and canonicals at the wrong host.
 - `app/faviconx.ico` (87KB) is tracked and unused — Next only serves

@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { clientIp, hashIp } from "@/lib/client-ip";
 import { validateLead, type LeadInput, type LeadSource } from "@/lib/lead";
 import {
-  createLead,
+  findOrCreateLeadByPhone,
   recordDispatch,
   recordDispatchFailure,
 } from "@/lib/lead-store";
@@ -88,7 +88,8 @@ export async function POST(request: Request) {
 
   let stored;
   try {
-    stored = await createLead({ ...lead, ipHash });
+    const { lead: found } = await findOrCreateLeadByPhone({ ...lead, ipHash });
+    stored = found;
   } catch (error) {
     // Nothing downstream is worth attempting if the lead cannot be written —
     // it would be a call with no record of who it was for.
