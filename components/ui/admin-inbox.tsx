@@ -360,7 +360,7 @@ function ThreadList({
   }
 
   return (
-    <ul className="max-h-[70vh] divide-y divide-gray-200 overflow-y-auto rounded-xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
+    <ul className="max-h-[70vh] divide-y divide-gray-200 overflow-hidden overflow-y-auto rounded-xl border border-gray-200 bg-white dark:divide-gray-800 dark:border-gray-800 dark:bg-gray-900">
       {threads.map((thread) => (
         <li key={thread.id}>
           <button
@@ -485,7 +485,7 @@ function Conversation({
       {/* `min-h-0` so this scrolls instead of pushing the composer off the
           bottom — a flex child defaults to `min-height: auto` and refuses to
           shrink below its content. Same trap as the Harvard modal. */}
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-4 overflow-hidden overflow-y-auto p-4">
         {loading ? (
           <div className="flex justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-gray-400" aria-hidden />

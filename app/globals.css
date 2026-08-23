@@ -3956,3 +3956,116 @@
   color: #fff;
   box-shadow: inset 0 0 0 1px var(--edge-lit-color), var(--edge-lit-glow);
 }
+
+/* ---------------------------------------------------------------------------
+   Admin scrollbars
+
+   The admin area is the one place in this project that scrolls a lot of real
+   content — lead lists, call transcripts, an inbox — and it was doing it with
+   whatever the OS draws. Scoped to `.bx-admin` (set on the wrapper in
+   `app/(admin)/layout.tsx`) so the marketing site keeps its own arrangement,
+   where the document bar is hidden on purpose because Lenis owns scrolling.
+
+   Two engine facts shape everything below, and both cost time to find:
+
+   1. **Chrome drops `::-webkit-scrollbar` entirely for any element carrying a
+      non-`auto` `scrollbar-width` or `scrollbar-color`.** Writing the standard
+      properties next to the pseudo-elements — the arrangement every snippet
+      online suggests — silently forfeits the rounded thumb and the hover state
+      in the browser most of this dashboard is read in. So the standard path
+      lives in an `@supports not` block that only Firefox enters.
+   2. **`::-webkit-scrollbar-thumb` does not transition in Blink.** A
+      `transition` on the thumb is dead weight that reads as though the hover
+      fades. It does not, in any engine, so none is declared.
+   --------------------------------------------------------------------------- */
+
+/* On the root rather than on `.bx-admin`: the document's scrollbar belongs to
+   the root element, and a custom property set on a descendant cannot be read
+   from there. `.dark` is already on `<html>` — the admin theme script puts it
+   there before first paint — so both themes hang off the element that owns the
+   bar. */
+:root {
+  --admin-scroll-size: 11px;
+  /* The thumb has no padding of its own; a transparent border plus
+     `background-clip: padding-box` is what gives it air inside the gutter, so
+     the visible thumb is `size - 2 * inset` wide and the rest reads as track. */
+  --admin-scroll-inset: 3px;
+  --admin-scroll-thumb: #c6cad3;
+  --admin-scroll-thumb-hover: #9aa1ae;
+}
+
+.dark {
+  /* Lifted off the gray-900 panel surface rather than the gray-950 page, since
+     that is what most of the scrolling happens against. */
+  --admin-scroll-thumb: #39404e;
+  --admin-scroll-thumb-hover: #525b6c;
+}
+
+/* Firefox, and anything else without the WebKit pseudo-elements. See note 1
+   above for why this is fenced off rather than written alongside them. */
+@supports not selector(::-webkit-scrollbar) {
+  html:has(.bx-admin),
+  .bx-admin,
+  .bx-admin * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--admin-scroll-thumb) transparent;
+  }
+}
+
+/* `display: block` undoes the base-layer rule that hides the document bar for
+   the marketing site. This block is unlayered, so it wins on that alone. */
+html:has(.bx-admin)::-webkit-scrollbar,
+.bx-admin::-webkit-scrollbar,
+.bx-admin *::-webkit-scrollbar {
+  display: block;
+  width: var(--admin-scroll-size);
+  height: var(--admin-scroll-size);
+}
+
+/* Transparent, not tinted: these gutters run over white cards, gray page
+   background and the sidebar alike, and any one fill is wrong against two of
+   them. The thumb alone carries the affordance. */
+html:has(.bx-admin)::-webkit-scrollbar-track,
+.bx-admin::-webkit-scrollbar-track,
+.bx-admin *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Where a vertical and a horizontal bar meet. Left unfilled it draws as a pale
+   notch in the corner of the panel. */
+html:has(.bx-admin)::-webkit-scrollbar-corner,
+.bx-admin::-webkit-scrollbar-corner,
+.bx-admin *::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+html:has(.bx-admin)::-webkit-scrollbar-thumb,
+.bx-admin::-webkit-scrollbar-thumb,
+.bx-admin *::-webkit-scrollbar-thumb {
+  background-color: var(--admin-scroll-thumb);
+  border: var(--admin-scroll-inset) solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+  /* A transcript long enough shrinks the thumb to a few pixels, which is both
+     unreadable as a position and too small to grab. */
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+}
+
+html:has(.bx-admin)::-webkit-scrollbar-thumb:hover,
+.bx-admin::-webkit-scrollbar-thumb:hover,
+.bx-admin *::-webkit-scrollbar-thumb:hover,
+html:has(.bx-admin)::-webkit-scrollbar-thumb:active,
+.bx-admin::-webkit-scrollbar-thumb:active,
+.bx-admin *::-webkit-scrollbar-thumb:active {
+  background-color: var(--admin-scroll-thumb-hover);
+}
+
+/* The buttons at either end. Chrome only draws them if they are styled, and
+   nothing here wants them — they are a Windows-only affordance that eats 22px
+   of a gutter this narrow. */
+html:has(.bx-admin)::-webkit-scrollbar-button,
+.bx-admin::-webkit-scrollbar-button,
+.bx-admin *::-webkit-scrollbar-button {
+  display: none;
+}

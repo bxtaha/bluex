@@ -37,9 +37,13 @@ export default function AdminLayout({
             dashboard down; uploading an image did exactly that. `translate="no"`
             is what Chrome reads, `notranslate` is what the Google Translate
             extension reads, and the admin area is staff-only English anyway. */}
+        {/* `bx-admin` is the scoping hook for the scrollbar treatment in
+            globals.css — every scroll container inside the admin area, plus the
+            document's own bar, which the marketing site hides for Lenis and an
+            admin tool has no reason to be without. */}
         <div
           translate="no"
-          className="notranslate min-h-screen bg-gray-50 dark:bg-gray-950"
+          className="bx-admin notranslate min-h-screen bg-gray-50 dark:bg-gray-950"
         >
           {children}
         </div>

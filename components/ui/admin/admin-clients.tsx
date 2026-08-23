@@ -301,7 +301,7 @@ export function AdminClients({
             <div
               role="radiogroup"
               aria-label="Filter by status"
-              className="flex gap-1 overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-gray-800"
+              className="flex gap-1 overflow-y-hidden overflow-x-auto rounded-lg bg-gray-100 p-1 dark:bg-gray-800"
             >
               {FILTERS.map((option) => (
                 <button
