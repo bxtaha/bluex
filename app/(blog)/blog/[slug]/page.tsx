@@ -105,13 +105,23 @@ export async function generateMetadata({
       modifiedTime: isoDate(post.updatedAt) || undefined,
       authors: post.author ? [post.author] : undefined,
       tags: post.tags,
-      images: image ? [{ url: image, alt: post.title }] : undefined,
+      // Spread, not `images: image ? … : undefined`. Next treats the key being
+      // *present* as "this route declares its own image" and suppresses the
+      // `opengraph-image.tsx` file convention — even when the value is
+      // undefined. Written the other way, every post without a cover shipped
+      // with no card at all, which is the bug this replaced.
+      ...(image ? { images: [{ url: image, alt: post.title }] } : {}),
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      // Always the large card now. It used to fall back to the small `summary`
+      // when a post had no cover, because a large card with no image is not
+      // something the platforms will render — but `opengraph-image.tsx` in this
+      // segment now generates one from the title, so there is always an image
+      // and the condition had nothing left to guard.
+      card: "summary_large_image",
       title,
       description,
-      images: image ? [image] : undefined,
+      ...(image ? { images: [image] } : {}),
     },
   };
 }
