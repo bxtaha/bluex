@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import {
   SESSION_COOKIE,
   SESSION_MAX_AGE,
   createSession,
   login,
 } from "@/lib/admin-auth";
+import { clientIp, hashIp } from "@/lib/client-ip";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * Admin sign-in.
@@ -13,6 +16,24 @@ import {
  * typed and receives a yes or a no; it never sees a hash, a user record, or
  * anything it could compare against offline.
  */
+
+/**
+ * Per-address attempt cap, in front of the per-account lockout in `login()`.
+ *
+ * The lockout alone left two holes. One address could try a single likely
+ * password against a hundred addresses and never trip a per-account counter,
+ * because each account only saw one failure. And anyone who knew an
+ * administrator's email could take the account away for fifteen minutes
+ * whenever they liked by failing eight logins against it — a lockout with
+ * nothing in front of it is a denial-of-service aimed at the account it
+ * protects.
+ *
+ * Ten rather than eight, so an administrator mistyping a password twice before
+ * getting it right is never the person this stops.
+ */
+const IP_LIMIT = 10;
+const WINDOW_MS = 15 * 60 * 1000;
+
 export async function POST(request: Request) {
   let body: { email?: unknown; password?: unknown };
 
@@ -22,6 +43,30 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { ok: false, message: "Malformed request." },
       { status: 400 },
+    );
+  }
+
+  // Checked before the password is verified, not after. scrypt is deliberately
+  // expensive — ~32MB and real CPU per call — so an unlimited endpoint that
+  // reaches it is a way to exhaust the server without guessing anything.
+  const ip = clientIp(await headers());
+  const limit = await rateLimit(
+    `admin-login:ip:${hashIp(ip) || ip}`,
+    IP_LIMIT,
+    WINDOW_MS,
+  );
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { ok: false, message: "Too many attempts. Try again in a few minutes." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(
+            Math.max(1, Math.ceil((limit.resetAt.getTime() - Date.now()) / 1000)),
+          ),
+        },
+      },
     );
   }
 
