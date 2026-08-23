@@ -88,9 +88,10 @@ export function WhyBluex() {
                 {reason.icon}
               </svg>
             </span>
-            <h3 className="bx-display mt-5 text-lg text-ink sm:text-xl">
+            {/* Card label rather than a subsection — see `outcomes.tsx`. */}
+            <p className="bx-display mt-5 text-lg text-ink sm:text-xl">
               {reason.title}
-            </h3>
+            </p>
             <p className="mt-3 text-sm leading-relaxed text-ink-muted">
               {reason.body}
             </p>

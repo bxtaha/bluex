@@ -24,6 +24,20 @@ import { cn } from "@/lib/utils";
  * screen readers announce a pile of fragments. The whole string is therefore
  * exposed once via `aria-label` and every piece is marked `aria-hidden`, so the
  * heading still reads as one phrase.
+ *
+ * That handles screen readers and does nothing for crawlers, which was a real
+ * bug. The roll needs two copies of every character — the one leaving and the
+ * one arriving — and rendering both as elements put both in the HTML. A
+ * text-based crawler concatenates text nodes and ignores `aria-hidden`
+ * entirely, so the `<h1>` of the home page read
+ * `"EveryEvery leadlead calledcalled backback inin fivefive minutes.minutes."`
+ * to every SEO tool that looked at it.
+ *
+ * So the arriving copy is not an element any more. Each character carries its
+ * own glyph in `data-char` and the replacement is drawn by a `::after` reading
+ * `content: attr(data-char)` (see `.bx-roll__char` in globals.css). Generated
+ * content is not in the DOM: it renders, it animates, and `textContent` never
+ * sees it. One copy in the markup, two on screen.
  */
 
 export function TextRoll({
@@ -77,31 +91,6 @@ export function TextRoll({
       const start = starts[i];
       const chars = Array.from(word);
 
-      // Both layers hold the same characters. One is the text as it stands,
-      // the other is parked below the mask waiting to take its place.
-      const layer = (variant: "out" | "in") => (
-        <span className={`bx-roll__layer bx-roll__layer--${variant}`}>
-          {chars.map((char, j) => {
-            const index = start + j;
-            return (
-              <span
-                key={`${variant}-${j}`}
-                className="bx-roll__char"
-                style={
-                  {
-                    "--roll-i": center
-                      ? Math.abs(index - middle)
-                      : index,
-                  } as React.CSSProperties
-                }
-              >
-                {char}
-              </span>
-            );
-          })}
-        </span>
-      );
-
       return (
         <React.Fragment key={`${word}-${i}`}>
           {i > 0 ? " " : null}
@@ -110,9 +99,28 @@ export function TextRoll({
             aria-hidden
             style={{ "--word-i": i } as React.CSSProperties}
           >
-            <span className="bx-word__inner bx-roll">
-              {layer("out")}
-              {layer("in")}
+            <span className="bx-word__inner">
+              {chars.map((char, j) => {
+                const index = start + j;
+                return (
+                  <span
+                    key={j}
+                    className="bx-roll__char"
+                    // The replacement glyph. Read back by `content: attr()`
+                    // rather than rendered, so it costs nothing in the HTML.
+                    data-char={char}
+                    style={
+                      {
+                        "--roll-i": center
+                          ? Math.abs(index - middle)
+                          : index,
+                      } as React.CSSProperties
+                    }
+                  >
+                    {char}
+                  </span>
+                );
+              })}
             </span>
           </span>
         </React.Fragment>

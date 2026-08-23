@@ -959,24 +959,44 @@
 .bx-post-card {
   overflow: hidden;
   /* Cards sit in a grid row, so they stretch to the tallest — this makes the
-     inner link fill that height instead of leaving dead space below a short
+     inner column fill that height instead of leaving dead space below a short
      excerpt that is still part of the card and still not clickable. */
   display: flex;
   height: 100%;
+  /* What the stretched link below is measured against. */
+  position: relative;
 }
 
-.bx-post-card__link {
+.bx-post-card__inner {
   display: flex;
   flex-direction: column;
   width: 100%;
+}
+
+.bx-post-card__link {
   text-decoration: none;
   color: inherit;
 }
 
-.bx-post-card__link:focus-visible {
+/* The card is the target; the title is the link. See `post-card.tsx` — an `<a>`
+   around the whole card made its anchor text the entire card's prose, which is
+   what a search engine reads as the description of the destination. This covers
+   the same area without swallowing the text. */
+.bx-post-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* On the pseudo-element rather than the anchor, so the ring is drawn around the
+   card the way it was when the anchor *was* the card. On the anchor itself it
+   would trace the title's line boxes. */
+.bx-post-card__link:focus-visible::after {
   outline: 2px solid var(--color-electric-glow);
   outline-offset: -3px;
-  border-radius: inherit;
+  /* `.bx-card`'s radius, stated rather than inherited: the pseudo-element's
+     parent is now the anchor, which has no radius of its own to inherit. */
+  border-radius: 1.25rem;
 }
 
 .bx-post-card__media {
@@ -997,7 +1017,10 @@
 }
 
 @media (hover: hover) {
-  .bx-post-card__link:hover .bx-post-card__image {
+  /* Read from the card, not the anchor. The anchor is the title now, and the
+     image is no longer inside it — but the card is still the hover target,
+     because the anchor's stretched `::after` covers it. */
+  .bx-post-card:hover .bx-post-card__image {
     transform: scale(1.04);
   }
 }
@@ -1100,7 +1123,7 @@
 /* The index's lead item: the same card turned on its side, so the cover has
    room to be a picture rather than a strip. */
 @media (min-width: 900px) {
-  .bx-post-card--featured .bx-post-card__link {
+  .bx-post-card--featured .bx-post-card__inner {
     flex-direction: row;
     align-items: stretch;
   }
@@ -2221,22 +2244,34 @@
   cursor: pointer;
 }
 
-.bx-roll {
+.bx-roll__char {
+  display: inline-block;
+  /* The replacement is drawn against this box, so this is the box it is
+     positioned from. */
   position: relative;
 }
 
-.bx-roll__layer {
-  display: block;
-}
+/* The replacement, stacked exactly over the character it replaces.
+   `content: attr(data-char)` rather than a second span, because a second span
+   is a second copy of the headline in the HTML — which is what a crawler
+   reads. Generated content paints and animates and never enters the DOM, so
+   the `<h1>` carries its text exactly once. See `text-roll.tsx`.
 
-/* The replacement, stacked exactly over the text it replaces. */
-.bx-roll__layer--in {
+   The offset is constant and deliberately not animated. A pseudo-element is a
+   child of its originating element, so it already carries whatever transform
+   that element has; parking this copy one mask-height down means the
+   character's own -110% on hover lands it at exactly 0. One transition drives
+   both halves of the roll, and they cannot fall out of step because there is
+   only one of them.
+
+   110% rather than 100%: the mask carries a little extra room at the bottom
+   for descenders, and a copy parked at exactly its own height would show its
+   top edge in that gap. */
+.bx-roll__char::after {
+  content: attr(data-char);
   position: absolute;
   inset: 0;
-}
-
-.bx-roll__char {
-  display: inline-block;
+  transform: translate3d(0, 110%, 0);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -2247,28 +2282,17 @@
     transition-delay: calc(var(--roll-i, 0) * 35ms);
   }
 
-  /* 110% rather than 100%: the mask carries a little extra room at the bottom
-     for descenders, and a character parked at exactly its own height would
-     show its top edge in that gap. */
-  .bx-roll__layer--in .bx-roll__char {
-    transform: translate3d(0, 110%, 0);
-  }
-
   /* Hover is read from the whole heading, so one pass crosses every word
      rather than each word rolling on its own as the cursor moves. */
-  .bx-rolltext:hover .bx-roll__layer--out .bx-roll__char {
+  .bx-rolltext:hover .bx-roll__char {
     transform: translate3d(0, -110%, 0);
-  }
-
-  .bx-rolltext:hover .bx-roll__layer--in .bx-roll__char {
-    transform: none;
   }
 }
 
-/* No roll to make, and the spare copy would otherwise sit on top of the text
-   it was going to replace. */
+/* No roll to make, and the spare copy would otherwise sit under the mask
+   waiting for a hover that never moves it. */
 @media (prefers-reduced-motion: reduce) {
-  .bx-roll__layer--in {
+  .bx-roll__char::after {
     display: none;
   }
 }

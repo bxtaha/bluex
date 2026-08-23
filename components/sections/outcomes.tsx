@@ -72,9 +72,13 @@ export function Outcomes() {
             <p className="bx-display text-2xl text-electric sm:text-3xl">
               {outcome.stat}
             </p>
-            <h3 className="bx-display mt-2 text-lg text-ink sm:text-xl">
+            {/* Styled text, not a heading. Four card labels under one section
+                title are not four subsections — marking them up as `h3` put
+                them in the document outline as if they were, which is how the
+                page ended up with 46 headings and no legible structure. */}
+            <p className="bx-display mt-2 text-lg text-ink sm:text-xl">
               {outcome.title}
-            </h3>
+            </p>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-ink-muted">
               {outcome.body}
             </p>

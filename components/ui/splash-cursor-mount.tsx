@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { useReducedMotion } from "@/lib/use-media-query";
+import { useReducedMotion, useTouchOnly } from "@/lib/use-media-query";
 
 /**
  * The fluid sim, kept off the critical path.
@@ -95,16 +95,25 @@ const MOUNT_DELAY = 300;
  * on a throttled phone). Waiting for `load` puts all of it after the largest
  * paint rather than in front of it. Nothing above the fold depends on it, so
  * nothing about the page looks unfinished during the wait.
+ *
+ * **A pointer to chase.** The sim exists to follow a cursor. On a phone there
+ * is no cursor — there is a finger that touches, drags and leaves, so the
+ * effect is invisible for all but the moment of a swipe, and it costs a WebGL
+ * context, ten compiled shaders and a screen's worth of framebuffers on the
+ * hardware least able to spare them. Gating here rather than inside the sim is
+ * the point: `SplashCursor` is a dynamic import, so a device that fails this
+ * test never downloads the 35KB chunk at all.
  */
 export function SplashCursorMount() {
   const reduced = useReducedMotion();
+  const touchOnly = useTouchOnly();
   // One piece of state, not a `ready` flag beside a colour: the colour is only
   // readable once the stylesheet has applied, which is the same moment the sim
   // may be built. Null means "not yet".
   const [color, setColor] = useState<string | null>(null);
 
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || touchOnly) return;
 
     let handle: number | undefined;
 
@@ -127,12 +136,12 @@ export function SplashCursorMount() {
       window.removeEventListener("load", start);
       if (handle !== undefined) window.clearTimeout(handle);
     };
-  }, [reduced]);
+  }, [reduced, touchOnly]);
 
-  // `reduced` is live, not read once at mount: turning the preference on with
-  // the page open unmounts the sim, and its own cleanup cancels the rAF loop
-  // and drops the pointer listeners.
-  if (reduced || color === null) return null;
+  // Both queries are live, not read once at mount: turning the preference on
+  // with the page open unmounts the sim, and its own cleanup cancels the rAF
+  // loop and drops the pointer listeners.
+  if (reduced || touchOnly || color === null) return null;
 
   return <SplashCursor {...SPLASH_CONFIG} COLOR={color} />;
 }

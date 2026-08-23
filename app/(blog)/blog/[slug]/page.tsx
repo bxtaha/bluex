@@ -18,6 +18,7 @@ import { ReadingProgress } from "@/components/blog/reading-progress";
 import { PostCard } from "@/components/blog/post-card";
 import { PostCta } from "@/components/blog/post-cta";
 import { PostNav } from "@/components/blog/post-nav";
+import { PostShare } from "@/components/blog/post-share";
 
 /**
  * A post.
@@ -251,6 +252,10 @@ export default async function PostPage({ params }: { params: Params }) {
           className="bx-prose bx-prose-width"
           dangerouslySetInnerHTML={{ __html: content }}
         />
+
+        <div className="bx-prose-width">
+          <PostShare title={post.title} slug={post.slug} />
+        </div>
 
         <div className="bx-prose-width mt-16">
           <PostCta />

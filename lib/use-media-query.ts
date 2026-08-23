@@ -40,3 +40,16 @@ export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 export function useReducedMotion() {
   return useMediaQuery(REDUCED_MOTION_QUERY);
 }
+
+/**
+ * A pointer that cannot hover and cannot point precisely — a finger.
+ *
+ * Both halves are needed. `hover: none` alone matches a laptop with a
+ * touchscreen that also has a trackpad, and `pointer: coarse` alone matches
+ * some pens. Together they describe a device whose only input is touch.
+ */
+export const TOUCH_ONLY_QUERY = "(hover: none) and (pointer: coarse)";
+
+export function useTouchOnly() {
+  return useMediaQuery(TOUCH_ONLY_QUERY);
+}

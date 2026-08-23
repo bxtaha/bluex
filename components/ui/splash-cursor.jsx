@@ -29,6 +29,37 @@ function SplashCursor({
     // Track if the effect is still active for cleanup
     let isActive = true;
 
+    /* Whether a frame is currently scheduled. Distinct from `isActive`, which
+       means "the component is mounted": the sim spends most of its life
+       mounted and not running. */
+    let running = false;
+
+    /* When the pointer last did anything. `0` rather than `Date.now()` so the
+       first frame — the one that sizes the canvas and allocates the
+       framebuffers — is immediately followed by a stop, and the sim idles from
+       mount until someone actually moves a mouse. */
+    let lastInputTime = 0;
+
+    /**
+     * How long after the last pointer input the simulation keeps stepping.
+     *
+     * This is the fix for a page that three separate lab tools could not
+     * finish loading. PageSpeed Insights' Lighthouse run failed twice with
+     * `RPC::DEADLINE_EXCEEDED` and GTmetrix gave up after two minutes, and the
+     * cause was not a slow resource — measured directly, the `load` event
+     * fires at ~1.2s over 21 small files. It was this loop. A full-screen
+     * WebGL fluid simulation stepping at 60fps forever never lets the main
+     * thread go quiet, and "wait for the page to go quiet" is precisely how
+     * both tools decide a page has finished loading. On their headless VMs
+     * there is no GPU either, so every one of those frames is rasterised in
+     * software.
+     *
+     * 2.5 seconds is well past the point where there is anything left to draw:
+     * at a dissipation of 3.5 the dye is down to ~0.02% of its peak, so the
+     * frame this stops on is an empty one and freezing it is invisible.
+     */
+    const IDLE_TIMEOUT = 2500;
+
     function pointerPrototype() {
       this.id = -1;
       this.texcoordX = 0;
@@ -686,7 +717,48 @@ function SplashCursor({
       applyInputs();
       step(dt);
       render(null);
+
+      /* Checked after the frame, not before it, so every wake-up renders at
+         least once — that is what sizes the canvas and allocates the
+         framebuffers on the very first call.
+
+         `document.hidden` is belt and braces: browsers already throttle rAF to
+         nothing in a background tab, so the loop would stall there anyway.
+         Stopping on purpose means it resumes from a fresh `lastUpdateTime`
+         instead of waking up with a stale one. */
+      if (document.hidden || Date.now() - lastInputTime > IDLE_TIMEOUT) {
+        running = false;
+        animationFrameId.current = null;
+        return;
+      }
+
       animationFrameId.current = requestAnimationFrame(updateFrame);
+    }
+
+    /**
+     * Restarts the loop, if it is not already going.
+     *
+     * `lastUpdateTime` is reset here rather than left where the last frame put
+     * it. `calcDeltaTime` clamps to 1/60th of a second so a long pause could
+     * not blow the simulation up, but it would still spend the first frame
+     * after a wake-up integrating a delta that describes the gap rather than
+     * the frame.
+     */
+    function startFrames() {
+      if (running || !isActive) return;
+      running = true;
+      lastUpdateTime = Date.now();
+      animationFrameId.current = requestAnimationFrame(updateFrame);
+    }
+
+    /* One wake path for every kind of pointer input, rather than a call added
+       to each of the five handlers below. `pointermove` and `pointerdown`
+       cover mouse, pen and touch between them, and both fire before the
+       mouse/touch handlers queue their splat — so the frame that applies the
+       input is the one this schedules. */
+    function wake() {
+      lastInputTime = Date.now();
+      startFrames();
     }
 
     function calcDeltaTime() {
@@ -1036,11 +1108,19 @@ function SplashCursor({
     window.addEventListener('touchmove', handleTouchMove, false);
     window.addEventListener('touchend', handleTouchEnd);
 
+    window.addEventListener('pointermove', wake, { passive: true });
+    window.addEventListener('pointerdown', wake, { passive: true });
+
+    /* One frame now, to size the canvas and build the framebuffers. It stops
+       itself on the way out — `lastInputTime` is still 0 — and stays stopped
+       until the pointer moves. */
+    running = true;
     updateFrame();
 
     // Cleanup function
     return () => {
       isActive = false;
+      running = false;
 
       // Cancel animation frame
       if (animationFrameId.current) {
@@ -1054,6 +1134,9 @@ function SplashCursor({
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
+
+      window.removeEventListener('pointermove', wake);
+      window.removeEventListener('pointerdown', wake);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

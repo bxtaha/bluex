@@ -11,10 +11,20 @@ import type { PostCard as PostCardData } from "@/lib/blog-store";
 /**
  * One post as a card.
  *
- * A server component with no interactivity of its own — the whole card is a
- * link, so there is nothing to hydrate. It wears `bx-card bx-hairline bx-lift`
- * like the services and pricing cards, because it belongs to the same page and
- * should not merely resemble them.
+ * A server component with no interactivity of its own — there is nothing to
+ * hydrate. It wears `bx-card bx-hairline bx-lift` like the services and pricing
+ * cards, because it belongs to the same page and should not merely resemble
+ * them.
+ *
+ * The whole card is clickable but only the title is the link. Those used to be
+ * the same thing — an `<a>` wrapped the card — and the cost was the anchor
+ * text, which is what a link tells search engines the destination is about.
+ * Wrapping everything made it the category, the title, the excerpt, the date
+ * and the read time run together: 230-odd characters beginning
+ * "ConversionThe fastest way to lose a lead is to answer tomorrowEvery enquiry
+ * form on the internet…". Anchoring the link on the title alone says the one
+ * thing worth saying, and `.bx-post-card__link::after` stretches over the card
+ * so the tap target is unchanged.
  *
  * `featured` is the index's lead item: the same card, laid out side by side and
  * given a larger title, rather than a second component that would drift.
@@ -39,7 +49,7 @@ export function PostCard({
         featured ? "bx-post-card--featured" : ""
       }`}
     >
-      <Link href={`/blog/${post.slug}`} className="bx-post-card__link">
+      <div className="bx-post-card__inner">
         <div className="bx-post-card__media">
           {cover ? (
             /* eslint-disable-next-line @next/next/no-img-element -- see
@@ -66,7 +76,9 @@ export function PostCard({
 
         <div className="bx-post-card__body">
           <Heading className="bx-post-card__title bx-display">
-            {post.title}
+            <Link href={`/blog/${post.slug}`} className="bx-post-card__link">
+              {post.title}
+            </Link>
           </Heading>
 
           {post.excerpt && (
@@ -86,7 +98,7 @@ export function PostCard({
             </span>
           </div>
         </div>
-      </Link>
+      </div>
     </article>
   );
 }

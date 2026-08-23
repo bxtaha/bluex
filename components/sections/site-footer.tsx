@@ -41,8 +41,15 @@ export function SiteFooter() {
 
           <div className="grid grid-cols-2 gap-10 sm:gap-16">
             {COLUMNS.map((column) => (
-              <div key={column.heading}>
-                <h2 className="bx-eyebrow">{column.heading}</h2>
+              /* `nav` + `aria-label` rather than a heading. These two words
+                 were `h2`s, which put "Services" and "Contact" into the
+                 document outline at the same level as the real sections of
+                 those names — two headings that said nothing new and read as
+                 duplicates to a crawler. A labelled landmark is what a group
+                 of links actually is, and screen readers announce it the same
+                 way the heading did. */
+              <nav key={column.heading} aria-label={column.heading}>
+                <p className="bx-eyebrow">{column.heading}</p>
                 {/* The rows carry their own height now, so the gap between
                     them comes out of the list. */}
                 <ul className="mt-2">
@@ -63,7 +70,7 @@ export function SiteFooter() {
                     </li>
                   ))}
                 </ul>
-              </div>
+              </nav>
             ))}
           </div>
         </div>

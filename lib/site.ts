@@ -21,11 +21,16 @@ export const SITE_TAGLINE = "Every lead called back in five minutes";
  * point — a site that describes itself differently depending on who asked is
  * a site nobody can quote.
  *
- * Kept to a single line and under ~200 characters. Facebook truncates around
- * 300, LinkedIn and X noticeably earlier, and a sentence cut mid-clause reads
- * worse than one that ended on purpose.
+ * Kept to a single line and under 155 characters, which is the binding limit.
+ * Facebook truncates around 300 and LinkedIn and X noticeably earlier, but
+ * Google is stricter than all of them and measures pixels rather than
+ * characters: the previous 176-character version rendered at 1066px against a
+ * ~1000px ceiling and lost its closing clause — the five-minute promise, which
+ * is the whole offer — to an ellipsis in search results. This one measures
+ * around 850px, so the sentence that ends the description is the sentence
+ * readers actually see.
  */
 export const SITE_DESCRIPTION =
-  "Never miss a call. Never lose a lead. We build smart AI agents solution for your business that answer every single call 24/7 and call back every new client within five minutes.";
+  "Never miss a call. Never lose a lead. We build AI voice agents that answer every call 24/7 and ring back every new lead within five minutes.";
 
 export const CONTACT_EMAIL = "hey@bluex.agency";

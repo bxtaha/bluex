@@ -89,9 +89,11 @@ export function HowItWorks() {
                       <span className="bx-display text-sm text-electric-glow">
                         {step.time}
                       </span>
-                      <h3 className="bx-display mt-1 text-xl text-ink sm:text-2xl">
+                      {/* Step label inside an ordered list, not a subsection
+                          heading — see `process.tsx`. */}
+                      <p className="bx-display mt-1 text-xl text-ink sm:text-2xl">
                         {step.title}
-                      </h3>
+                      </p>
 
                       {/* Descriptions always occupy their space and only their
                           opacity changes. Collapsing them would animate

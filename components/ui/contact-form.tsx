@@ -82,9 +82,9 @@ export function ContactForm() {
   return (
     <form onSubmit={submit} noValidate>
       <p className="bx-eyebrow">Send a note</p>
-      <h3 className="bx-display mt-2 text-2xl text-ink">
+      <p className="bx-display mt-2 text-2xl text-ink">
         Tell us what you need.
-      </h3>
+      </p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Field

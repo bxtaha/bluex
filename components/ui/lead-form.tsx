@@ -120,9 +120,14 @@ export function LeadForm({
               />
             </svg>
           </div>
-          <h2 id="lead-form-title" className="bx-display text-2xl">
+          {/* `p`, not `h2`. The accessible name comes from `aria-labelledby`
+              above, which does not care what element it points at, and the
+              form sits in the page's markup whether or not it is open — as an
+              `h2` it was a permanent entry in the document outline for a panel
+              nobody had asked to see. */}
+          <p id="lead-form-title" className="bx-display text-2xl">
             {dispatched ? "You’re in the queue" : "Got your details"}
-          </h2>
+          </p>
           <p className="mt-3 text-sm leading-relaxed text-ink-muted">
             {dispatched ? (
               <>
@@ -145,9 +150,9 @@ export function LeadForm({
       ) : (
         <form onSubmit={submit} noValidate className="p-7 sm:p-8">
           <p className="bx-eyebrow">Five minute callback</p>
-          <h2 id="lead-form-title" className="bx-display mt-2 text-2xl sm:text-3xl">
+          <p id="lead-form-title" className="bx-display mt-2 text-2xl sm:text-3xl">
             Tell us where to call.
-          </h2>
+          </p>
           <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">
             Our AI agent rings you back in under five minutes, qualifies what you
             need and books the meeting.

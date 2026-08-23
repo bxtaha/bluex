@@ -66,7 +66,12 @@ export function Process() {
                   {phase.duration}
                 </span>
               </div>
-              <h3 className="bx-display mt-5 text-xl text-ink">{phase.title}</h3>
+              {/* The `<ol>` already says these are four ordered steps; an `h3`
+                  each said it a second time and worse. It also collided with
+                  the pricing tier of the same name — "Launch" appeared twice
+                  in the outline, which is the duplicate heading text Seobility
+                  flagged. */}
+              <p className="bx-display mt-5 text-xl text-ink">{phase.title}</p>
               <p className="mt-2.5 text-sm leading-relaxed text-ink-muted">
                 {phase.body}
               </p>
