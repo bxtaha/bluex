@@ -84,6 +84,20 @@ export type Lead = {
 
   ipHash: string;
   createdAt: Date;
+
+  /**
+   * Reserved for the client portal.
+   *
+   * A client is a customer who will eventually see their own leads and call
+   * transcripts, and this is the field that association will hang from. It is
+   * declared now so adding the feature is not also a migration.
+   *
+   * Deliberately nothing more than a declaration: nothing writes it, and there
+   * is no index for it. An index on a field no query touches is dead weight, and
+   * a field nothing populates is not a half-built feature — it is a note about
+   * where the next one goes. Add both together, when there is a query.
+   */
+  clientId?: string;
 };
 
 type LeadDoc = Omit<Lead, "id"> & { _id?: ObjectId };

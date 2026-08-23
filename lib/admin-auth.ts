@@ -1,10 +1,22 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
 import type { Collection, ObjectId } from "mongodb";
 // Relative, with the extension: these are siblings, and spelling them this way
 // keeps the module resolvable by plain Node as well as by the bundler — the
 // seed script imports it directly, and Node does not know the `@/` alias.
 import { getDb } from "./mongodb.ts";
 import { hashPassword, verifyPassword } from "./password.ts";
+import {
+  DUMMY_HASH,
+  MIN_PASSWORD_LENGTH,
+  SESSION_MAX_AGE,
+  afterFailedAttempt,
+  afterSuccessfulLogin,
+  hashToken,
+  isLockedOut,
+  newToken,
+  normaliseEmail,
+  sessionExpiry,
+} from "./auth-core.ts";
 
 /**
  * Admin authentication, backed by MongoDB.
@@ -18,15 +30,23 @@ import { hashPassword, verifyPassword } from "./password.ts";
  *   kicking a stolen session — actually mean something.
  * - Lockout is durable. The previous in-memory counter reset on restart and was
  *   invisible to other instances; this one is a field on the user.
+ *
+ * The mechanics of tokens, lockout thresholds and session expiry now live in
+ * `auth-core.ts`, shared with the client portal's equivalent. What is *not*
+ * shared is storage: this file only ever reads `admin_users` and
+ * `admin_sessions`, and `client-auth.ts` only ever reads its own two. That is
+ * deliberate — a client's session token is absent from `admin_sessions`, so no
+ * client cookie can resolve to an administrator here even if it were renamed.
  */
 
+/**
+ * Re-exported rather than moved. Around twenty call sites import these from
+ * here, and the isolation this refactor exists for is not improved by touching
+ * every one of them.
+ */
+export { MIN_PASSWORD_LENGTH, SESSION_MAX_AGE, normaliseEmail };
+
 export const SESSION_COOKIE = "bx_admin";
-
-/** Eight hours — a working day, then sign in again. */
-export const SESSION_MAX_AGE = 60 * 60 * 8;
-
-const MAX_FAILED_ATTEMPTS = 8;
-const LOCKOUT_MS = 15 * 60 * 1000;
 
 export type AdminUser = {
   _id?: ObjectId;
@@ -60,11 +80,6 @@ async function sessions(): Promise<Collection<AdminSession>> {
   return db.collection<AdminSession>("admin_sessions");
 }
 
-/** Emails are identity here, so they are matched in one canonical form. */
-export function normaliseEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
 /**
  * Indexes. Called by the seed script rather than on every request.
  *
@@ -84,10 +99,6 @@ export async function ensureIndexes(): Promise<void> {
   await sessionCollection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 }
 
-function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
-
 /**
  * Issues a session and returns the cookie value.
  *
@@ -96,7 +107,7 @@ function hashToken(token: string): string {
  * as cookies, the same reason passwords are not stored either.
  */
 export async function createSession(user: AdminUser): Promise<string> {
-  const token = randomBytes(32).toString("hex");
+  const token = newToken();
   const collection = await sessions();
 
   await collection.insertOne({
@@ -104,7 +115,7 @@ export async function createSession(user: AdminUser): Promise<string> {
     userId: user._id!,
     email: user.email,
     createdAt: new Date(),
-    expiresAt: new Date(Date.now() + SESSION_MAX_AGE * 1000),
+    expiresAt: sessionExpiry(),
   });
 
   return token;
@@ -151,10 +162,6 @@ export type LoginResult =
  * Without that, "no such user" returns in a millisecond while a real user waits
  * for scrypt, and the difference tells an attacker which addresses exist.
  */
-const DUMMY_HASH =
-  "scrypt$32768$8$1$AAAAAAAAAAAAAAAAAAAAAA==$" +
-  "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-
 export async function login(
   emailInput: unknown,
   passwordInput: unknown,
@@ -172,37 +179,25 @@ export async function login(
     return { ok: false, reason: "invalid" };
   }
 
-  if (user.lockedUntil && user.lockedUntil.getTime() > Date.now()) {
+  if (isLockedOut(user)) {
     return { ok: false, reason: "locked" };
   }
 
   if (!(await verifyPassword(passwordInput, user.passwordHash))) {
-    const failedAttempts = (user.failedAttempts ?? 0) + 1;
     await collection.updateOne(
       { _id: user._id },
-      {
-        $set: {
-          failedAttempts,
-          lockedUntil:
-            failedAttempts >= MAX_FAILED_ATTEMPTS
-              ? new Date(Date.now() + LOCKOUT_MS)
-              : null,
-        },
-      },
+      { $set: afterFailedAttempt(user.failedAttempts) },
     );
     return { ok: false, reason: "invalid" };
   }
 
   await collection.updateOne(
     { _id: user._id },
-    { $set: { failedAttempts: 0, lockedUntil: null, lastLoginAt: new Date() } },
+    { $set: afterSuccessfulLogin() },
   );
 
   return { ok: true, user };
 }
-
-/** Shortest password the app will accept when one is being chosen. */
-export const MIN_PASSWORD_LENGTH = 8;
 
 export type ChangePasswordResult =
   | { ok: true; user: AdminUser }

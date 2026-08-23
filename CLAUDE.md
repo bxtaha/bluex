@@ -18,9 +18,11 @@ Tailwind v4 has **no config file**. Tokens live in `@theme inline` at the top of
 |---|---|
 | `components/sections/` | one file per page section, in `app/page.tsx` order |
 | `components/ui/` | reusable pieces (shadcn alias target) |
+| `components/ui/admin/` | admin chrome — card, table, button, field, states, dialog, toast |
 | `components/motion/` | reveal primitives — `Reveal`, `SplitText`, `Marquee` |
 | `components/providers/` | context + Lenis/GSAP wiring |
 | `lib/` | `gsap.ts`, `lenis.ts`, `reveal.ts`, `utils.ts` (`cn`) |
+| `tests/` | `node:test`, run with `npm test` — no framework, no new deps |
 
 **All component CSS lives in `app/globals.css`.** styled-jsx is not installed and
 there are no `.module.css` files. Tailwind utilities inline for layout; a named
@@ -78,6 +80,47 @@ stays until the ElevenLabs dashboard is confirmed pointing at
 `/api/calls/webhook`, because the webhook URL lives in their dashboard, not
 this repo, and renaming the route without repointing it would silently drop
 every call.
+
+**Two principals, two collections, two cookies.** `lib/auth-core.ts` holds the
+shared mechanics — token generation and hashing, lockout arithmetic, session
+expiry, `DUMMY_HASH`. `lib/admin-auth.ts` reads `admin_users`/`admin_sessions`
+behind `bx_admin`; `lib/client-auth.ts` reads `clients`/`client_sessions` behind
+`bx_client`. **Do not merge these into one collection with a `role` field.** The
+point is that a client's session token is *absent* from `admin_sessions`, so no
+client cookie resolves to an administrator — not because a check rejects it, but
+because the lookup cannot succeed. With roles, one guard that verifies the session
+and forgets the role escalates any client to full admin. Escalation here needs two
+independent bugs. Guards are `requireAdmin()` and `requireClient()`, deliberately
+separate functions rather than one taking a role argument.
+
+**Client status is re-checked on every request**, in `getClientSessionUser`, not
+just at login. Checking at login only means deactivating a client leaves the
+session they are currently holding working for up to eight hours. Deactivation
+also revokes their sessions in the same call.
+
+**Setup links are claimed with one conditional update**, not a read then a write —
+that is what makes single-use true rather than likely under concurrency. The spent
+digest moves to `setupTokenUsedHash`, which nothing authenticates against; it
+exists only so a second visit reads "already used" instead of "no such link",
+which matters because mail clients prefetch links and people double-click them.
+
+**`createClient` relies on the unique index** rather than checking for an existing
+email first, because a read-then-write loses the race where two admins add the
+same address at once. The index is created on first use as well as by the seed
+script — without it there is no duplicate-key error to catch and both inserts
+succeed, which is a bug the test suite caught.
+
+**The lead flow stores before it dials.** `/api/lead` limits, validates, writes
+to the `leads` collection, *then* asks ElevenLabs to call — never the other way
+round. A lead recorded but not called can be rung from the dashboard; a lead
+called but not recorded is a conversation nobody can follow up. The dispatch is
+awaited rather than deferred because the response's `dispatched` flag is what
+the form's copy reads, and a guess there turns "your phone is about to ring"
+into a hope. The post-call webhook matches a conversation back to its lead by
+`conversationId` — the only handle the provider sends — and its signature check
+is not optional: the endpoint is public and it writes transcripts. That handler
+now lives at `/api/calls/webhook`; see the lead-is-a-person note above for why
+`/api/lead/callback` still exists beside it.
 
 **The bell** (`scroll-bell.tsx` + `bell-notify.tsx`) scales from `--bell-size`,
 not its `size` prop — `BellNotify` writes `font-size` inline, which no stylesheet
@@ -166,13 +209,28 @@ Run counts of 5 minimum; a single "after" number was 600ms off the median once.
   they were not, and that had drifted. `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`
   and `ELEVENLABS_AGENT_PHONE_NUMBER_ID` all have values, so outbound dispatch is
   live. With them unset, leads are still stored and marked `not_configured` and
-  the form returns `{ ok, dispatched:false }`. `ELEVENLABS_WEBHOOK_SECRET` is also
-  set, without which the callback refuses every request. The old
-  `HERMES_WEBHOOK_URL` is gone; `docker-compose.yml` still passes it.
+  the form returns `{ ok, dispatched:false }` — and the dashboard overview now
+  says which of the two it is, rather than leaving it to be discovered from a
+  customer. `ELEVENLABS_WEBHOOK_SECRET` is also set, without which the callback
+  refuses every request. The old `HERMES_WEBHOOK_URL` is gone;
+  `docker-compose.yml` still passes it.
 - **There are already 10 real conversations in the `calls` collection**, inbound,
   including a 169-second/11-turn one. They were synced from the live account while
-  this feature was being built, which is why the Calls panel has data to show the
-  moment it is deployed rather than an empty state.
+  the call-tracking feature was being built, which is why the Calls panel has data
+  to show the moment it is deployed rather than an empty state.
+- **SMTP and IMAP are configured**, so mail works — the client invitation flow
+  uses `lib/mailer.ts` rather than adding a provider. Exercising invites sends
+  real email.
+- **`.env.example` had live Cloudinary credentials committed** (since `dc712cb`).
+  They are blanked now, but **the key still needs rotating in the Cloudinary
+  dashboard** — blanking stops it leaking again from a file people copy; it does
+  not un-leak it. History was deliberately not rewritten: several remote branches
+  share it, a rewrite breaks every clone, and rotation makes the history
+  irrelevant anyway.
+- **Pricing is researched but unpublished.** `docs/pricing.md` proposes figures
+  and per-lead billing; `docs/competitors.md` has the market data with sources.
+  Every tier still says "get a quote" and `priceRange` is still absent from the
+  structured data. Publishing is a business decision.
 - `metadataBase` is `https://bluex.agency`. Deploying elsewhere first will point
   OG images and canonicals at the wrong host.
 - `app/faviconx.ico` (87KB) is tracked and unused — Next only serves
