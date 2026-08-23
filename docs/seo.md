@@ -1,11 +1,40 @@
 # SEO: where this stands
 
 Written 23 August 2026, after two passes against a Seobility audit of the home
-page. This is the standing note — what is done, what is left, and what was
-measured rather than assumed. Update it rather than starting a third list.
+page. Updated 24 August 2026 for the client portal. This is the standing note —
+what is done, what is left, and what was measured rather than assumed. Update it
+rather than starting a third list.
 
 Scores at the time of the first audit: on-page **61**. Meta 80% · structure 58%
 · quality 79% · links 93% · **server config 0%** · **backlinks 18%**.
+
+## The client portal (24 August 2026)
+
+Adding `/clients` added three routes, and the only SEO work that mattered was
+keeping every one of them out of the index. Done:
+
+- `noindex, nofollow` on the `(clients)` route group's layout, matching `(admin)`.
+- `/clients` added to `robots.ts` disallow. Verified in the built output:
+  `Disallow: /api/`, `/admin`, `/clients`.
+- `sitemap.ts` needed no change — it is an explicit allowlist (home, blog, posts),
+  so new routes are excluded by construction rather than by anyone remembering.
+- All three routes build as `ƒ` (dynamic), confirmed in `next build` output. They
+  read cookies, so a prerendered copy served from a cache would be a real bug and
+  not merely an SEO one.
+
+**One of those is not belt and braces.** `/clients/setup` carries an invitation
+token in its query string. A crawler that fetched it would write a live
+credential into its logs and keep it in a cached snippet after the link had been
+used. The `noindex` is the guarantee; the robots disallow is what stops the fetch
+happening at all.
+
+Nothing else changed. No public page gained or lost a link, and the marketing
+site's metadata is untouched — the portal is linked from nowhere on it, which is
+also why it needs no internal-linking consideration.
+
+**Pricing is still unpublished, so `priceRange` is still correctly absent.** See
+the judgement call in section 5 below; `docs/pricing.md` now proposes figures, and
+if they are ever published that note and this one both need updating together.
 
 ## Done
 
