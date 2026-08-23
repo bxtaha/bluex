@@ -24,6 +24,10 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: TITLE,
     description: SITE_DESCRIPTION,
+    // Facebook and LinkedIn both read this and guess when it is absent. The
+    // audience spans the Gulf, Canada and Australia, and the guess is made
+    // from the crawler's own locale rather than the reader's.
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",

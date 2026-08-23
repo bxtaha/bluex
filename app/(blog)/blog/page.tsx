@@ -42,6 +42,19 @@ export const metadata: Metadata = {
     title: `Writing — ${SITE_NAME}`,
     description:
       "Notes on building fast websites and AI voice agents that call leads back within five minutes.",
+    // Declaring `openGraph` at all replaces the root block rather than merging
+    // with it, so `siteName` has to be restated or the card loses its byline.
+    siteName: SITE_NAME,
+  },
+  // Stated for the same reason, and it is not decoration: without this block
+  // the page fell back to the *root* Twitter metadata, so one link showed
+  // "Writing — BlueX" in Slack and "BlueX — Every lead called back in five
+  // minutes" on X. Same URL, two different claims about what it is.
+  twitter: {
+    card: "summary_large_image",
+    title: `Writing — ${SITE_NAME}`,
+    description:
+      "Notes on building fast websites and AI voice agents that call leads back within five minutes.",
   },
 };
 
