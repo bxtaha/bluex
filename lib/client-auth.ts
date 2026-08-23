@@ -71,6 +71,21 @@ export type Client = {
   setupTokenHash?: string | null;
   setupTokenExpiresAt?: Date | null;
   setupTokenUsedAt?: Date | null;
+  /**
+   * The digest of the token that *was* used, kept after `setupTokenHash` is
+   * nulled.
+   *
+   * Two fields rather than one because they answer different questions. The live
+   * field is what a claim matches against, and nulling it means no code path can
+   * accept a spent link even if a filter were written wrongly later. This field
+   * is only ever read to tell "you have already used this" apart from "no such
+   * link" — a distinction worth keeping, because email clients prefetch links and
+   * people double-click them, so a second visit is the common case rather than
+   * the suspicious one.
+   *
+   * It is not a credential: nothing authenticates against it.
+   */
+  setupTokenUsedHash?: string | null;
 };
 
 type ClientSession = {
@@ -84,7 +99,44 @@ type ClientSession = {
 
 async function clients(): Promise<Collection<Client>> {
   const db = await getDb();
-  return db.collection<Client>("clients");
+  const collection = db.collection<Client>("clients");
+  await ensureIndexesOnce(collection);
+  return collection;
+}
+
+/**
+ * Creates the indexes once per process, on first use.
+ *
+ * The seed script also calls `ensureClientIndexes`, and that is still the right
+ * place for it — but relying on it alone means a deployment where nobody ran the
+ * seed has a `clients` collection with no unique index on `email`. `createClient`
+ * depends on that index for correctness rather than convenience: it deliberately
+ * inserts and catches the duplicate-key error instead of reading first, because a
+ * read-then-write loses the race where two administrators add the same address at
+ * once. With no index there is no error to catch, and both inserts succeed.
+ *
+ * That is exactly what the test suite caught — duplicates were created because
+ * the index had not been built yet. Making it self-healing here follows the same
+ * pattern `lib/rate-limit.ts` already uses for its TTL index, and it means the
+ * guarantee does not depend on a deploy step somebody has to remember.
+ *
+ * A failure is logged and retried on the next call rather than thrown: an index
+ * that could not be created is a reason to be careful, not a reason to take the
+ * dashboard down.
+ */
+let indexed: Promise<unknown> | null = null;
+
+function ensureIndexesOnce(
+  collection: Collection<Client>,
+): Promise<unknown> {
+  indexed ??= collection
+    .createIndex({ email: 1 }, { unique: true })
+    .catch((error) => {
+      console.error("[clients] could not create the unique email index:", error);
+      indexed = null;
+    });
+
+  return indexed;
 }
 
 async function sessions(): Promise<Collection<ClientSession>> {
@@ -99,9 +151,12 @@ export async function ensureClientIndexes(): Promise<void> {
   ]);
 
   await clientCollection.createIndex({ email: 1 }, { unique: true });
-  // Sparse: most clients have no outstanding token, and a unique index would
-  // otherwise collide on the many documents where this is null.
+  // Sparse: most clients have no outstanding token, and indexing the many nulls
+  // would be pure overhead.
   await clientCollection.createIndex({ setupTokenHash: 1 }, { sparse: true });
+  // `checkSetupToken` looks in both fields to tell "already used" apart from "no
+  // such link", so both need to be reachable without a collection scan.
+  await clientCollection.createIndex({ setupTokenUsedHash: 1 }, { sparse: true });
   await clientCollection.createIndex({ createdAt: -1 });
   await sessionCollection.createIndex({ tokenHash: 1 }, { unique: true });
   await sessionCollection.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 });
@@ -453,12 +508,24 @@ export async function checkSetupToken(
 ): Promise<SetupTokenCheck> {
   if (!token) return { valid: false, reason: "unknown" };
 
-  const client = await (await clients()).findOne({
-    setupTokenHash: hashToken(token),
+  const tokenHash = hashToken(token);
+  const collection = await clients();
+
+  const client = await collection.findOne({
+    // Either the live token or the spent one, so a second visit can be told
+    // apart from a link that never existed.
+    $or: [{ setupTokenHash: tokenHash }, { setupTokenUsedHash: tokenHash }],
   });
 
   if (!client) return { valid: false, reason: "unknown" };
-  if (client.setupTokenUsedAt) return { valid: false, reason: "used" };
+
+  // Checked before expiry: a used link is used regardless of when it lapsed, and
+  // "already used, go and sign in" is more useful than "expired, ask for
+  // another" to someone whose password is already set.
+  if (client.setupTokenUsedHash === tokenHash || !client.setupTokenHash) {
+    return { valid: false, reason: "used" };
+  }
+
   if (client.status === "suspended") return { valid: false, reason: "suspended" };
   if (
     !client.setupTokenExpiresAt ||
@@ -519,8 +586,11 @@ export async function completeSetup(
         failedAttempts: 0,
         lockedUntil: null,
         // Nulled, not left in place. A used token that is still stored is a
-        // token that only policy stops working.
+        // token that only policy stops working. The digest moves to
+        // `setupTokenUsedHash`, which nothing authenticates against — it exists
+        // so a second visit reads "already used" rather than "no such link".
         setupTokenHash: null,
+        setupTokenUsedHash: tokenHash,
         setupTokenUsedAt: new Date(),
       },
     },

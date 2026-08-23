@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --experimental-strip-types --no-warnings --test tests/*.test.ts",
     "seed:admin": "node --experimental-strip-types --no-warnings scripts/seed-admin.ts",
     "seed:pricing": "node --experimental-strip-types --no-warnings scripts/seed-pricing.ts",
     "seed:blog": "node --experimental-strip-types --no-warnings scripts/seed-blog.ts",
