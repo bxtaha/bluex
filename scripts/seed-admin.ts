@@ -15,6 +15,7 @@
 
 import { readFileSync } from "node:fs";
 import { ensureIndexes, upsertAdminUser } from "../lib/admin-auth.ts";
+import { ensureClientIndexes } from "../lib/client-auth.ts";
 
 /** Next loads .env.local for the app; a bare node process does not. */
 function loadEnvLocal(): void {
@@ -47,7 +48,13 @@ if (!email || !password) {
 }
 
 try {
-  await ensureIndexes();
+  // The client collections are indexed here too. They belong to a different
+  // authentication system with its own collections, but they need the same
+  // one-off setup and there is no reason to make someone remember a second
+  // command — a unique index on `clients.email` that nobody installed is how two
+  // records for one address get created, and the create path relies on that
+  // index rather than a read-then-write precisely because it cannot race.
+  await Promise.all([ensureIndexes(), ensureClientIndexes()]);
   const { email: stored, created } = await upsertAdminUser(email, password);
   console.log(
     created
@@ -55,6 +62,7 @@ try {
       : `Admin account ${stored} already existed — password reset.`,
   );
   console.log("Indexes are in place (unique email, unique token, session TTL).");
+  console.log("Client indexes are in place (unique email, setup token, session TTL).");
 } catch (error) {
   console.error("Seeding failed:", error);
   process.exit(1);
