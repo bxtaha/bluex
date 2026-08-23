@@ -54,17 +54,25 @@ jobs:
             echo "::error::Deploy cannot run. Missing repository secrets:$missing. Add them under Settings > Secrets and variables > Actions."
             exit 1
           fi
-      - name: Pull new image and restart container
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script_stop: true
-          script: |
-            cd /docker/bluex
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
-            docker compose ps
+      - name: Pull new image and restart container (with retry)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$VPS_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          PORT="${VPS_PORT:-22}"
+          for attempt in 1 2 3 4 5; do
+            echo "Deploy attempt $attempt/5 to $VPS_HOST:$PORT..."
+            if ssh -i ~/.ssh/deploy_key -p "$PORT" -o StrictHostKeyChecking=no -o ConnectTimeout=15 -o ConnectionAttempts=1 "$VPS_USER@$VPS_HOST" 'set -e; cd /docker/bluex; docker compose pull; docker compose up -d; docker image prune -f; docker compose ps'; then
+              echo "Deploy succeeded on attempt $attempt."
+              exit 0
+            fi
+            echo "Attempt $attempt failed (likely a transient SSH timeout), retrying in 15s..."
+            sleep 15
+          done
+          echo "::error::Deploy failed after 5 attempts. SSH connection to $VPS_HOST:$PORT kept timing out - this looks like transient network flakiness between GitHub Actions and the VPS, not a config problem."
+          exit 1
