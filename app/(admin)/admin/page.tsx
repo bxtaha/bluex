@@ -9,6 +9,9 @@ import {
 } from "@/lib/contact";
 import { unreadThreadCount } from "@/lib/message-store";
 import { attentionLeadCount } from "@/lib/lead-store";
+import { countClients } from "@/lib/client-auth";
+import { isConfigured } from "@/lib/elevenlabs";
+import { isMailConfigured } from "@/lib/mailer";
 import { listAllPosts, type PostCard } from "@/lib/blog";
 import {
   DEFAULT_FOOTNOTE,
@@ -58,9 +61,14 @@ export default async function AdminPage() {
   let posts: PostCard[] = [];
   let projects: Project[] = [];
   let footnote = DEFAULT_FOOTNOTE;
+  // The overview leads with what needs a decision, and an outstanding invitation
+  // is one of those. Read here for the same reason as the other badges: it has to
+  // be right before anyone opens the Clients panel, which is what keeps it
+  // current afterwards.
+  let clientCounts = { total: 0, active: 0, invited: 0, suspended: 0 };
 
   try {
-    [tiers, contact, unread, attention, posts, projects, footnote] =
+    [tiers, contact, unread, attention, posts, projects, footnote, clientCounts] =
       await Promise.all([
         listAllTiers(),
         getContactSettings(),
@@ -69,6 +77,7 @@ export default async function AdminPage() {
         listAllPosts(),
         listAllProjects(),
         getFootnote(),
+        countClients(),
       ]);
   } catch (error) {
     // The dashboard is still worth showing without them; the pricing view will
@@ -87,6 +96,12 @@ export default async function AdminPage() {
       footnote={footnote}
       unread={unread}
       attention={attention}
+      clientCounts={clientCounts}
+      // Both of these fail silently in production — leads are stored but never
+      // called, clients are created but never emailed — so the overview says so
+      // rather than leaving someone to discover it from a customer.
+      voiceConfigured={isConfigured()}
+      mailConfigured={isMailConfigured()}
     />
   );
 }

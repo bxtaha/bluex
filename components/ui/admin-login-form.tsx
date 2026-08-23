@@ -61,7 +61,7 @@ export function AdminLoginForm({ notice }: { notice?: string }) {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6 dark:bg-gray-950">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <div className="grid size-12 place-content-center rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+          <div className="grid size-12 place-content-center rounded-xl bg-electric">
             <svg
               width="24"
               height="auto"
@@ -106,7 +106,7 @@ export function AdminLoginForm({ notice }: { notice?: string }) {
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+              className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-electric focus:ring-2 focus:ring-electric/20 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
               placeholder="you@example.com"
             />
           </div>
@@ -130,7 +130,7 @@ export function AdminLoginForm({ notice }: { notice?: string }) {
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
+              className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors placeholder:text-gray-400 focus:border-electric focus:ring-2 focus:ring-electric/20 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
               placeholder="••••••••"
             />
           </div>
@@ -149,7 +149,7 @@ export function AdminLoginForm({ notice }: { notice?: string }) {
           <button
             type="submit"
             disabled={pending}
-            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-electric text-sm font-medium text-white transition-colors hover:bg-electric-glow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" aria-hidden />

@@ -14,25 +14,33 @@ import { AdminInbox } from "@/components/ui/admin-inbox";
 import { AdminLeads } from "@/components/ui/admin-leads";
 import { AdminBlogManager } from "@/components/ui/admin-blog-manager";
 import { AdminProjectsManager } from "@/components/ui/admin-projects-manager";
+import { AdminClients } from "@/components/ui/admin/admin-clients";
 import {
-  Home,
-  Tag,
-  ChevronsRight,
-  LogOut,
-  Moon,
-  Sun,
-  Settings,
-  Inbox,
+  AdminOverview,
+  type OverviewData,
+} from "@/components/ui/admin/admin-overview";
+import {
+  AdminSidebar,
+  type NavGroup,
+} from "@/components/ui/admin/admin-sidebar";
+import {
   AtSign,
+  Briefcase,
+  Home,
+  Inbox,
+  LogOut,
+  Menu,
+  Moon,
   PenLine,
   PhoneCall,
-  Briefcase,
+  Settings,
+  Sun,
+  Tag,
+  Users,
 } from "lucide-react";
 
-type IconType = React.ComponentType<{ className?: string }>;
-
 /**
- * Collapsible-sidebar admin dashboard.
+ * The admin dashboard.
  *
  * Every item in the sidebar goes somewhere that works. The upstream component
  * this started from shipped a storefront's worth of demo furniture — sales
@@ -41,10 +49,21 @@ type IconType = React.ComponentType<{ className?: string }>;
  * like data. An admin panel that displays $24,567 of revenue for an agency that
  * sells two things is not a placeholder, it is a lie with a border-radius.
  *
- * The "Dashboard" item is the one exception: it is kept as an empty state
- * because it is going to hold a real overview, and the numbers for it (leads
- * awaiting a call, unread conversations) are already flowing into this
- * component for the sidebar badges.
+ * The chrome now comes from `components/ui/admin/`. Eight panels had each grown
+ * their own card, table header, empty state and button, and the copies had
+ * drifted into three radii and four spellings of "nothing here yet" — which is
+ * most of why this read as a template. The panels' own logic is untouched; only
+ * their surroundings moved.
+ *
+ * Two things changed structurally rather than visually:
+ *
+ * - **The sidebar is a drawer below `lg`.** It used to be a fixed 256px column at
+ *   every width, so on a 390px phone it took two thirds of the screen and left
+ *   the content unusable. This dashboard gets checked between calls at least as
+ *   often as at a desk.
+ * - **"Dashboard" is a real view.** It was a dashed box reading "Nothing here
+ *   yet"; the counts it needed were already flowing through this component for
+ *   the sidebar badges.
  */
 export function AdminDashboard({
   email,
@@ -56,6 +75,9 @@ export function AdminDashboard({
   footnote,
   unread,
   attention,
+  clientCounts,
+  voiceConfigured,
+  mailConfigured,
 }: {
   /** The signed-in account, resolved on the server by the page's guard. */
   email: string;
@@ -70,7 +92,12 @@ export function AdminDashboard({
   unread: number;
   /** Leads nobody has reached yet. The leads panel keeps it current after that. */
   attention: number;
+  clientCounts: { total: number; active: number; invited: number; suspended: number };
+  /** Whether the voice agent and mail are wired up — both fail silently. */
+  voiceConfigured: boolean;
+  mailConfigured: boolean;
 }) {
+  const router = useRouter();
   // The theme class is owned by the layout's provider, not by this page — the
   // login screen shares the area and has to agree with it. This only reads the
   // current value and asks for changes.
@@ -78,11 +105,14 @@ export function AdminDashboard({
   // Lifted out of the sidebar: the content area has to render according to the
   // same selection, and two copies of that state would drift.
   const [selected, setSelected] = useState("Dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   // Lifted for the same reason: the badge lives in the sidebar and the number
-  // is discovered by the inbox, so one of them has to own it and it cannot be
+  // is discovered by the panel, so one of them has to own it and it cannot be
   // the one that only sometimes renders.
   const [unreadCount, setUnreadCount] = useState(unread);
   const [attentionCount, setAttentionCount] = useState(attention);
+  const [invitedCount, setInvitedCount] = useState(clientCounts.invited);
 
   // Stable, or the inbox's fetch effect re-runs on every parent render and
   // polls the server in a loop.
@@ -91,322 +121,213 @@ export function AdminDashboard({
     (count: number) => setAttentionCount(count),
     [],
   );
+  const handleInvited = useCallback((count: number) => setInvitedCount(count), []);
 
-  return (
-    <div className="flex min-h-screen w-full">
-      <div className="flex w-full bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-        <Sidebar
-          email={email}
-          name={name}
-          selected={selected}
-          setSelected={setSelected}
-          unread={unreadCount}
-          attention={attentionCount}
-        />
-        <DashboardContent
-          isDark={isDark}
-          setIsDark={setIsDark}
-          selected={selected}
-          email={email}
-          tiers={tiers}
-          contact={contact}
-          posts={posts}
-          projects={projects}
-          footnote={footnote}
-          onUnreadChange={handleUnread}
-          onAttentionChange={handleAttention}
-        />
-      </div>
-    </div>
-  );
-}
-
-function Sidebar({
-  email,
-  name,
-  selected,
-  setSelected,
-  unread,
-  attention,
-}: {
-  email: string;
-  name?: string;
-  selected: string;
-  setSelected: (title: string) => void;
-  unread: number;
-  attention: number;
-}) {
-  const router = useRouter();
-  const [open, setOpen] = useState(true);
-
-  async function signOut() {
+  const signOut = useCallback(async () => {
     await fetch("/api/admin/logout", { method: "POST" });
     // `refresh` first so the server re-reads the now-cleared cookie; otherwise
     // the router can answer /admin from cache and appear still signed in.
     router.refresh();
     router.replace("/admin/login");
-  }
+  }, [router]);
+
+  const groups: NavGroup[] = [
+    {
+      items: [
+        { title: "Dashboard", icon: Home },
+        // Above the inbox on purpose: a lead nobody has called is the most
+        // time-sensitive thing this dashboard can be holding.
+        //
+        // `undefined` rather than 0 when there is nothing waiting — the badge
+        // renders any number it is given, and one reading "0" is a notification
+        // that there are no notifications.
+        {
+          title: "Leads",
+          icon: PhoneCall,
+          badge: attentionCount > 0 ? attentionCount : undefined,
+        },
+        {
+          title: "Inbox",
+          icon: Inbox,
+          badge: unreadCount > 0 ? unreadCount : undefined,
+        },
+        {
+          title: "Clients",
+          icon: Users,
+          badge: invitedCount > 0 ? invitedCount : undefined,
+        },
+      ],
+    },
+    {
+      // One editor per section of the site, in the order those sections appear
+      // on it, so the sidebar can be read against the page.
+      label: "Site content",
+      items: [
+        { title: "Work", icon: Briefcase },
+        { title: "Pricing", icon: Tag },
+        { title: "Blog", icon: PenLine },
+        { title: "Contact", icon: AtSign },
+      ],
+    },
+    {
+      label: "Account",
+      items: [
+        { title: "Settings", icon: Settings },
+        { title: "Sign out", icon: LogOut, onSelect: signOut },
+      ],
+    },
+  ];
+
+  const overview: OverviewData = {
+    attention: attentionCount,
+    unread: unreadCount,
+    invited: invitedCount,
+    clientsTotal: clientCounts.total,
+    clientsActive: clientCounts.active,
+    posts: posts.length,
+    projects: projects.length,
+    voiceConfigured,
+    mailConfigured,
+  };
+
+  const view = VIEWS[selected] ?? OVERVIEW;
 
   return (
-    <nav
-      className={`sticky top-0 h-screen shrink-0 border-r p-2 shadow-sm transition-all duration-300 ease-in-out ${
-        open ? "w-64" : "w-16"
-      } border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900`}
-    >
-      <TitleSection open={open} email={email} name={name} />
+    <div className="flex min-h-dvh w-full bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+      <AdminSidebar
+        groups={groups}
+        selected={selected}
+        onSelect={setSelected}
+        open={sidebarOpen}
+        setOpen={setSidebarOpen}
+        drawerOpen={drawerOpen}
+        setDrawerOpen={setDrawerOpen}
+        header={
+          <AccountBadge
+            email={email}
+            name={name}
+            compact={!sidebarOpen && !drawerOpen}
+          />
+        }
+      />
 
-      {/* Scrolls if the viewport is short, and stops above the collapse toggle,
-          which is pinned to the bottom of the sidebar. Both axes stated —
-          `overflow-y` alone computes `overflow-x` to `auto` and grows a phantom
-          horizontal scrollbar. */}
-      <div className="mb-8 max-h-[calc(100vh-13rem)] space-y-1 overflow-hidden overflow-y-auto">
-        <Option
-          Icon={Home}
-          title="Dashboard"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        {/* Above the inbox on purpose: a lead nobody has called is the most
-            time-sensitive thing this dashboard can be holding.
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-gray-200 bg-gray-50/85 px-4 py-3 backdrop-blur-sm sm:px-6 dark:border-gray-800 dark:bg-gray-950/85">
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open menu"
+            className="grid size-9 shrink-0 place-content-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-colors hover:text-gray-900 motion-reduce:transition-none lg:hidden dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            <Menu className="size-4" aria-hidden />
+          </button>
 
-            `undefined` rather than 0 when there is nothing waiting — `Option`
-            renders any number it is given, and a badge reading "0" is a
-            notification that there are no notifications. */}
-        <Option
-          Icon={PhoneCall}
-          title="Leads"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-          notifs={attention > 0 ? attention : undefined}
-        />
-        <Option
-          Icon={Inbox}
-          title="Inbox"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-          notifs={unread > 0 ? unread : undefined}
-        />
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-base font-semibold tracking-tight text-gray-900 sm:text-lg dark:text-gray-100">
+              {view.title}
+            </h1>
+            <p className="truncate text-[0.8125rem] text-gray-500 dark:text-gray-400">
+              {view.subtitle}
+            </p>
+          </div>
 
-        {/* One editor per section of the site, in the order those sections
-            appear on it, so the sidebar can be read against the page. */}
-        <Group label="Site content" open={open} />
-        <Option
-          Icon={Briefcase}
-          title="Work"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        <Option
-          Icon={Tag}
-          title="Pricing"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        <Option
-          Icon={PenLine}
-          title="Blog"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        <Option
-          Icon={AtSign}
-          title="Contact"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
+          {/* The theme toggle is the only control here that ever did anything.
+              The bell beside it opened nothing — the sidebar badges are the real
+              notification surface — and the account button opened nothing either,
+              with the signed-in address already shown at the top of the sidebar
+              and Settings one click below it. */}
+          <button
+            type="button"
+            onClick={() => setIsDark(!isDark)}
+            aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+            className="grid size-9 shrink-0 place-content-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-colors hover:text-gray-900 motion-reduce:transition-none dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            {isDark ? (
+              <Sun className="size-4" aria-hidden />
+            ) : (
+              <Moon className="size-4" aria-hidden />
+            )}
+          </button>
+        </header>
 
-        <Group label="Account" open={open} />
-        <Option
-          Icon={Settings}
-          title="Settings"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-        />
-        <Option
-          Icon={LogOut}
-          title="Sign out"
-          selected={selected}
-          setSelected={setSelected}
-          open={open}
-          onSelect={signOut}
-        />
+        <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">
+          {/* Capped so tables and prose do not stretch to 2560px, where a row's
+              first and last cell end up too far apart to read as one row. */}
+          <div className="mx-auto max-w-6xl">
+            {selected === "Leads" && (
+              <AdminLeads onAttentionChange={handleAttention} />
+            )}
+            {selected === "Inbox" && <AdminInbox onUnreadChange={handleUnread} />}
+            {selected === "Clients" && (
+              <AdminClients onInvitedChange={handleInvited} />
+            )}
+            {selected === "Settings" && <AdminChangePassword email={email} />}
+            {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
+            {selected === "Work" && (
+              <AdminProjectsManager initial={projects} initialFootnote={footnote} />
+            )}
+            {selected === "Blog" && <AdminBlogManager initial={posts} />}
+            {selected === "Contact" && <AdminContactManager initial={contact} />}
+            {view === OVERVIEW && (
+              <AdminOverview
+                data={overview}
+                onNavigate={setSelected}
+                name={name}
+              />
+            )}
+          </div>
+        </main>
       </div>
-
-      <ToggleClose open={open} setOpen={setOpen} />
-    </nav>
+    </div>
   );
 }
 
 /**
- * A heading between groups of sidebar items.
+ * Who you are signed in as.
  *
- * Collapsed, there is no room for the words, so it becomes a rule — the
- * grouping is the useful part and it survives at 64px wide. `aria-hidden`
- * either way: this is a visual grouping over a flat list of buttons, and
- * announcing a heading that labels nothing programmatically is worse than
- * silence.
+ * Not a button and no caret: this identifies the account, it does not open
+ * anything. The caret that used to sit on the right promised a menu that never
+ * existed.
  */
-function Group({ label, open }: { label: string; open: boolean }) {
-  if (!open) {
-    return (
-      <div
-        aria-hidden
-        className="mx-3 !mt-3 mb-1 border-t border-gray-200 pt-1 dark:border-gray-800"
-      />
-    );
-  }
-
-  return (
-    <div
-      aria-hidden
-      className="!mt-5 border-t border-gray-200 px-3 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400"
-    >
-      {label}
-    </div>
-  );
-}
-
-function Option({
-  Icon,
-  title,
-  selected,
-  setSelected,
-  open,
-  notifs,
-  onSelect,
-}: {
-  Icon: IconType;
-  title: string;
-  selected: string;
-  setSelected: (title: string) => void;
-  open: boolean;
-  notifs?: number;
-  /** Runs instead of marking the item current — for actions, not destinations. */
-  onSelect?: () => void;
-}) {
-  const isSelected = selected === title;
-
-  return (
-    <button
-      type="button"
-      onClick={() => (onSelect ? onSelect() : setSelected(title))}
-      title={open ? undefined : title}
-      aria-current={isSelected ? "page" : undefined}
-      className={`relative flex h-11 w-full items-center rounded-md transition-all duration-200 ${
-        isSelected
-          ? "border-l-2 border-blue-500 bg-blue-50 text-blue-700 shadow-sm dark:bg-blue-900/50 dark:text-blue-300"
-          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-      }`}
-    >
-      <div className="grid h-full w-12 place-content-center">
-        <Icon className="h-4 w-4" />
-      </div>
-
-      {open && <span className="text-sm font-medium">{title}</span>}
-
-      {/* `!= null` rather than a truthy check: `notifs={0}` is a real value and
-          a bare `notifs &&` would render the number 0 into the markup. */}
-      {notifs != null && open && (
-        <span className="absolute right-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-xs font-medium text-white dark:bg-blue-600">
-          {notifs}
-        </span>
-      )}
-    </button>
-  );
-}
-
-function TitleSection({
-  open,
+function AccountBadge({
   email,
   name,
+  compact,
 }: {
-  open: boolean;
   email: string;
   name?: string;
+  compact: boolean;
 }) {
   return (
-    <div className="mb-6 border-b border-gray-200 pb-4 dark:border-gray-800">
-      {/* Not a button and no caret: this identifies the signed-in account, it
-          does not open anything. The caret that used to sit on the right
-          promised a menu that never existed. */}
-      <div className="rounded-md p-2">
-        <div className="flex items-center gap-3">
-          <Logo />
-          {open && (
-            <div>
-              <span className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
-                {name ?? "BlueX"}
-              </span>
-              {/* The real signed-in account, not a hardcoded plan name — it is
-                  the one place that confirms who you are actually acting as. */}
-              <span className="block max-w-[9rem] truncate text-xs text-gray-500 dark:text-gray-400">
-                {email}
-              </span>
-            </div>
-          )}
-        </div>
+    <div className="flex items-center gap-2.5">
+      <div className="grid size-9 shrink-0 place-content-center rounded-lg bg-electric">
+        <svg
+          width="18"
+          height="auto"
+          viewBox="0 0 50 39"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="fill-white"
+          aria-hidden
+        >
+          <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" />
+          <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" />
+        </svg>
       </div>
-    </div>
-  );
-}
 
-function Logo() {
-  return (
-    <div className="grid size-10 shrink-0 place-content-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
-      <svg
-        width="20"
-        height="auto"
-        viewBox="0 0 50 39"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="fill-white"
-        aria-hidden
-      >
-        <path d="M16.4992 2H37.5808L22.0816 24.9729H1L16.4992 2Z" />
-        <path d="M17.4224 27.102L11.4192 36H33.5008L49 13.0271H32.7024L23.2064 27.102H17.4224Z" />
-      </svg>
-    </div>
-  );
-}
-
-function ToggleClose({
-  open,
-  setOpen,
-}: {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={() => setOpen(!open)}
-      aria-expanded={open}
-      aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-      className="absolute bottom-0 left-0 right-0 border-t border-gray-200 transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
-    >
-      <div className="flex items-center p-3">
-        <div className="grid size-10 place-content-center">
-          <ChevronsRight
-            className={`h-4 w-4 text-gray-500 transition-transform duration-300 dark:text-gray-400 ${
-              open ? "rotate-180" : ""
-            }`}
-          />
-        </div>
-        {open && (
-          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
-            Hide
+      {compact ? null : (
+        <div className="min-w-0">
+          <span className="block truncate text-[0.8125rem] font-semibold text-gray-900 dark:text-gray-100">
+            {name ?? "BlueX"}
           </span>
-        )}
-      </div>
-    </button>
+          {/* The real signed-in account, not a hardcoded plan name — it is the
+              one place that confirms who you are actually acting as. */}
+          <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
+            {email}
+          </span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -427,6 +348,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
   Inbox: {
     title: "Inbox",
     subtitle: "Contact-form submissions and email, in one place",
+  },
+  Clients: {
+    title: "Clients",
+    subtitle: "Who can sign in to the client portal",
   },
   Pricing: {
     title: "Pricing",
@@ -449,83 +374,7 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
 
 const OVERVIEW = {
   title: "Dashboard",
-  subtitle: "Welcome back to your dashboard",
+  subtitle: "What is waiting on you",
 };
-
-function DashboardContent({
-  isDark,
-  setIsDark,
-  selected,
-  email,
-  tiers,
-  contact,
-  posts,
-  projects,
-  footnote,
-  onUnreadChange,
-  onAttentionChange,
-}: {
-  isDark: boolean;
-  setIsDark: (next: boolean) => void;
-  selected: string;
-  email: string;
-  tiers: PricingTier[];
-  contact: ContactSettings;
-  posts: PostCard[];
-  projects: Project[];
-  footnote: string;
-  onUnreadChange: (count: number) => void;
-  onAttentionChange: (count: number) => void;
-}) {
-  const view = VIEWS[selected] ?? OVERVIEW;
-  const isOverview = view === OVERVIEW;
-
-  return (
-    <div className="flex-1 overflow-auto bg-gray-50 p-6 dark:bg-gray-950">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {view.title}
-          </h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">
-            {view.subtitle}
-          </p>
-        </div>
-        {/* The theme toggle is the only control here that ever did anything.
-            The bell beside it opened nothing — the sidebar badges are the real
-            notification surface — and the account button opened nothing either,
-            with the signed-in address already shown at the top of the sidebar
-            and Settings one click below it. */}
-        <button
-          type="button"
-          onClick={() => setIsDark(!isDark)}
-          aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
-        >
-          {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </button>
-      </div>
-
-      {selected === "Leads" && (
-        <AdminLeads onAttentionChange={onAttentionChange} />
-      )}
-      {selected === "Inbox" && <AdminInbox onUnreadChange={onUnreadChange} />}
-      {selected === "Settings" && <AdminChangePassword email={email} />}
-      {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
-      {selected === "Work" && (
-        <AdminProjectsManager initial={projects} initialFootnote={footnote} />
-      )}
-      {selected === "Blog" && <AdminBlogManager initial={posts} />}
-      {selected === "Contact" && <AdminContactManager initial={contact} />}
-      {isOverview && (
-        <div className="rounded-xl border border-dashed border-gray-300 px-6 py-16 text-center dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Nothing here yet. Pick a section from the sidebar.
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default AdminDashboard;
