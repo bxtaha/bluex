@@ -4,6 +4,11 @@ Marketing site for an agency selling two things: custom websites/e-commerce, and
 AI voice agents that call inbound leads within five minutes. Single page, dark,
 motion-heavy. `main` is what ships.
 
+**New here? `docs/overview.md` first.** It covers what the business is, the three
+services it sells, the four route groups and where everything lives. This file
+is the other half — the invariants and the traps, i.e. what will bite you once
+you start changing things.
+
 ## Stack
 
 Next 16.2.12 (App Router, Turbopack) · React 19.2.4 · Tailwind **v4** · TypeScript 5
@@ -27,7 +32,7 @@ Tailwind v4 has **no config file**. Tokens live in `@theme inline` at the top of
 **All component CSS lives in `app/globals.css`.** styled-jsx is not installed and
 there are no `.module.css` files. Tailwind utilities inline for layout; a named
 `.bx-*` / `.nav-*` / `.site-header__*` class in globals.css for anything with
-state, pseudo-elements or keyframes. ~2,200 lines and that is deliberate.
+state, pseudo-elements or keyframes. ~4,100 lines and that is deliberate.
 
 ## Architecture worth knowing before you touch it
 
@@ -130,6 +135,14 @@ taller than the viewport and popped when a URL bar collapsed across that line.
 
 ## Gotchas that cost real time
 
+- **Never write `scrollbar-width`/`scrollbar-color` beside `::-webkit-scrollbar`.**
+  Chrome drops the pseudo-elements entirely for any element carrying a non-`auto`
+  value of either standard property — so the arrangement every snippet online
+  suggests silently forfeits the custom scrollbar in Blink while looking correct
+  in the source. The admin block at the end of globals.css keeps the standard
+  path in an `@supports not selector(::-webkit-scrollbar)` fence that only
+  Firefox enters. Also: `::-webkit-scrollbar-thumb` does not transition in Blink,
+  so do not declare one.
 - **Never write `-webkit-backdrop-filter`.** Chrome 150 rejects it outright, and
   Lightning CSS collapses an author-written pair keeping only the prefixed one —
   the element silently loses its blur. Write the standard property alone; the
