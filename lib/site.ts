@@ -31,6 +31,6 @@ export const SITE_TAGLINE = "Every lead called back in five minutes";
  * readers actually see.
  */
 export const SITE_DESCRIPTION =
-  "Never miss a call. Never lose a lead. We build AI voice agents that answer every call 24/7 and ring back every new lead within five minutes.";
+  "Never miss a call. Never lose a lead. Smart AI agents that answer every single call 24/7 and call back every new client within five minutes.";
 
 export const CONTACT_EMAIL = "hey@bluex.agency";

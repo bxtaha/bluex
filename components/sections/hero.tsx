@@ -90,8 +90,8 @@ export function Hero() {
           index={1}
           className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-ink-muted sm:text-lg"
         >
-          We build the websites that bring you leads and the AI voice agents that
-          call them before your competitors even open the email.
+          Smart AI agents that answer every single call 24/7 and call back every
+          new client within five minutes.
         </Reveal>
 
         <Reveal

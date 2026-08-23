@@ -40,8 +40,9 @@ export function SiteFooter() {
               className="h-12 w-auto"
             />
             <p className="mt-4 text-sm leading-relaxed text-ink-muted">
-              A web and AI-automation studio for businesses in the Gulf, Canada
-              and Australia.
+              Smart AI agents that answer every call 24/7 and call back every
+              new client within five minutes. For businesses in the Gulf,
+              Canada and Australia.
             </p>
           </div>
 
