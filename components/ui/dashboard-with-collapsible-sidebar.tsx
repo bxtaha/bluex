@@ -35,6 +35,7 @@ import {
   PenLine,
   PhoneCall,
   PhoneIncoming,
+  PhoneOutgoing,
   Settings,
   Sun,
   Tag,
@@ -151,8 +152,12 @@ export function AdminDashboard({
           icon: PhoneCall,
           badge: attentionCount > 0 ? attentionCount : undefined,
         },
-        // No badge — "unread" is not a concept that applies to an archive.
-        { title: "Calls", icon: PhoneIncoming },
+        // Two entries, not one "Calls" with a filter inside it — the split
+        // is what makes each direction's volume visible without opening the
+        // panel. No badge on either: "unread" is not a concept that applies
+        // to an archive.
+        { title: "Inbound Calls", icon: PhoneIncoming },
+        { title: "Outbound Calls", icon: PhoneOutgoing },
         {
           title: "Inbox",
           icon: Inbox,
@@ -264,7 +269,12 @@ export function AdminDashboard({
             {selected === "Leads" && (
               <AdminLeads onAttentionChange={handleAttention} />
             )}
-            {selected === "Calls" && <AdminCalls onViewLeads={handleViewLeads} />}
+            {selected === "Inbound Calls" && (
+              <AdminCalls direction="inbound" onViewLeads={handleViewLeads} />
+            )}
+            {selected === "Outbound Calls" && (
+              <AdminCalls direction="outbound" onViewLeads={handleViewLeads} />
+            )}
             {selected === "Inbox" && <AdminInbox onUnreadChange={handleUnread} />}
             {selected === "Clients" && (
               <AdminClients onInvitedChange={handleInvited} />
@@ -353,9 +363,13 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "Leads",
     subtitle: "Callback requests and what the voice agent did with them",
   },
-  Calls: {
-    title: "Calls",
-    subtitle: "Every conversation the agent has had, inbound and outbound",
+  "Inbound Calls": {
+    title: "Inbound Calls",
+    subtitle: "Calls the agent answered — including the ones a lead placed",
+  },
+  "Outbound Calls": {
+    title: "Outbound Calls",
+    subtitle: "Calls the agent placed to a lead",
   },
   Inbox: {
     title: "Inbox",

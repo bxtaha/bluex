@@ -17,9 +17,14 @@ import type { Call } from "@/lib/call-store";
 import type { CallDirection } from "@/lib/call-payload";
 
 /**
- * The call archive: every conversation the agent has had, inbound and
- * outbound, read straight from the store the webhook and the reconciliation
- * cron both write to.
+ * The call archive: every conversation the agent has had, read straight from
+ * the store the webhook and the reconciliation cron both write to.
+ *
+ * One instance of this per direction — the sidebar has separate "Inbound" and
+ * "Outbound" entries rather than a single "Calls" entry with a filter inside
+ * it, so `direction` is a fixed prop, not user-editable state. Splitting at
+ * the sidebar rather than in-panel is what makes the two counts visible
+ * without opening anything.
  *
  * Split view on a wide screen, one pane at a time on a narrow one, matching
  * the Leads panel — the same reasoning applies, and two panels in one
@@ -30,13 +35,6 @@ import type { CallDirection } from "@/lib/call-payload";
  * `onViewLeads` callback the same way `AdminInbox` and `AdminLeads` are
  * handed `onUnreadChange` and `onAttentionChange`.
  */
-type DirectionFilter = "" | CallDirection;
-
-const DIRECTION_FILTERS: { value: DirectionFilter; label: string }[] = [
-  { value: "", label: "All" },
-  { value: "inbound", label: "Inbound" },
-  { value: "outbound", label: "Outbound" },
-];
 
 /** Written out in full — Tailwind never sees a class name built by template. */
 const DIRECTION_STYLES = {
@@ -72,9 +70,14 @@ type SyncState = {
   configured: boolean;
 };
 
-export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
+export function AdminCalls({
+  direction,
+  onViewLeads,
+}: {
+  direction: CallDirection;
+  onViewLeads?: () => void;
+}) {
   const [query, setQuery] = useState("");
-  const [direction, setDirection] = useState<DirectionFilter>("");
   const [calls, setCalls] = useState<Call[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sync, setSync] = useState<SyncState>({
@@ -105,13 +108,12 @@ export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
     setReloadKey((key) => key + 1);
   }, []);
 
-  // Debounce the query text only — not the direction filter, not a reload.
-  // A filter button or Refresh is a deliberate click and must feel instant;
-  // only typing needs 300ms to keep from firing a request per keystroke.
-  // Comparing against the *previous* query (not reloadKey) is what makes
-  // that distinction, so don't reach for reloadKey here again: that was
-  // tried before and it debounced the filter buttons and the first mount
-  // right along with typing.
+  // Debounce the query text only — not Refresh, not a reload. A Refresh click
+  // is deliberate and must feel instant; only typing needs 300ms to keep from
+  // firing a request per keystroke. Comparing against the *previous* query
+  // (not reloadKey) is what makes that distinction, so don't reach for
+  // reloadKey here again: that was tried before and it debounced the first
+  // mount right along with typing.
   const previousQuery = useRef(query);
 
   useEffect(() => {
@@ -126,8 +128,7 @@ export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
 
         void (async () => {
           try {
-            const params = new URLSearchParams();
-            if (direction) params.set("direction", direction);
+            const params = new URLSearchParams({ direction });
             const trimmed = query.trim();
             if (trimmed) params.set("q", trimmed);
 
@@ -205,7 +206,7 @@ export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
     }
   }
 
-  const isFiltered = query.trim().length > 0 || direction !== "";
+  const isFiltered = query.trim().length > 0;
 
   return (
     <div className="max-w-6xl">
@@ -237,27 +238,6 @@ export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
             className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 dark:placeholder:text-gray-500"
           />
         </form>
-
-        <div className="flex flex-wrap gap-1" role="group" aria-label="Direction">
-          {DIRECTION_FILTERS.map((option) => (
-            <button
-              key={option.value || "all"}
-              type="button"
-              onClick={() => {
-                setDirection(option.value);
-                setSelectedId(null);
-              }}
-              aria-pressed={direction === option.value}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                direction === option.value
-                  ? "bg-blue-600 text-white"
-                  : "border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
 
         <button
           type="button"
@@ -313,6 +293,7 @@ export function AdminCalls({ onViewLeads }: { onViewLeads?: () => void }) {
             loading={loading}
             selectedId={selectedId}
             isFiltered={isFiltered}
+            direction={direction}
             onOpen={(call) => setSelectedId(call.id)}
           />
         </div>
@@ -391,6 +372,7 @@ function CallList({
   loading,
   selectedId,
   isFiltered,
+  direction,
   onOpen,
 }: {
   calls: Call[];
@@ -398,6 +380,7 @@ function CallList({
   selectedId: string | null;
   /** Distinguishes "no calls yet" from "nothing matched that search." */
   isFiltered: boolean;
+  direction: CallDirection;
   onOpen: (call: Call) => void;
 }) {
   if (loading && calls.length === 0) {
@@ -412,7 +395,9 @@ function CallList({
   if (calls.length === 0) {
     return (
       <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 px-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
-        {isFiltered ? "Nothing matched that search." : "No calls yet."}
+        {isFiltered
+          ? "Nothing matched that search."
+          : `No ${direction} calls yet.`}
       </div>
     );
   }
