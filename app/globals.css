@@ -3921,9 +3921,26 @@
   box-shadow: inset 0 1px 0 var(--glass-edge),
     0 10px var(--glass-shadow-size) var(--glass-shadow-tint);
   transform: translate(-50%, -50%);
-  transition: padding 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    backdrop-filter 420ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Only `box-shadow` eases. `padding` and `backdrop-filter` used to ease with
+     it, and both are the wrong kind of property to animate — on the element
+     worst placed to afford it.
+
+     `padding` is a layout property: 420ms of it is 420ms of relayout on a
+     `position: fixed` element above the whole page. `backdrop-filter` is worse
+     — each frame asks for a Gaussian blur at a *different* kernel radius over
+     a *different* backdrop region, because the page is scrolling underneath,
+     so nothing can be reused between frames. And this transition fires on
+     `data-scrolled` flipping, which is the instant scrolling starts: the exact
+     moment the main thread is already carrying Lenis, ScrollTrigger and the
+     pinned tracks.
+
+     Both still change, they just step. The padding delta is 0.15rem — under
+     three pixels — and the shadow easing under it is what actually reads as
+     the pill lifting, so the step is very hard to catch. The nav indicator is
+     unaffected either way: it is measured inside `.site-header__list`, which
+     the padding change moves wholesale without touching the geometry within
+     (see the note in site-header.tsx). */
+  transition: box-shadow 420ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Contracted once there is content under it: tighter, and lifted a little
