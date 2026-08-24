@@ -29,6 +29,20 @@ const FOV = 3.4;
 /** Sprite bitmap size. Larger looks softer but costs fill rate. */
 const SPRITE_PX = 32;
 
+/** See the `frame` loop. A 44-second rotation does not need 60 samples a second. */
+const TARGET_FPS = 30;
+const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+
+/**
+ * Points per sphere on a small screen.
+ *
+ * A phone is both the least able to afford 1,200 additive blits per sphere and
+ * the device where the orb is physically smallest, so the point cloud is the
+ * densest per visible pixel — the composition survives the cut easily.
+ */
+const SMALL_SCREEN_DENSITY = 600;
+const SMALL_SCREEN_MAX_WIDTH = 768;
+
 type Sphere = {
   points: Float32Array;
   sprite: HTMLCanvasElement | null;
@@ -159,16 +173,26 @@ export default function ParticleOrb({
     const canvas = canvasRef.current;
     if (!host || !canvas) return;
 
+    // Halved on phones — see SMALL_SCREEN_DENSITY. Read here rather than passed
+    // as a prop so every caller gets it without having to know about it.
+    const points =
+      window.innerWidth < SMALL_SCREEN_MAX_WIDTH
+        ? Math.min(density, SMALL_SCREEN_DENSITY)
+        : density;
+
     spheresRef.current = [
-      { points: fibonacciSphere(density), sprite: makeSprite(colorA), ox: -0.30, oy: 0, color: colorA, phase: 0 },
-      { points: fibonacciSphere(density), sprite: makeSprite(colorB), ox: 0.30, oy: 0, color: colorB, phase: Math.PI * 0.6 },
+      { points: fibonacciSphere(points), sprite: makeSprite(colorA), ox: -0.30, oy: 0, color: colorA, phase: 0 },
+      { points: fibonacciSphere(points), sprite: makeSprite(colorB), ox: 0.30, oy: 0, color: colorB, phase: Math.PI * 0.6 },
     ];
 
     const setSize = () => {
       const { width, height } = host.getBoundingClientRect();
       // Capped at 2: beyond that the fill cost doubles for no visible gain on
       // soft, low-contrast dots.
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      // 1.5, not 2. These are soft, low-contrast, heavily-overlapping dots —
+      // there is no edge for the extra resolution to sharpen, and the fill cost
+      // scales with the square of this number.
+      const dpr = Math.min(1.5, window.devicePixelRatio || 1);
       const w = Math.max(1, Math.round(width));
       const h = Math.max(1, Math.round(height));
       if (w === sizeRef.current.w && h === sizeRef.current.h && dpr === sizeRef.current.dpr) {
@@ -195,9 +219,28 @@ export default function ParticleOrb({
     }
 
     let running = false;
+    let lastDrawn = 0;
 
+    /**
+     * Capped at `TARGET_FPS`, not the display's refresh rate.
+     *
+     * Each frame issues one `globalAlpha` write and one additive `drawImage`
+     * per point — 2,400 of them across the two spheres — and additive
+     * compositing is a slow path when there is no GPU raster to fall back on.
+     * The motion being bought is a 44-second revolution: 0.14 degrees per
+     * frame at 60fps, which no eye resolves. Drawing at 30 halves the work for
+     * a rotation that still reads as perfectly smooth, and on a 120Hz display
+     * it is a four-fold saving.
+     *
+     * `draw` derives its phase from the absolute timestamp rather than
+     * accumulating deltas, so skipping frames leaves the animation's speed and
+     * position exactly correct — it simply samples the same curve less often.
+     */
     const frame = (now: number) => {
-      draw(now);
+      if (now - lastDrawn >= FRAME_INTERVAL_MS) {
+        lastDrawn = now;
+        draw(now);
+      }
       rafRef.current = requestAnimationFrame(frame);
     };
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "@/lib/use-media-query";
+import { onExtentChange, scrollProgress } from "@/lib/scroll-extent";
 
 /**
  * Whole-page scroll progress, pinned to the bottom of the viewport.
@@ -17,6 +18,9 @@ import { useReducedMotion } from "@/lib/use-media-query";
 /** Fraction of the remaining distance covered per frame. Lower = heavier. */
 const EASING = 0.12;
 
+/** Close enough to the target that another frame would not change a pixel. */
+const SETTLED = 0.0002;
+
 export function ScrollProgress() {
   const reduced = useReducedMotion();
   const fillRef = useRef<HTMLSpanElement>(null);
@@ -25,27 +29,70 @@ export function ScrollProgress() {
     const fill = fillRef.current;
     if (!fill) return;
 
-
-    let current = 0;
-    let frame = 0;
-
-    const readProgress = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (max <= 0) return 0;
-      return Math.min(1, Math.max(0, window.scrollY / max));
+    const write = (value: number) => {
+      fill.style.transform = `scaleX(${value})`;
     };
 
-    const tick = () => {
-      const target = readProgress();
-      current = reduced ? target : current + (target - current) * EASING;
-      if (Math.abs(target - current) < 0.0002) current = target;
+    // No easing to run, so no frames to schedule — the same shape the nav dock
+    // uses under this preference.
+    if (reduced) {
+      const onScroll = () => write(scrollProgress());
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      const unsubscribe = onExtentChange(onScroll);
+      return () => {
+        window.removeEventListener("scroll", onScroll);
+        unsubscribe();
+      };
+    }
 
-      fill.style.transform = `scaleX(${current})`;
+    let current = scrollProgress();
+    let frame = 0;
+    let running = false;
+    write(current);
+
+    /**
+     * Runs only while the fill still has distance to cover.
+     *
+     * This used to re-arm unconditionally, which meant one animation frame
+     * every 16ms for the entire life of the page — including at rest, where
+     * every frame wrote the identical `scaleX`, and including under reduced
+     * motion, where there was nothing to ease. It is the last always-on rAF
+     * loop on the page; the nav dock and the back-to-top button had both
+     * already been taught to stop, and this is the same pattern.
+     */
+    const tick = () => {
+      const target = scrollProgress();
+      current += (target - current) * EASING;
+
+      if (Math.abs(target - current) < SETTLED) {
+        current = target;
+        write(current);
+        running = false;
+        return;
+      }
+
+      write(current);
       frame = requestAnimationFrame(tick);
     };
 
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    const wake = () => {
+      if (running) return;
+      running = true;
+      frame = requestAnimationFrame(tick);
+    };
+
+    window.addEventListener("scroll", wake, { passive: true });
+    // The denominator can change without the reader scrolling — a resize, a
+    // font swapping, a pin spacer appearing. Now that the loop stops when
+    // settled, nothing else would repaint the bar.
+    const unsubscribe = onExtentChange(wake);
+
+    return () => {
+      window.removeEventListener("scroll", wake);
+      unsubscribe();
+      cancelAnimationFrame(frame);
+    };
   }, [reduced]);
 
   return (

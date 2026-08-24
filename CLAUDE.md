@@ -237,6 +237,55 @@ Two lessons from that pass:
 Measure a baseline by building the *previous commit*, not by trusting one sample.
 Run counts of 5 minimum; a single "after" number was 600ms off the median once.
 
+### The second pass: runtime cost, not load cost
+
+The first pass bought LCP. The second went after what the page costs *while you
+use it*, which is what "feels heavy on a cheap laptop" actually means. Four
+patterns, worth recognising before adding anything new:
+
+- **`backdrop-filter` is the most expensive thing on this page, per element.**
+  `.bx-card` carried `blur(12px)` and renders 20-25 times on the homepage. Each
+  one is its own backdrop root — snapshot, downsample, blur, upsample,
+  composite — and none of it caches while the page scrolls, because the sampled
+  region moves every frame. It is gone from `.bx-card` and `.bx-btn--ghost`;
+  `.bx-card--frosted` is the opt-in, used on exactly one card (the one over the
+  ParticleOrb canvas) and gated to pointer devices. **Do not put
+  `backdrop-filter` on anything that repeats.** Over near-black under a
+  translucent white gradient it is very nearly invisible anyway — the gradient
+  and `.bx-hairline` are what read as glass.
+- **An `infinite` CSS animation you cannot see still costs a composited layer
+  and a tick.** LiquidButton had five per instance and renders six times
+  including in the fixed header — thirty of them, all invisible until hover.
+  They are `animation-play-state: paused` until `:hover`/`:focus-visible` now.
+  The `#services` waveform (18 layers) and the bell (3, two under `blur()`)
+  pause when their section is off screen.
+- **Anything gated on an IntersectionObserver must fail *open*.** The pause
+  rules match `[data-onscreen="false"]`, never `:not([data-onscreen])`. If the
+  observer never delivers — JS off, a hydration error upstream, an engine that
+  does not run it — an absent attribute has to mean "animate". Written the
+  other way round the same failure freezes the waveform permanently, which is a
+  worse bug than the cost being saved. The `onScreen` flag in `kinetic-grid.tsx`
+  defaults to `true` for the same reason.
+- **A rAF loop that redraws an unchanged picture is pure waste.** `ScrollProgress`
+  re-armed unconditionally for the life of the page, and KineticGrid redrew
+  ~1,100 canvas paths a frame at rest. Both now park themselves once settled and
+  wake on input — the pattern `section-nav.tsx` already used ("a page at rest
+  costs nothing"). `lib/scroll-extent.ts` exists because three of these loops
+  each read `documentElement.scrollHeight` every frame, which forces a layout
+  flush; it caches that number and invalidates it from a `ResizeObserver`.
+  Anything that stops re-arming every frame must subscribe to `onExtentChange`,
+  or it goes stale when the document grows.
+
+KineticGrid also gained the reduced-motion and touch gates every other motion
+system here already had — it is a canvas that chases a cursor, so on a phone it
+was repainting the hero every frame to render something structurally invisible.
+
+**None of the above was verified in a browser.** See the note in "Verifying
+work": this machine cannot profile, and the in-app browser does not deliver
+IntersectionObserver callbacks at all, so any runtime check of the gating here
+reports a false negative. What *was* verified is static: tsc, lint, tests, and
+the compiled CSS in `.next/static/chunks`.
+
 ## Open items
 
 - **SEO has its own standing note: `docs/seo.md`.** What two audit passes fixed,

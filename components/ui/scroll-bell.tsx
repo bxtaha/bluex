@@ -73,6 +73,11 @@ export function ScrollBell({
     if (reduced) {
       wrap.style.opacity = "1";
       wrap.style.transform = "none";
+      // Marked on-screen unconditionally: there is no loop here to toggle it,
+      // and the reduced-motion block in globals.css has already neutralised
+      // every animation the flag would otherwise pause. Leaving it unset would
+      // make this branch depend on a rule written for a different purpose.
+      wrap.dataset.onscreen = "true";
       return;
     }
 
@@ -122,7 +127,23 @@ export function ScrollBell({
       if (running) frame = requestAnimationFrame(tick);
     };
 
+    /**
+     * `data-onscreen` rides along with the loop, and pauses the bell's CSS.
+     *
+     * The rAF here only writes the wrapper's transform. The bell itself is
+     * three `infinite` CSS animations — the 5s sway, the 1s ray rotation and
+     * the 5s lumen pulse — and two of those sit under `filter: blur()`, which
+     * is a repaint per frame rather than a compositor job. None of it was
+     * gated, so all three ran from first paint for the whole visit, for a
+     * component that lives in the last section of the page.
+     *
+     * Reusing this observer rather than adding one: it already answers exactly
+     * the question the CSS needs answered.
+     */
     const start = () => {
+      // "true"/"false" rather than set-and-delete: the CSS matches `="false"`
+      // so a missing attribute means "animate". See globals.css.
+      wrap.dataset.onscreen = "true";
       if (running) return;
       running = true;
       last = performance.now();
@@ -130,6 +151,7 @@ export function ScrollBell({
     };
 
     const stop = () => {
+      wrap.dataset.onscreen = "false";
       if (!running) return;
       running = false;
       cancelAnimationFrame(frame);

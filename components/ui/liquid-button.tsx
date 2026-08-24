@@ -14,6 +14,18 @@ type LiquidButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
  * is decided by stylesheet order rather than by the caller.
  *
  * Colours follow the site palette instead of the source's cyan/indigo.
+ *
+ * **Every animation here is paused until the button is hovered or focused**,
+ * and that is a performance fix, not a style choice. The two wave layers and
+ * the three bubbles are all `infinite`, and none of them is visible at rest:
+ * the waves live inside a span parked at `top-[96%]` that only slides into
+ * view on hover, and the bubbles are `opacity-0` until then. Left running they
+ * were five permanently-composited, permanently-ticking layers per instance —
+ * and this button renders six times on the homepage including inside the fixed
+ * header, so thirty infinite animations were running from first paint for
+ * something nobody could see. `animation-play-state` starts them at the same
+ * instant they become visible; the 700ms fill transition covers the fact that
+ * they begin at their first keyframe rather than mid-cycle.
  */
 function LiquidButton({
   children,
@@ -38,19 +50,19 @@ function LiquidButton({
         aria-hidden="true"
         className="absolute -inset-x-1/4 top-[96%] z-0 h-[190%] bg-gradient-to-b from-electric-glow via-electric to-[#1b3fb8] transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/liquid:-translate-y-[58%] group-focus-visible/liquid:-translate-y-[58%] group-disabled/liquid:translate-y-0 motion-reduce:transition-none"
       >
-        <span className="absolute top-0 left-1/2 size-[145%] -translate-x-1/2 -translate-y-1/2 [animation:liquid-button-wave_7s_linear_infinite] rounded-[43%] bg-void/95 motion-reduce:animate-none" />
-        <span className="absolute top-0 left-1/2 size-[135%] -translate-x-1/2 -translate-y-1/2 [animation:liquid-button-wave_5s_linear_infinite_reverse] rounded-[47%] bg-void/45 motion-reduce:animate-none" />
+        <span className="absolute top-0 left-1/2 size-[145%] -translate-x-1/2 -translate-y-1/2 [animation:liquid-button-wave_7s_linear_infinite] [animation-play-state:paused] rounded-[43%] bg-void/95 group-hover/liquid:[animation-play-state:running] group-focus-visible/liquid:[animation-play-state:running] motion-reduce:animate-none" />
+        <span className="absolute top-0 left-1/2 size-[135%] -translate-x-1/2 -translate-y-1/2 [animation:liquid-button-wave_5s_linear_infinite_reverse] [animation-play-state:paused] rounded-[47%] bg-void/45 group-hover/liquid:[animation-play-state:running] group-focus-visible/liquid:[animation-play-state:running] motion-reduce:animate-none" />
 
         <span
-          className="absolute bottom-4 left-[22%] size-1.5 [animation:liquid-button-bubble_1.8s_ease-in_infinite] rounded-full bg-white/70 opacity-0 group-hover/liquid:opacity-100 group-disabled/liquid:hidden motion-reduce:hidden"
+          className="absolute bottom-4 left-[22%] size-1.5 [animation:liquid-button-bubble_1.8s_ease-in_infinite] [animation-play-state:paused] rounded-full bg-white/70 opacity-0 group-hover/liquid:opacity-100 group-hover/liquid:[animation-play-state:running] group-focus-visible/liquid:[animation-play-state:running] group-disabled/liquid:hidden motion-reduce:hidden"
           style={{ animationDelay: "120ms" }}
         />
         <span
-          className="absolute bottom-2 left-[48%] size-2 [animation:liquid-button-bubble_2.2s_ease-in_infinite] rounded-full bg-white/60 opacity-0 group-hover/liquid:opacity-100 group-disabled/liquid:hidden motion-reduce:hidden"
+          className="absolute bottom-2 left-[48%] size-2 [animation:liquid-button-bubble_2.2s_ease-in_infinite] [animation-play-state:paused] rounded-full bg-white/60 opacity-0 group-hover/liquid:opacity-100 group-hover/liquid:[animation-play-state:running] group-focus-visible/liquid:[animation-play-state:running] group-disabled/liquid:hidden motion-reduce:hidden"
           style={{ animationDelay: "520ms" }}
         />
         <span
-          className="absolute bottom-5 left-[72%] size-1 [animation:liquid-button-bubble_1.6s_ease-in_infinite] rounded-full bg-white/80 opacity-0 group-hover/liquid:opacity-100 group-disabled/liquid:hidden motion-reduce:hidden"
+          className="absolute bottom-5 left-[72%] size-1 [animation:liquid-button-bubble_1.6s_ease-in_infinite] [animation-play-state:paused] rounded-full bg-white/80 opacity-0 group-hover/liquid:opacity-100 group-hover/liquid:[animation-play-state:running] group-focus-visible/liquid:[animation-play-state:running] group-disabled/liquid:hidden motion-reduce:hidden"
           style={{ animationDelay: "860ms" }}
         />
       </span>

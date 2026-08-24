@@ -11,6 +11,7 @@ import {
 import { X } from "lucide-react";
 import { SECTIONS, useSections } from "@/components/providers/section-provider";
 import { scrollToSection } from "@/lib/lenis";
+import { scrollProgress } from "@/lib/scroll-extent";
 
 /**
  * Section navigation: one pill against the right edge that rides the scroll
@@ -99,11 +100,9 @@ export function SectionNav() {
     const root = rootRef.current;
     if (!root) return;
 
-    const target = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (max <= 0) return 0;
-      return Math.min(1, Math.max(0, window.scrollY / max));
-    };
+    // Cached — see lib/scroll-extent.ts. This runs inside a rAF tick, and the
+    // `scrollHeight` read it replaces forced a layout flush every frame.
+    const target = () => scrollProgress();
 
     const write = (value: number) =>
       root.style.setProperty("--nav-progress", value.toFixed(4));

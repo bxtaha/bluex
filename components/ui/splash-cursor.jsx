@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useRef } from 'react';
 
+/** See `scaleByPixelRatio`. 1.5 rather than 1 keeps some crispness on 2x. */
+const DPR_CAP = 1.5;
+
 function SplashCursor({
   SIM_RESOLUTION = 128,
   DYE_RESOLUTION = 1440,
@@ -755,8 +758,36 @@ function SplashCursor({
        to each of the five handlers below. `pointermove` and `pointerdown`
        cover mouse, pen and touch between them, and both fire before the
        mouse/touch handlers queue their splat — so the frame that applies the
-       input is the one this schedules. */
-    function wake() {
+       input is the one this schedules.
+
+       Real displacement is required, and that is the point of `lastWakeX/Y`.
+       Blink dispatches a synthetic `pointermove` after a scroll whenever the
+       cursor is over the document, to recompute `:hover` — carrying the
+       unchanged cursor position. Without this check every one of those reset
+       the idle clock, so a reader scrolling with the mouse resting on the page
+       ran the whole fluid simulation for the length of the scroll plus
+       IDLE_TIMEOUT past it. That is precisely the window in which the main
+       thread is already carrying Lenis, ScrollTrigger and the pinned tracks. */
+    let lastWakeX = -1;
+    let lastWakeY = -1;
+
+    function wake(e) {
+      if (e && e.clientX === lastWakeX && e.clientY === lastWakeY) return;
+      if (e) {
+        lastWakeX = e.clientX;
+        lastWakeY = e.clientY;
+      }
+      lastInputTime = Date.now();
+      startFrames();
+    }
+
+    /* A press is always real input, even without displacement — a click on a
+       stationary cursor must still splat, so it skips the movement filter. */
+    function wakeForced(e) {
+      if (e) {
+        lastWakeX = e.clientX;
+        lastWakeY = e.clientY;
+      }
       lastInputTime = Date.now();
       startFrames();
     }
@@ -1036,7 +1067,17 @@ function SplashCursor({
     }
 
     function scaleByPixelRatio(input) {
-      const pixelRatio = window.devicePixelRatio || 1;
+      // Capped. Upstream used the raw ratio, which on a 2x laptop makes the
+      // drawing buffer four times the CSS pixels and on a 3x screen nine
+      // times — and every one of those pixels goes through the display shader
+      // each frame, with SHADING on that is several texture taps apiece. A
+      // fluid smear has no edges for the extra resolution to sharpen, so this
+      // is invisible and roughly halves the fill cost on HiDPI.
+      //
+      // Safe to clamp here because pointer coordinates are converted through
+      // this same function before being divided by canvas.width, so the ratio
+      // cancels and splats still land under the cursor.
+      const pixelRatio = Math.min(DPR_CAP, window.devicePixelRatio || 1);
       return Math.floor(input * pixelRatio);
     }
 
@@ -1104,12 +1145,20 @@ function SplashCursor({
     // Add event listeners
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('touchstart', handleTouchStart);
-    window.addEventListener('touchmove', handleTouchMove, false);
-    window.addEventListener('touchend', handleTouchEnd);
+    // `{ passive: true }`, not upstream's `false` — which was `useCapture`, not
+    // a passive flag, and therefore left a non-passive `touchmove` on `window`.
+    // Chrome cannot begin a touch scroll until a non-passive handler has run,
+    // because the handler is allowed to call `preventDefault`. None of these
+    // do; they only read `targetTouches` and update pointer state. The
+    // touch-only gate in splash-cursor-mount keeps this off phones, but a
+    // touchscreen laptop matches `hover: hover` and mounts the sim, so the
+    // listener was real there.
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     window.addEventListener('pointermove', wake, { passive: true });
-    window.addEventListener('pointerdown', wake, { passive: true });
+    window.addEventListener('pointerdown', wakeForced, { passive: true });
 
     /* One frame now, to size the canvas and build the framebuffers. It stops
        itself on the way out — `lastInputTime` is still 0 — and stays stopped
@@ -1136,7 +1185,7 @@ function SplashCursor({
       window.removeEventListener('touchend', handleTouchEnd);
 
       window.removeEventListener('pointermove', wake);
-      window.removeEventListener('pointerdown', wake);
+      window.removeEventListener('pointerdown', wakeForced);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

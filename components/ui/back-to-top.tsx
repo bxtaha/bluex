@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { scrollToTop } from "@/lib/lenis";
 import { useReducedMotion } from "@/lib/use-media-query";
+import { scrollProgress } from "@/lib/scroll-extent";
 
 /**
  * Fixed bottom-right control that returns the page to the top, with an
@@ -136,11 +137,9 @@ export function BackToTop() {
     const splash = splashRef.current;
     if (!water || !back || !front || !splash) return;
 
-    const readProgress = () => {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      if (max <= 0) return 0;
-      return Math.min(1, Math.max(0, window.scrollY / max));
-    };
+    // Cached — see lib/scroll-extent.ts. Called from the water loop's rAF tick,
+    // where the `scrollHeight` read it replaces forced a layout flush per frame.
+    const readProgress = () => scrollProgress();
 
     // The water block is twice the button's height and parked fully below it,
     // so travelling half its own height raises the surface from the bottom

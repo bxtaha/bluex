@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { useReducedMotion, useTouchOnly } from "@/lib/use-media-query";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +35,20 @@ const LINE_BASE_STYLE = `rgba(${LINE_BASE.r},${LINE_BASE.g},${LINE_BASE.b},${LIN
 const NODE_BASE_STYLE = "rgba(255,255,255,0.2)";
 const IDLE_EPSILON = 0.001;
 const DEFAULT_ACCENT = "#2e6bff";
+
+/**
+ * How long the pointer must be still before the loop parks itself.
+ *
+ * The grid at rest is a fixed image — the warp is entirely a function of cursor
+ * distance — so once the eased cursor has caught up and no ripple is alive,
+ * every subsequent frame redraws the identical picture. Without this the hero
+ * canvas repainted ~1,100 paths a frame forever, on every device, whether or
+ * not anyone had touched the mouse.
+ */
+const IDLE_AFTER_MS = 400;
+
+/** Below this the eased cursor has visually caught up with the real one. */
+const SETTLE_EPSILON_PX = 0.5;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -69,6 +84,24 @@ function lerpColor(
  * scrolling page an ungated canvas RAF burns CPU for the whole document and
  * competes with pinned ScrollTrigger sections for the main thread, which is
  * exactly when dropped frames are most visible.
+ *
+ * Three further gates, all added because this sits in the hero and therefore
+ * competes directly with the largest contentful paint:
+ *
+ * **Reduced motion.** Every other system on this page honours it — Lenis never
+ * starts, the reveals collapse, the fluid cursor never mounts, ParticleOrb
+ * draws one still frame. A cursor-chasing canvas is more motion than any of
+ * them, so it does not get to be the exception. The blanket CSS rule in
+ * globals.css cannot help here: it zeroes animation and transition durations
+ * and has no reach into a JS rAF loop.
+ *
+ * **Touch.** The warp follows a cursor. A phone has no cursor, so the entire
+ * effect is invisible there — it was paying for a full-canvas repaint every
+ * frame, on the hardware least able to afford it, to render something nobody
+ * could see. Both gates fall back to one static painted frame, which keeps the
+ * composition exactly as it looks at rest.
+ *
+ * **Idle.** See `IDLE_AFTER_MS`.
  */
 export default function KineticGrid({
   className,
@@ -77,6 +110,9 @@ export default function KineticGrid({
   className?: string;
   accentColor?: string;
 }) {
+  const reduced = useReducedMotion();
+  const touchOnly = useTouchOnly();
+  const still = reduced || touchOnly;
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -396,17 +432,33 @@ export default function KineticGrid({
     };
 
     setSize();
-    const resizeObserver = new ResizeObserver(setSize);
+    const resizeObserver = new ResizeObserver(() => {
+      setSize();
+      // The still path has no loop to repaint it, so a resize has to draw.
+      if (still) draw(performance.now());
+    });
     resizeObserver.observe(host);
 
-    // Pointer coordinates are viewport-relative; the grid works in host-local
-    // space, so translate through the host's current rect.
+    // Reduced motion, or a device with no cursor to chase: paint the resting
+    // composition once and install nothing else. No listeners, no rAF, no
+    // IntersectionObserver — the picture never changes, so nothing needs to
+    // watch for when it might.
+    if (still) {
+      draw(performance.now());
+      return () => resizeObserver.disconnect();
+    }
+
+    // Pointer coordinates are stored raw and converted to host-local space once
+    // per frame instead of once per event. `getBoundingClientRect` forces a
+    // style+layout flush, and a high-polling mouse fires `mousemove` up to
+    // 1000 times a second — this amortises that to 60.
+    const pointerClient: Point = { x: -9999, y: -9999 };
+
     const onMouseMove = (e: MouseEvent) => {
-      const rect = host.getBoundingClientRect();
-      targetMouseRef.current = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top,
-      };
+      pointerClient.x = e.clientX;
+      pointerClient.y = e.clientY;
+      lastPointerAt = performance.now();
+      start();
     };
 
     const onClick = (e: MouseEvent) => {
@@ -421,50 +473,113 @@ export default function KineticGrid({
         opacity: 1,
         born: performance.now(),
       });
+      // A ripple is animation the pointer did not schedule — without this a
+      // click on a settled grid would push a ripple nothing ever draws.
+      lastPointerAt = performance.now();
+      start();
     };
 
     window.addEventListener("mousemove", onMouseMove, { passive: true });
     window.addEventListener("click", onClick);
 
     let running = false;
+    /**
+     * Starts `true`, and that is the fail-open choice.
+     *
+     * The hero is at the top of the document, so it genuinely is on screen at
+     * mount — but the reason for the default is robustness: the observer below
+     * is the only thing that ever sets this, and if it never delivers a
+     * callback the grid would otherwise be unwakeable. Defaulting to `true`
+     * means a broken observer degrades to "animates normally" rather than
+     * "permanently frozen", and the first callback corrects it either way.
+     */
+    let onScreen = true;
+    let lastPointerAt = 0;
 
-    function animate(now: number) {
+    // A const arrow rather than a `function` declaration: the latter is hoisted
+    // above the `if (!canvas || !host) return` guard, so TypeScript stops
+    // treating `host` as narrowed inside it.
+    const animate = (now: number) => {
       const m = mouseRef.current;
       const t = targetMouseRef.current;
+
+      // One layout read per frame, at a point where layout is already settled,
+      // rather than one per pointer event.
+      if (pointerClient.x > -9999) {
+        const rect = host.getBoundingClientRect();
+        t.x = pointerClient.x - rect.left;
+        t.y = pointerClient.y - rect.top;
+      }
 
       m.x = lerpN(m.x, t.x, LERP_SPEED);
       m.y = lerpN(m.y, t.y, LERP_SPEED);
 
       draw(now);
+
+      // The frame just drawn is the resting picture, so freezing on it is
+      // correct — there is nothing left to animate toward.
+      const settled =
+        Math.abs(m.x - t.x) < SETTLE_EPSILON_PX &&
+        Math.abs(m.y - t.y) < SETTLE_EPSILON_PX &&
+        ripplesRef.current.length === 0 &&
+        now - lastPointerAt > IDLE_AFTER_MS;
+
+      if (settled) {
+        m.x = t.x;
+        m.y = t.y;
+        running = false;
+        return;
+      }
+
       rafRef.current = requestAnimationFrame(animate);
-    }
+    };
 
     const start = () => {
-      if (running) return;
+      // `onScreen` matters as much as `running`: without it a mouse moved while
+      // the reader is ten sections down would wake a canvas nobody can see.
+      if (running || !onScreen) return;
       running = true;
       rafRef.current = requestAnimationFrame(animate);
     };
 
+    // Unconditional rather than guarded on `running`: the loop now parks itself
+    // when idle, so it is routinely already stopped when this is called, and
+    // the parking below still has to happen.
     const stop = () => {
-      if (!running) return;
       running = false;
       cancelAnimationFrame(rafRef.current);
       // Park the cursor off-grid so the section is back at rest next time it
       // scrolls in, instead of resuming mid-warp from a stale position.
       mouseRef.current = { x: -9999, y: -9999 };
       targetMouseRef.current = { x: -9999, y: -9999 };
+      pointerClient.x = -9999;
+      pointerClient.y = -9999;
     };
 
     const visibility = new IntersectionObserver(
-      ([entry]) => (entry.isIntersecting ? start() : stop()),
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+        if (onScreen) start();
+        else stop();
+      },
       { rootMargin: "120px" },
     );
     visibility.observe(host);
 
     // A backgrounded tab still fires RAF in some browsers; stop explicitly.
     const onVisibilityChange = () => {
-      if (document.hidden) stop();
-      else if (host.getBoundingClientRect().bottom > 0) start();
+      if (document.hidden) {
+        stop();
+        return;
+      }
+      // Re-derive `onScreen` rather than trusting the stale value: the reader
+      // may have scrolled away in another tab's lifetime, and `start()` now
+      // refuses to run without it.
+      onScreen = host.getBoundingClientRect().bottom > 0;
+      if (onScreen) {
+        lastPointerAt = performance.now();
+        start();
+      }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -476,7 +591,7 @@ export default function KineticGrid({
       window.removeEventListener("click", onClick);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [draw, paintStaticBackground]);
+  }, [draw, paintStaticBackground, still]);
 
   // ── Render ──────────────────────────────────────────────────────────────────
 

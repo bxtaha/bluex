@@ -34,23 +34,64 @@ export function Magnetic({
     const xTo = gsap.quickTo(el, "x", { duration: 0.6, ease: "power3.out" });
     const yTo = gsap.quickTo(el, "y", { duration: 0.6, ease: "power3.out" });
 
-    const onMove = (e: MouseEvent) => {
+    /**
+     * The element's centre, measured once per hover rather than per move.
+     *
+     * `getBoundingClientRect` forces a style+layout flush, and this ran on
+     * every `mousemove` — up to 1000/s on a high-polling mouse — against an
+     * element GSAP is writing a transform to on the same frames. That is also
+     * a feedback loop: the rect it returned included the pull already applied,
+     * so the measured centre chased the element it was moving. Measuring on
+     * entry fixes both, and gives the effect what it always meant to use — the
+     * resting centre, not the drifted one.
+     */
+    let centre: { x: number; y: number } | null = null;
+
+    const measure = () => {
       const rect = el.getBoundingClientRect();
-      xTo((e.clientX - (rect.left + rect.width / 2)) * strength);
-      yTo((e.clientY - (rect.top + rect.height / 2)) * strength);
+      // Undo any pull already applied, so the centre is the resting one even
+      // when the pointer re-enters mid-spring-back.
+      const applied = gsap.getProperty(el, "x") as number;
+      const appliedY = gsap.getProperty(el, "y") as number;
+      centre = {
+        x: rect.left + rect.width / 2 - applied,
+        y: rect.top + rect.height / 2 - appliedY,
+      };
     };
 
+    const onMove = (e: MouseEvent) => {
+      if (!centre) measure();
+      if (!centre) return;
+      xTo((e.clientX - centre.x) * strength);
+      yTo((e.clientY - centre.y) * strength);
+    };
+
+    const onEnter = () => measure();
+
     const onLeave = () => {
+      centre = null;
       xTo(0);
       yTo(0);
     };
 
+    // A page that scrolls under a held hover moves the element without a
+    // `mousemove`, so the cached centre has to be dropped and re-measured.
+    const invalidate = () => {
+      centre = null;
+    };
+
+    el.addEventListener("mouseenter", onEnter);
     el.addEventListener("mousemove", onMove);
     el.addEventListener("mouseleave", onLeave);
+    window.addEventListener("scroll", invalidate, { passive: true });
+    window.addEventListener("resize", invalidate, { passive: true });
 
     return () => {
+      el.removeEventListener("mouseenter", onEnter);
       el.removeEventListener("mousemove", onMove);
       el.removeEventListener("mouseleave", onLeave);
+      window.removeEventListener("scroll", invalidate);
+      window.removeEventListener("resize", invalidate);
       gsap.killTweensOf(el);
       gsap.set(el, { x: 0, y: 0 });
     };

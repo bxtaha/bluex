@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { PhoneIncoming } from "lucide-react";
 import { usePinnedTrack } from "@/components/motion/use-pinned-track";
 import { Reveal } from "@/components/motion/reveal";
@@ -135,6 +135,42 @@ export function Services() {
   // Reversed is the other section's business: here the panels arrive from
   // the right, which is the direction the copy reads in.
   usePinnedTrack(sectionRef, trackRef);
+
+  /**
+   * Marks the section while it is on screen, so its decoration can stop.
+   *
+   * `VoiceVisual` renders fifteen `.bx-wave-bar` spans and `InboundVisual`
+   * three `.bx-inbound__ring`s, every one of them an `infinite` CSS animation.
+   * They are compositor-only (transform and opacity), but eighteen layers that
+   * never stop ticking is exactly the cost a weak GPU cannot carry, and
+   * they were running from first paint whether or not this section had ever
+   * been reached. The paired rule in globals.css pauses them without this
+   * attribute.
+   *
+   * A component-local observer, not the one in `section-provider.tsx`. That one
+   * decides which nav item is current and must stay the single source of truth
+   * for that question; this one answers a different question about one element,
+   * the same way `kinetic-grid`, `particle-orb` and `scroll-bell` each own one.
+   */
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    // Written as an explicit "true"/"false" rather than set-and-deleted: the
+    // paired CSS rule matches `="false"` so that a missing attribute means
+    // "animate". See the note beside it in globals.css.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        section.dataset.onscreen = entry.isIntersecting ? "true" : "false";
+      },
+      // Ahead of the edge, so the waveform is already moving by the time the
+      // panel it sits in is readable rather than visibly starting on arrival.
+      { rootMargin: "200px" },
+    );
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <section

@@ -28,6 +28,19 @@ const SplashCursor = dynamic(() => import("@/components/ui/splash-cursor"), {
  * the moment the rainbow is switched back on.
  */
 const SPLASH_CONFIG = {
+  /**
+   * The dye texture's short side. Upstream defaults to 1440, which this never
+   * overrode — so on a 16:9 laptop the sim allocated a 2561x1440 RGBA16F
+   * double buffer, around 59MB of GPU texture for the dye alone, and advected
+   * every one of those 3.7M texels each frame.
+   *
+   * 1024 is 910x512 on the same screen, an eight-fold cut in dye memory and
+   * bandwidth. The dye is a soft, heavily-dissipated smear upsampled through
+   * the display shader with linear filtering — at this size the difference is
+   * very hard to see, and it is the single largest saving available on the
+   * low-end laptops this page felt heavy on.
+   */
+  DYE_RESOLUTION: 1024,
   DENSITY_DISSIPATION: 3.5,
   VELOCITY_DISSIPATION: 3.5,
   PRESSURE: 0.1,

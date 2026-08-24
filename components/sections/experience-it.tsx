@@ -121,9 +121,14 @@ export function ExperienceIt() {
           </Reveal>
         </div>
 
+        {/* The one card on the page that keeps its frosting: it sits directly
+            over the ParticleOrb canvas, so there is genuinely high-frequency
+            content behind it to soften. Everywhere else `.bx-card` dropped
+            `backdrop-filter` — see the note on it in globals.css. The modifier
+            is itself gated to pointer devices, so phones still pay nothing. */}
         <Reveal
           index={2}
-          className="bx-card bx-hairline mx-auto mt-12 max-w-2xl p-7 sm:p-9"
+          className="bx-card bx-card--frosted bx-hairline mx-auto mt-12 max-w-2xl p-7 sm:p-9"
         >
           {status === "done" ? (
             <div className="py-4 text-center" role="status">
