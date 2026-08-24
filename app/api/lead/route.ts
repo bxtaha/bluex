@@ -100,7 +100,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isConfigured()) {
+  if (!(await isConfigured())) {
     console.warn("[lead] voice agent not configured — stored only:", stored.id);
     await recordDispatchFailure(
       stored.id,

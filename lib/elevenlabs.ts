@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { resolveVoiceCredentials } from "./voice-settings.ts";
 
 /**
  * The voice agent, over HTTP.
@@ -16,6 +17,16 @@ import { createHmac, timingSafeEqual } from "node:crypto";
  * identical to a lead called successfully, and only one of them costs money.
  * ─────────────────────────────────────────────────────────────────────────────
  *
+ * The credentials themselves — API key, agent id, phone number id, transport,
+ * webhook secret — are no longer read from `process.env` in this file at all.
+ * `lib/voice-settings.ts` owns them: an admin can set each one from the
+ * Settings panel, and `resolveVoiceCredentials()` there falls back to the
+ * matching environment variable for whichever ones are not. Every function
+ * below calls it fresh rather than caching the result, which is also why
+ * they're all async now even where the HTTP call itself is not — a credential
+ * saved from the dashboard has to take effect on the next request, not the
+ * next deploy.
+ *
  * The endpoint shapes below track the provider's published API, and that API
  * has been renamed once already (this product was "Conversational AI"). If
  * dispatch starts returning 404, check the current docs before assuming the
@@ -29,15 +40,15 @@ const API_BASE = "https://api.elevenlabs.io/v1/convai";
  *
  * A number imported from Twilio and a number provisioned through ElevenLabs'
  * own SIP trunk are dialled through different endpoints, and getting it wrong
- * returns a 404 that reads like a missing agent. An env var rather than a code
- * change because it is a property of the account, not of the site.
+ * returns a 404 that reads like a missing agent. A property of the account
+ * rather than of the site, same as the rest of the credentials — see
+ * `lib/voice-settings.ts`.
  */
-const TRANSPORT = process.env.ELEVENLABS_CALL_TRANSPORT === "sip" ? "sip" : "twilio";
-
-const OUTBOUND_PATH =
-  TRANSPORT === "sip"
+function outboundPath(transport: "twilio" | "sip"): string {
+  return transport === "sip"
     ? `${API_BASE}/sip-trunk/outbound-call`
     : `${API_BASE}/twilio/outbound-call`;
+}
 
 /** Long enough for the provider to accept the job, short enough not to hang a form submit. */
 const DISPATCH_TIMEOUT_MS = 10_000;
@@ -52,12 +63,9 @@ export type CallResult =
   | { ok: true; conversationId: string; callSid: string }
   | { ok: false; reason: string };
 
-export function isConfigured(): boolean {
-  return Boolean(
-    process.env.ELEVENLABS_API_KEY &&
-      process.env.ELEVENLABS_AGENT_ID &&
-      process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID,
-  );
+export async function isConfigured(): Promise<boolean> {
+  const credentials = await resolveVoiceCredentials();
+  return Boolean(credentials.apiKey && credentials.agentId && credentials.phoneNumberId);
 }
 
 /**
@@ -69,9 +77,7 @@ export function isConfigured(): boolean {
  * error deserves a stack trace.
  */
 export async function placeCall(request: CallRequest): Promise<CallResult> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
-  const agentId = process.env.ELEVENLABS_AGENT_ID;
-  const phoneNumberId = process.env.ELEVENLABS_AGENT_PHONE_NUMBER_ID;
+  const { apiKey, agentId, phoneNumberId, callTransport } = await resolveVoiceCredentials();
 
   if (!apiKey || !agentId || !phoneNumberId) {
     return { ok: false, reason: "ElevenLabs credentials are not set." };
@@ -79,7 +85,7 @@ export async function placeCall(request: CallRequest): Promise<CallResult> {
 
   let response: Response;
   try {
-    response = await fetch(OUTBOUND_PATH, {
+    response = await fetch(outboundPath(callTransport), {
       method: "POST",
       headers: {
         "xi-api-key": apiKey,
@@ -173,7 +179,7 @@ function extractError(body: unknown): string {
 export async function listConversations(
   pageSize = 50,
 ): Promise<{ ok: true; ids: string[] } | { ok: false; reason: string }> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const { apiKey } = await resolveVoiceCredentials();
   if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
 
   let response: Response;
@@ -206,7 +212,7 @@ export async function listConversations(
 export async function getConversation(
   id: string,
 ): Promise<{ ok: true; payload: unknown } | { ok: false; reason: string }> {
-  const apiKey = process.env.ELEVENLABS_API_KEY;
+  const { apiKey } = await resolveVoiceCredentials();
   if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
 
   let response: Response;
@@ -249,12 +255,12 @@ function pickArray(body: unknown, key: string): unknown[] {
  * trip only by luck — and a signature computed over re-serialised JSON fails
  * for reasons that look nothing like the actual cause.
  */
-export function verifyWebhook(
+export async function verifyWebhook(
   rawBody: string,
   signatureHeader: string | null,
   toleranceSeconds = 30 * 60,
-): { ok: true } | { ok: false; reason: string } {
-  const secret = process.env.ELEVENLABS_WEBHOOK_SECRET;
+): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const { webhookSecret: secret } = await resolveVoiceCredentials();
   if (!secret) return { ok: false, reason: "No webhook secret configured." };
   if (!signatureHeader) return { ok: false, reason: "Missing signature." };
 

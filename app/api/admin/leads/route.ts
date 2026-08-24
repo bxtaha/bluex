@@ -44,16 +44,17 @@ export async function GET(request: Request) {
   const stage = parseStage(params.get("stage"));
 
   try {
-    const [leads, attention] = await Promise.all([
+    const [leads, attention, configured] = await Promise.all([
       listLeads({ filter, stage }),
       needsAttentionCount(),
+      isConfigured(),
     ]);
 
     return NextResponse.json({
       ok: true,
       leads,
       attention,
-      configured: isConfigured(),
+      configured,
     });
   } catch (error) {
     console.error("[leads] list failed:", error);

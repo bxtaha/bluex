@@ -181,7 +181,7 @@ export function AdminField({
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "email" | "tel";
+  type?: "text" | "email" | "tel" | "password";
   name?: string;
   placeholder?: string;
   error?: string;

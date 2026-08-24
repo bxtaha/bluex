@@ -29,7 +29,7 @@ async function stateCollection(): Promise<Collection<SyncStateDoc>> {
 }
 
 export async function syncCalls(): Promise<CallSyncResult> {
-  if (!isConfigured()) {
+  if (!(await isConfigured())) {
     // Recorded like any other run, not skipped — otherwise the panel keeps
     // showing whatever "last ran" it had before the keys were removed, which
     // reads as the sync still working when it has stopped running at all.
@@ -106,6 +106,6 @@ export async function getCallSyncState(): Promise<{
   return {
     lastRunAt: doc?.lastRunAt ? doc.lastRunAt.toISOString() : null,
     lastError: doc?.lastError ?? null,
-    configured: isConfigured(),
+    configured: await isConfigured(),
   };
 }

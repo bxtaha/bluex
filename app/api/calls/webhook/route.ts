@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   // matter — a failure that looks nothing like its cause.
   const raw = await request.text();
 
-  const verified = verifyWebhook(
+  const verified = await verifyWebhook(
     raw,
     request.headers.get("elevenlabs-signature"),
   );

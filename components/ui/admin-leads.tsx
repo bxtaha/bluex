@@ -381,9 +381,8 @@ export function AdminLeads({
       {!configured && (
         <Banner tone="warn">
           The voice agent is not configured, so nothing is being called
-          automatically. Leads are still being recorded. Set{" "}
-          <code>ELEVENLABS_API_KEY</code>, <code>ELEVENLABS_AGENT_ID</code> and{" "}
-          <code>ELEVENLABS_AGENT_PHONE_NUMBER_ID</code> to connect it.
+          automatically. Leads are still being recorded. Set the API key,
+          agent ID and phone number ID under Settings to connect it.
         </Banner>
       )}
       {notice && <Banner tone="info">{notice}</Banner>}

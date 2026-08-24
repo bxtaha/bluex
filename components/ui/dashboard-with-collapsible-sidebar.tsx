@@ -8,6 +8,7 @@ import type { PostCard } from "@/lib/blog-store";
 import type { Project } from "@/lib/project-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
+import { AdminVoiceSettings } from "@/components/ui/admin/admin-voice-settings";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
@@ -279,7 +280,12 @@ export function AdminDashboard({
             {selected === "Clients" && (
               <AdminClients onInvitedChange={handleInvited} />
             )}
-            {selected === "Settings" && <AdminChangePassword email={email} />}
+            {selected === "Settings" && (
+              <div className="space-y-8">
+                <AdminVoiceSettings />
+                <AdminChangePassword email={email} />
+              </div>
+            )}
             {selected === "Pricing" && <AdminPricingManager initial={tiers} />}
             {selected === "Work" && (
               <AdminProjectsManager initial={projects} initialFootnote={footnote} />
@@ -395,7 +401,7 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "Contact",
     subtitle: "Details shown in the contact section of the site",
   },
-  Settings: { title: "Settings", subtitle: "Manage your account" },
+  Settings: { title: "Settings", subtitle: "Your account, and the voice agent's credentials" },
 };
 
 const OVERVIEW = {

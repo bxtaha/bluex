@@ -100,7 +100,7 @@ export function AdminOverview({
       icon: PhoneCall,
       title: "The voice agent is not configured",
       detail:
-        "Leads are still being stored, but none of them are being called. Set the ElevenLabs keys to start dialling.",
+        "Leads are still being stored, but none of them are being called. Set the ElevenLabs keys under Settings to start dialling.",
     },
     !data.mailConfigured && {
       key: "mail",

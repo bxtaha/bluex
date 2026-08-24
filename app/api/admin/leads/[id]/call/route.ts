@@ -43,14 +43,15 @@ export async function POST(_request: Request, { params }: Context) {
     );
   }
 
-  if (!isConfigured()) {
+  if (!(await isConfigured())) {
     // 409, not 500: the request was fine and the server is fine — the account
-    // simply has no voice agent attached yet, and the fix is an env var.
+    // simply has no voice agent attached yet. Set it from Settings, or the
+    // matching env var.
     return NextResponse.json(
       {
         ok: false,
         message:
-          "The voice agent is not configured. Set the ElevenLabs keys to place calls.",
+          "The voice agent is not configured. Set the ElevenLabs keys in Settings to place calls.",
       },
       { status: 409 },
     );

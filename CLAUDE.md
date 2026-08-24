@@ -127,6 +127,24 @@ is not optional: the endpoint is public and it writes transcripts. That handler
 now lives at `/api/calls/webhook`; see the lead-is-a-person note above for why
 `/api/lead/callback` still exists beside it.
 
+**The voice agent's credentials are editable from Settings, not just
+`.env.local`.** `lib/voice-settings.ts` holds them — one document in
+`siteSettings`, the same shape as `contact-store.ts` — and every function in
+`lib/elevenlabs.ts` calls `resolveVoiceCredentials()` fresh rather than reading
+`process.env` directly, which is also why they're all `async` now even where
+the HTTP call itself is not: a key saved from the dashboard has to take effect
+on the next request, not the next deploy. **The database wins when both are
+set; the environment variable is a fallback, not a value to delete** — it is
+what a fresh deployment runs on before anyone opens Settings, and what a
+credential rotation can still reach by redeploying if the dashboard is ever
+unreachable. The two secrets (API key, webhook signing secret) never round-trip
+to the browser in the clear — `readVoiceSettingsForAdmin` returns only whether
+one is set and its last four characters, the same amount Stripe or GitHub shows
+back for a token you've already saved — so the PATCH contract distinguishes
+"field left blank, leave the stored value alone" (omit the key) from "clear the
+override, fall back to the environment variable" (`null`) precisely so a blank
+input can never silently wipe a working key.
+
 **The bell** (`scroll-bell.tsx` + `bell-notify.tsx`) scales from `--bell-size`,
 not its `size` prop — `BellNotify` writes `font-size` inline, which no stylesheet
 can beat without `!important`. Progress uses **one** formula over

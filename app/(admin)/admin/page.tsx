@@ -66,9 +66,14 @@ export default async function AdminPage() {
   // be right before anyone opens the Clients panel, which is what keeps it
   // current afterwards.
   let clientCounts = { total: 0, active: 0, invited: 0, suspended: 0 };
+  // Now a Mongo read rather than a synchronous env check — see
+  // `lib/voice-settings.ts` — so it belongs in the same `Promise.all` as
+  // everything else here rather than a bare `await` below that could throw
+  // and take the whole page down over one unreachable read.
+  let voiceConfigured = false;
 
   try {
-    [tiers, contact, unread, attention, posts, projects, footnote, clientCounts] =
+    [tiers, contact, unread, attention, posts, projects, footnote, clientCounts, voiceConfigured] =
       await Promise.all([
         listAllTiers(),
         getContactSettings(),
@@ -78,6 +83,7 @@ export default async function AdminPage() {
         listAllProjects(),
         getFootnote(),
         countClients(),
+        isConfigured(),
       ]);
   } catch (error) {
     // The dashboard is still worth showing without them; the pricing view will
@@ -100,7 +106,7 @@ export default async function AdminPage() {
       // Both of these fail silently in production — leads are stored but never
       // called, clients are created but never emailed — so the overview says so
       // rather than leaving someone to discover it from a customer.
-      voiceConfigured={isConfigured()}
+      voiceConfigured={voiceConfigured}
       mailConfigured={isMailConfigured()}
     />
   );
