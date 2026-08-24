@@ -51,16 +51,26 @@ export async function PATCH(request: Request) {
   }
 
   const patch: VoiceSettingsPatch = {};
-  if (typeof body.agentId === "string") patch.agentId = body.agentId;
-  if (typeof body.phoneNumberId === "string") patch.phoneNumberId = body.phoneNumberId;
-  if (body.callTransport === "twilio" || body.callTransport === "sip" || body.callTransport === "") {
-    patch.callTransport = body.callTransport;
+  if (typeof body.outboundAgentId === "string") patch.outboundAgentId = body.outboundAgentId;
+  if (typeof body.outboundPhoneNumberId === "string") {
+    patch.outboundPhoneNumberId = body.outboundPhoneNumberId;
+  }
+  if (
+    body.outboundCallTransport === "twilio" ||
+    body.outboundCallTransport === "sip" ||
+    body.outboundCallTransport === ""
+  ) {
+    patch.outboundCallTransport = body.outboundCallTransport;
+  }
+  if (typeof body.inboundAgentId === "string") patch.inboundAgentId = body.inboundAgentId;
+  if (typeof body.inboundPhoneNumberId === "string") {
+    patch.inboundPhoneNumberId = body.inboundPhoneNumberId;
   }
   // `undefined` here means "field absent from the request", which
   // `readSecretField` also returns for anything that isn't a string or
   // `null` — so a garbled value is silently left alone rather than rejected,
-  // the same tolerance `typeof body.agentId === "string"` above gives the
-  // non-secret fields.
+  // the same tolerance `typeof body.outboundAgentId === "string"` above gives
+  // the non-secret fields.
   const apiKey = readSecretField(body.apiKey);
   if (apiKey !== undefined) patch.apiKey = apiKey;
   const webhookSecret = readSecretField(body.webhookSecret);

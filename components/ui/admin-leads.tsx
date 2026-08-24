@@ -381,8 +381,8 @@ export function AdminLeads({
       {!configured && (
         <Banner tone="warn">
           The voice agent is not configured, so nothing is being called
-          automatically. Leads are still being recorded. Set the API key,
-          agent ID and phone number ID under Settings to connect it.
+          automatically. Leads are still being recorded. Set the API key and
+          the outbound agent and phone number ID under Settings to connect it.
         </Banner>
       )}
       {notice && <Banner tone="info">{notice}</Banner>}

@@ -65,7 +65,9 @@ export type CallResult =
 
 export async function isConfigured(): Promise<boolean> {
   const credentials = await resolveVoiceCredentials();
-  return Boolean(credentials.apiKey && credentials.agentId && credentials.phoneNumberId);
+  return Boolean(
+    credentials.apiKey && credentials.outboundAgentId && credentials.outboundPhoneNumberId,
+  );
 }
 
 /**
@@ -77,7 +79,12 @@ export async function isConfigured(): Promise<boolean> {
  * error deserves a stack trace.
  */
 export async function placeCall(request: CallRequest): Promise<CallResult> {
-  const { apiKey, agentId, phoneNumberId, callTransport } = await resolveVoiceCredentials();
+  const {
+    apiKey,
+    outboundAgentId: agentId,
+    outboundPhoneNumberId: phoneNumberId,
+    outboundCallTransport: callTransport,
+  } = await resolveVoiceCredentials();
 
   if (!apiKey || !agentId || !phoneNumberId) {
     return { ok: false, reason: "ElevenLabs credentials are not set." };

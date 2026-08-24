@@ -266,8 +266,8 @@ export function AdminCalls({
         <Banner tone="warn">
           The voice agent is not configured, so calls are not being synced
           automatically. Anything the webhook already delivered is still
-          shown here. Set the API key, agent ID and phone number ID under
-          Settings to connect it.
+          shown here. Set the API key and the outbound agent and phone
+          number ID under Settings to connect it.
         </Banner>
       )}
       {sync.lastError && (

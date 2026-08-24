@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { KeyRound, Phone, RadioTower, Webhook } from "lucide-react";
+import { KeyRound, PhoneIncoming, PhoneOutgoing, RadioTower, Webhook } from "lucide-react";
 import type { CallTransport, VoiceSettingsView } from "@/lib/voice-settings";
 import {
   AdminBadge,
@@ -45,10 +45,19 @@ function SourceNote({ source }: { source: SourceKind }) {
  * every webhook now reads through — see that file for why an environment
  * variable still works as a fallback rather than being replaced outright.
  *
- * Everything lives in one `<form>` even though it reads as two cards: the
- * connection fields and the two secrets are one save action, just presented
- * with the secrets set apart because they behave differently on screen — see
- * `SecretField` for why.
+ * Outbound and inbound get separate cards because they are not the same kind
+ * of field. The outbound agent and number are live configuration — save one
+ * and the next dispatched call uses it. The inbound agent and number are
+ * reference only: nothing this app runs can attach an agent to a phone
+ * number for inbound, that happens in the ElevenLabs dashboard, so those two
+ * fields exist to record what's attached there rather than to configure
+ * anything here. The copy in that card says so explicitly rather than
+ * implying a Save button reaches into another product's settings.
+ *
+ * Everything still saves through one `<form>`. The API key and webhook
+ * secret are shared by both directions in the provider's own model — one key
+ * per workspace, one webhook URL — so they get their own card rather than
+ * being duplicated into either direction's.
  *
  * The two secrets never round-trip to this component in the clear. The GET
  * response carries only whether one is set and its last four characters, so
@@ -61,9 +70,11 @@ export function AdminVoiceSettings() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [agentId, setAgentId] = useState("");
-  const [phoneNumberId, setPhoneNumberId] = useState("");
-  const [callTransport, setCallTransport] = useState<CallTransport>("twilio");
+  const [outboundAgentId, setOutboundAgentId] = useState("");
+  const [outboundPhoneNumberId, setOutboundPhoneNumberId] = useState("");
+  const [outboundCallTransport, setOutboundCallTransport] = useState<CallTransport>("twilio");
+  const [inboundAgentId, setInboundAgentId] = useState("");
+  const [inboundPhoneNumberId, setInboundPhoneNumberId] = useState("");
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [webhookSecretInput, setWebhookSecretInput] = useState("");
 
@@ -73,9 +84,11 @@ export function AdminVoiceSettings() {
 
   const applyView = useCallback((view: VoiceSettingsView) => {
     setSettings(view);
-    setAgentId(view.agentId.value);
-    setPhoneNumberId(view.phoneNumberId.value);
-    setCallTransport(view.callTransport.value);
+    setOutboundAgentId(view.outbound.agentId.value);
+    setOutboundPhoneNumberId(view.outbound.phoneNumberId.value);
+    setOutboundCallTransport(view.outbound.callTransport.value);
+    setInboundAgentId(view.inbound.agentId.value);
+    setInboundPhoneNumberId(view.inbound.phoneNumberId.value);
   }, []);
 
   // `loading` starts `true`, so the initial fetch below needs no `setState`
@@ -83,7 +96,7 @@ export function AdminVoiceSettings() {
   // called synchronously from the effect) turns it back on for a retry. Same
   // shape as the Leads and Calls panels' own reload, and for the same reason:
   // this repo's react-hooks lint rejects a `setState` reached synchronously
-  // from an effect body, which a plain `load()` called from `useEffect` is.
+  // from an effect body.
   const [reloadKey, setReloadKey] = useState(0);
 
   const reload = useCallback(() => {
@@ -122,7 +135,13 @@ export function AdminVoiceSettings() {
     event.preventDefault();
     setSaving(true);
 
-    const body: Record<string, unknown> = { agentId, phoneNumberId, callTransport };
+    const body: Record<string, unknown> = {
+      outboundAgentId,
+      outboundPhoneNumberId,
+      outboundCallTransport,
+      inboundAgentId,
+      inboundPhoneNumberId,
+    };
     // Only sent when the admin actually typed something — see the component
     // doc comment for why an empty field must never reach the server as "".
     if (apiKeyInput.trim()) body.apiKey = apiKeyInput.trim();
@@ -197,10 +216,11 @@ export function AdminVoiceSettings() {
     <form onSubmit={save} className="max-w-2xl space-y-5">
       <AdminCard>
         <AdminSectionHeader
-          title="Voice agent"
-          description="Where inbound and outbound calls come from. Changes apply immediately, to both directions."
+          title="Outbound calls"
+          description="The agent and number this app dials with. Changes apply to the next call placed."
           action={
             <AdminBadge tone={settings.configured ? "positive" : "warning"}>
+              <PhoneOutgoing className="size-3 shrink-0" aria-hidden />
               {settings.configured ? "Configured" : "Not configured"}
             </AdminBadge>
           }
@@ -211,23 +231,23 @@ export function AdminVoiceSettings() {
             <div>
               <AdminField
                 label="Agent ID"
-                value={agentId}
-                onChange={setAgentId}
+                value={outboundAgentId}
+                onChange={setOutboundAgentId}
                 placeholder="agent_xxxxxxxxxxxxxxxx"
                 disabled={saving}
               />
-              <SourceNote source={settings.agentId.source} />
+              <SourceNote source={settings.outbound.agentId.source} />
             </div>
             <div>
               <AdminField
                 label="Phone number ID"
-                value={phoneNumberId}
-                onChange={setPhoneNumberId}
+                value={outboundPhoneNumberId}
+                onChange={setOutboundPhoneNumberId}
                 placeholder="phnum_xxxxxxxxxxxxxxxx"
                 hint="From Agents → Phone numbers. Not the raw Twilio number."
                 disabled={saving}
               />
-              <SourceNote source={settings.phoneNumberId.source} />
+              <SourceNote source={settings.outbound.phoneNumberId.source} />
             </div>
           </div>
 
@@ -246,11 +266,11 @@ export function AdminVoiceSettings() {
                   key={option.value}
                   type="button"
                   role="radio"
-                  aria-checked={callTransport === option.value}
+                  aria-checked={outboundCallTransport === option.value}
                   disabled={saving}
-                  onClick={() => setCallTransport(option.value)}
+                  onClick={() => setOutboundCallTransport(option.value)}
                   className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 motion-reduce:transition-none ${
-                    callTransport === option.value
+                    outboundCallTransport === option.value
                       ? "bg-electric text-white"
                       : "border border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
                   }`}
@@ -260,7 +280,43 @@ export function AdminVoiceSettings() {
               ))}
             </div>
             {/* Never "unset": the code default (twilio) always resolves to something. */}
-            <SourceNote source={settings.callTransport.source} />
+            <SourceNote source={settings.outbound.callTransport.source} />
+          </div>
+        </div>
+      </AdminCard>
+
+      <AdminCard>
+        <AdminSectionHeader
+          title="Inbound calls"
+          description="Which agent and number answer a call placed to your business. Recorded here for reference — the attachment itself happens in the ElevenLabs dashboard, under Agents → Phone numbers, not in this app."
+          action={
+            <AdminBadge tone={settings.inbound.agentId.value ? "accent" : "neutral"}>
+              <PhoneIncoming className="size-3 shrink-0" aria-hidden />
+              {settings.inbound.agentId.value ? "Recorded" : "Not recorded"}
+            </AdminBadge>
+          }
+        />
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div>
+            <AdminField
+              label="Agent ID"
+              value={inboundAgentId}
+              onChange={setInboundAgentId}
+              placeholder="agent_xxxxxxxxxxxxxxxx"
+              disabled={saving}
+            />
+            <SourceNote source={settings.inbound.agentId.source} />
+          </div>
+          <div>
+            <AdminField
+              label="Phone number ID"
+              value={inboundPhoneNumberId}
+              onChange={setInboundPhoneNumberId}
+              placeholder="phnum_xxxxxxxxxxxxxxxx"
+              disabled={saving}
+            />
+            <SourceNote source={settings.inbound.phoneNumberId.source} />
           </div>
         </div>
       </AdminCard>
@@ -268,7 +324,7 @@ export function AdminVoiceSettings() {
       <AdminCard>
         <AdminSectionHeader
           title="Credentials"
-          description="Neither of these is ever sent back to the browser once saved — only whether one is set."
+          description="Shared by both directions — one API key per workspace, one webhook URL. Neither is ever sent back to the browser once saved, only whether one is set."
         />
 
         <div className="mt-5 space-y-5">
@@ -313,11 +369,7 @@ export function AdminVoiceSettings() {
         </div>
       </AdminCard>
 
-      <div className="flex items-center justify-between gap-3">
-        <p className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-          <Phone className="size-3.5" aria-hidden />
-          Applies to both Inbound Calls and Outbound Calls.
-        </p>
+      <div className="flex justify-end">
         <AdminButton type="submit" variant="primary" pending={saving}>
           Save
         </AdminButton>

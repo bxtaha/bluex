@@ -145,6 +145,22 @@ back for a token you've already saved — so the PATCH contract distinguishes
 override, fall back to the environment variable" (`null`) precisely so a blank
 input can never silently wipe a working key.
 
+**Outbound and inbound have separate agent/number fields, because they are not
+the same operation.** `outboundAgentId` and `outboundPhoneNumberId` are live
+configuration — `placeCall` sends them to the provider, so saving one changes
+what the next dispatched call does. `inboundAgentId` and `inboundPhoneNumberId`
+are reference only: nothing this repo runs can attach an agent to a phone
+number for inbound, that happens in the ElevenLabs dashboard under Agents →
+Phone numbers, and the Settings copy says so rather than implying a Save
+button reaches into another product. They exist so that fact — previously
+tribal knowledge in this very file — has a visible home. `apiKey` and
+`webhookSecret` are **not** split by direction: both are workspace-level in
+the provider's own model, one key dispatches for every agent and one webhook
+URL receives both directions signed with one secret, so splitting either would
+invent a distinction the provider doesn't have. The inbound fields have no
+environment-variable fallback — inbound was never configurable from this repo
+before this feature existed, so there was nothing to preserve continuity with.
+
 **The bell** (`scroll-bell.tsx` + `bell-notify.tsx`) scales from `--bell-size`,
 not its `size` prop — `BellNotify` writes `font-size` inline, which no stylesheet
 can beat without `!important`. Progress uses **one** formula over
@@ -235,7 +251,10 @@ Run counts of 5 minimum; a single "after" number was 600ms off the median once.
   first would silently drop every call. (2) The agent needs to be attached to
   the phone number **for inbound**, or a call placed to that number rings
   nothing — outbound dispatch works independently of this setting, which is
-  why it's easy to miss.
+  why it's easy to miss. Settings now has an "Inbound calls" card to *record*
+  which agent and number that attachment is supposed to be — see the
+  outbound/inbound note above — but filling it in does not make the
+  attachment, only writes down that it should exist.
 - **The ElevenLabs keys *are* set** in `.env.local` — this entry previously said
   they were not, and that had drifted. `ELEVENLABS_API_KEY`, `ELEVENLABS_AGENT_ID`
   and `ELEVENLABS_AGENT_PHONE_NUMBER_ID` all have values, so outbound dispatch is
