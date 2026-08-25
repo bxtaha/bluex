@@ -195,10 +195,6 @@ export function AdminDashboard({
     attention: attentionCount,
     unread: unreadCount,
     invited: invitedCount,
-    clientsTotal: clientCounts.total,
-    clientsActive: clientCounts.active,
-    posts: posts.length,
-    projects: projects.length,
     voiceConfigured,
     mailConfigured,
   };

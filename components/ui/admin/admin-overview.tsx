@@ -7,9 +7,8 @@ import {
   Mail,
   PhoneCall,
   UserPlus,
-  Users,
 } from "lucide-react";
-import { AdminBadge, AdminCard, AdminSectionHeader } from "./primitives";
+import { AdminCard, AdminSectionHeader } from "./primitives";
 import { AdminVoiceUsage } from "./admin-voice-usage";
 
 /**
@@ -23,10 +22,16 @@ import { AdminVoiceUsage } from "./admin-voice-usage";
  * The organising question is "what is waiting on me". Anything needing a
  * decision is a row at the top, and every row is the control that takes you to
  * it — so noticing and acting are the same gesture rather than a notice followed
- * by a hunt through the sidebar. Counts that need no action are demoted to a
- * quiet strip underneath, and configuration problems get their own block because
- * they are silent: nothing about a lead that was never called looks wrong from
- * the outside.
+ * by a hunt through the sidebar. Configuration problems get their own block
+ * because they are silent: nothing about a lead that was never called looks
+ * wrong from the outside.
+ *
+ * There is deliberately **no** strip of totals. There was one — clients,
+ * active, posts, projects — and it was removed for the reason stated above:
+ * four numbers nobody acts on, which is precisely the row of stat cards this
+ * view exists to avoid. Voice usage is the one standing figure that survived,
+ * because it moves, it costs money, and it becomes a decision when the plan
+ * runs low.
  *
  * When nothing is waiting the page says so plainly. An empty queue is good news
  * and should look like it, not like a screen that failed to load.
@@ -39,10 +44,6 @@ export type OverviewData = {
   unread: number;
   /** Clients with an outstanding invitation. */
   invited: number;
-  clientsTotal: number;
-  clientsActive: number;
-  posts: number;
-  projects: number;
   /** Whether the voice agent can actually place calls. */
   voiceConfigured: boolean;
   /** Whether outgoing mail works — invitations depend on it. */
@@ -215,67 +216,16 @@ export function AdminOverview({
         </AdminCard>
       ) : null}
 
-      {/* Below the queue and any setup problems, above the quiet counts: talk
-          time and plan headroom are worth watching but are not something
-          waiting on a decision — until the plan bar goes amber, which is what
-          the bar is for. */}
+      {/* Last, and the only standing figure on this view.
+          The "At a glance" strip that used to sit below — clients, active,
+          posts, projects — was removed: it was four totals nobody acts on, and
+          the doc comment above already argues that giving such a number a card
+          teaches people to stop reading the screen. It had drifted into being
+          exactly the row of stat cards this view was written to avoid. Talk
+          time earns its place because it moves, costs money, and turns into a
+          decision when the plan bar goes amber. */}
       <AdminVoiceUsage />
-
-      <AdminCard>
-        <AdminSectionHeader
-          title="At a glance"
-          description="Nothing here needs a decision."
-          action={
-            <button
-              type="button"
-              onClick={() => onNavigate("Clients")}
-              className="inline-flex items-center gap-1.5 rounded-lg text-[0.8125rem] font-medium text-electric transition-colors hover:text-electric-glow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric motion-reduce:transition-none dark:text-electric-glow"
-            >
-              <Users className="size-3.5" aria-hidden />
-              Manage clients
-            </button>
-          }
-        />
-
-        <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
-          <Stat label="Clients" value={data.clientsTotal} />
-          <Stat
-            label="Active"
-            value={data.clientsActive}
-            note={
-              data.invited > 0 ? (
-                <AdminBadge tone="neutral">{data.invited} invited</AdminBadge>
-              ) : undefined
-            }
-          />
-          <Stat label="Posts" value={data.posts} />
-          <Stat label="Projects" value={data.projects} />
-        </dl>
-      </AdminCard>
     </div>
   );
 }
 
-function Stat({
-  label,
-  value,
-  note,
-}: {
-  label: string;
-  value: number;
-  note?: React.ReactNode;
-}) {
-  return (
-    <div>
-      <dt className="text-[0.6875rem] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-        {label}
-      </dt>
-      <dd className="mt-1.5 flex items-center gap-2">
-        <span className="text-xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">
-          {value}
-        </span>
-        {note}
-      </dd>
-    </div>
-  );
-}
