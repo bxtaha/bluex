@@ -189,3 +189,72 @@ export async function listCalls(
   const docs = await cursor.limit(limit).toArray();
   return docs.map((doc) => toCall(doc as CallDoc & { _id: ObjectId }));
 }
+
+export type CallUsageStats = {
+  /** Conversations stored, in the window. */
+  conversations: number;
+  inbound: number;
+  outbound: number;
+  /** Talk time as this archive records it, in seconds. */
+  talkSeconds: number;
+  inboundSeconds: number;
+  outboundSeconds: number;
+};
+
+/**
+ * What this archive knows about talk time, aggregated in the database.
+ *
+ * Deliberately separate from the provider's own usage figure, and the two are
+ * not interchangeable. This counts conversations we actually hold — so it is
+ * the number that matches the Calls panel, splits by direction, and keeps
+ * working when the provider is unreachable. The provider's `minutes_used` is
+ * the billable one: it can include conversations the webhook never delivered
+ * and the cron has not yet recovered, and it rounds the way the invoice does.
+ * The usage card shows both rather than picking a winner, because a gap
+ * between them is itself the useful signal — it means calls are being missed.
+ *
+ * `$group` rather than reading the rows: talk time over a year of calls is a
+ * sum the database can do without sending every transcript across the wire.
+ */
+export async function callUsageStats(since?: Date): Promise<CallUsageStats> {
+  const calls = await collection();
+  const match: Filter<CallDoc> = since ? { startedAt: { $gte: since } } : {};
+
+  const rows = await calls
+    .aggregate<{ _id: CallDirection; count: number; seconds: number }>([
+      { $match: match },
+      {
+        $group: {
+          _id: "$direction",
+          count: { $sum: 1 },
+          // Guards a legacy or malformed row: `$sum` skips non-numbers, but
+          // `$ifNull` keeps an explicit null from poisoning the branch total.
+          seconds: { $sum: { $ifNull: ["$durationSeconds", 0] } },
+        },
+      },
+    ])
+    .toArray();
+
+  const stats: CallUsageStats = {
+    conversations: 0,
+    inbound: 0,
+    outbound: 0,
+    talkSeconds: 0,
+    inboundSeconds: 0,
+    outboundSeconds: 0,
+  };
+
+  for (const row of rows) {
+    stats.conversations += row.count;
+    stats.talkSeconds += row.seconds;
+    if (row._id === "inbound") {
+      stats.inbound = row.count;
+      stats.inboundSeconds = row.seconds;
+    } else if (row._id === "outbound") {
+      stats.outbound = row.count;
+      stats.outboundSeconds = row.seconds;
+    }
+  }
+
+  return stats;
+}

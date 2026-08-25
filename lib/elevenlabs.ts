@@ -33,7 +33,10 @@ import { resolveVoiceCredentials } from "./voice-settings.ts";
  * credentials are wrong.
  */
 
-const API_BASE = "https://api.elevenlabs.io/v1/convai";
+/** The account-wide root. Usage and subscription live here, not under convai. */
+const API_BASE_ROOT = "https://api.elevenlabs.io/v1";
+
+const API_BASE = `${API_BASE_ROOT}/convai`;
 
 /**
  * Which telephony the agent's number is attached to.
@@ -244,6 +247,162 @@ function pickArray(body: unknown, key: string): unknown[] {
   if (typeof body !== "object" || body === null) return [];
   const value = (body as Record<string, unknown>)[key];
   return Array.isArray(value) ? value : [];
+}
+
+/* ── Usage and plan ──────────────────────────────────────────────────────── */
+
+/**
+ * Minutes the agents have actually talked, in a window.
+ *
+ * `/v1/usage/character-stats` is misleadingly named: it is the generic usage
+ * series and takes a `metric`, of which `minutes_used` is one. It answers in
+ * daily buckets, so the total is the sum — verified against the live account,
+ * where a 60-day window returned 17.29 minutes across four non-empty buckets
+ * and `breakdown_type=product_type` attributed all of it to "Conversational
+ * AI".
+ *
+ * This is the *billable* figure and is not the same number as
+ * `callUsageStats` in `call-store.ts`, which counts the conversations this
+ * archive holds. See the note there for why both are shown.
+ */
+export async function getUsageMinutes(
+  startMs: number,
+  endMs: number,
+): Promise<{ ok: true; minutes: number } | { ok: false; reason: string }> {
+  const { apiKey } = await resolveVoiceCredentials();
+  if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
+
+  const params = new URLSearchParams({
+    start_unix: String(Math.floor(startMs)),
+    end_unix: String(Math.floor(endMs)),
+    metric: "minutes_used",
+  });
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_ROOT}/usage/character-stats?${params}`, {
+      headers: { "xi-api-key": apiKey },
+      signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    console.error("[elevenlabs] usage threw:", error);
+    return { ok: false, reason: "Could not reach the voice provider." };
+  }
+
+  const body = await readJson(response);
+  if (!response.ok) {
+    return { ok: false, reason: extractError(body) || `HTTP ${response.status}` };
+  }
+
+  // `{ time: number[], usage: { [series]: number[] } }`. Every series is
+  // summed rather than just "All": with a breakdown requested the key is the
+  // product name instead, and a hardcoded "All" would silently read zero.
+  const usage =
+    typeof body === "object" && body !== null
+      ? (body as Record<string, unknown>).usage
+      : null;
+
+  let minutes = 0;
+  if (typeof usage === "object" && usage !== null) {
+    for (const series of Object.values(usage as Record<string, unknown>)) {
+      if (!Array.isArray(series)) continue;
+      for (const value of series) {
+        if (typeof value === "number" && Number.isFinite(value)) minutes += value;
+      }
+    }
+  }
+
+  return { ok: true, minutes };
+}
+
+export type PlanUsage = {
+  tier: string;
+  /** Credits consumed this billing period. The provider calls these characters. */
+  used: number;
+  /** Credits included in the plan. */
+  limit: number;
+  /** When `used` returns to zero, ISO. Null when the provider did not say. */
+  resetsAt: string | null;
+};
+
+/**
+ * The plan's quota, when the key is allowed to see it.
+ *
+ * **Requires the `user_read` permission**, which an API key scoped only for
+ * the Agents platform does not have — the live key on this account returns
+ * 401 `missing_permissions` here while every `/v1/convai/*` route and the
+ * usage series above answer fine. That is not a misconfiguration to fix in
+ * code: a narrowly-scoped key is the better security posture, and the quota is
+ * a nice-to-have next to placing calls. So the failure is reported as its own
+ * shape rather than folded into a generic error, and the dashboard says which
+ * permission is missing instead of showing a plan bar full of zeros.
+ *
+ * Field names follow the documented response: `tier`, `character_count`,
+ * `character_limit`, `next_character_count_reset_unix`. Read defensively, like
+ * everything else that parses this provider.
+ */
+export async function getPlanUsage(): Promise<
+  | { ok: true; plan: PlanUsage }
+  | { ok: false; reason: string; needsPermission: boolean }
+> {
+  const { apiKey } = await resolveVoiceCredentials();
+  if (!apiKey) {
+    return {
+      ok: false,
+      reason: "ElevenLabs credentials are not set.",
+      needsPermission: false,
+    };
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_ROOT}/user/subscription`, {
+      headers: { "xi-api-key": apiKey },
+      signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    console.error("[elevenlabs] subscription threw:", error);
+    return {
+      ok: false,
+      reason: "Could not reach the voice provider.",
+      needsPermission: false,
+    };
+  }
+
+  const body = await readJson(response);
+
+  if (!response.ok) {
+    const detail = extractError(body) || `HTTP ${response.status}`;
+    // 401 here means the key is valid but scoped — dispatch and the usage
+    // series both work with the same key — so it is a distinct condition from
+    // "wrong key", and the UI needs to tell them apart.
+    return {
+      ok: false,
+      reason: detail,
+      needsPermission: response.status === 401 && /permission/i.test(detail),
+    };
+  }
+
+  const used = numberField(body, "character_count");
+  const limit = numberField(body, "character_limit");
+  const reset = numberField(body, "next_character_count_reset_unix");
+
+  return {
+    ok: true,
+    plan: {
+      tier: stringField(body, "tier") || "unknown",
+      used,
+      limit,
+      // Seconds, per the provider. Zero means "not stated" rather than 1970.
+      resetsAt: reset > 0 ? new Date(reset * 1000).toISOString() : null,
+    },
+  };
+}
+
+function numberField(body: unknown, key: string): number {
+  if (typeof body !== "object" || body === null) return 0;
+  const value = (body as Record<string, unknown>)[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 /* ── Webhook verification ────────────────────────────────────────────────── */

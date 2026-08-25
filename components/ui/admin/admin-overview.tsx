@@ -10,6 +10,7 @@ import {
   Users,
 } from "lucide-react";
 import { AdminBadge, AdminCard, AdminSectionHeader } from "./primitives";
+import { AdminVoiceUsage } from "./admin-voice-usage";
 
 /**
  * The overview.
@@ -213,6 +214,12 @@ export function AdminOverview({
           </ul>
         </AdminCard>
       ) : null}
+
+      {/* Below the queue and any setup problems, above the quiet counts: talk
+          time and plan headroom are worth watching but are not something
+          waiting on a decision — until the plan bar goes amber, which is what
+          the bar is for. */}
+      <AdminVoiceUsage />
 
       <AdminCard>
         <AdminSectionHeader

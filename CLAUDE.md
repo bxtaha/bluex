@@ -145,6 +145,31 @@ back for a token you've already saved — so the PATCH contract distinguishes
 override, fall back to the environment variable" (`null`) precisely so a blank
 input can never silently wipe a working key.
 
+**The dashboard's voice-usage card shows two talk-time numbers on purpose, and
+cannot show the plan quota with the current key.** `getUsageMinutes` reads
+ElevenLabs' own billable figure from `/v1/usage/character-stats` — badly named,
+it is the generic usage series and takes `metric=minutes_used`, returning daily
+buckets that have to be summed. `callUsageStats` in `call-store.ts` aggregates
+what this archive actually holds. **They are not interchangeable and must not be
+collapsed into one figure**: the provider's includes conversations the webhook
+never delivered and the cron has not recovered, so a gap between the two is the
+signal that calls are being missed — the failure that is otherwise invisible.
+Measured live at the time of writing: 17.29 provider minutes against 1028
+archived seconds (17.13), i.e. the archive is essentially complete.
+
+The plan quota lives only at `/v1/user/subscription` (`tier`,
+`character_count`, `character_limit`, `next_character_count_reset_unix`) and
+**that endpoint needs the `user_read` permission, which this account's key does
+not have** — it returns 401 `missing_permissions` while every `/v1/convai/*`
+route and the usage series answer fine on the same key. Probed directly:
+`/v1/user`, `/v1/user/subscription/extras`, `/v1/subscription` and
+`/v1/workspace/subscription` are all 401 or 404, so there is no way around it
+from code. A narrowly-scoped key is the better posture, so `getPlanUsage`
+reports that 401 as its own `needsPermission` shape and the card names the
+missing permission rather than rendering a progress bar full of zeros. Granting
+`user_read` in the ElevenLabs dashboard is the only thing needed to light it up;
+nothing else depends on it.
+
 **Outbound and inbound have separate agent/number fields, because they are not
 the same operation.** `outboundAgentId` and `outboundPhoneNumberId` are live
 configuration — `placeCall` sends them to the provider, so saving one changes
