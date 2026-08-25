@@ -363,10 +363,14 @@ remain the real safety net.
   hands off to Twilio and gets refused — so `placeCall` sees a success status
   with no `conversation_id` and the visitor sees "We couldn't start the call."
   The real reason exists only on the conversation, readable via
-  `GET /v1/convai/conversations/{id}` → `metadata.error`. Every recorded outbound
-  attempt went to the same +86 number, so whether this blocks all outbound or
-  only international is **not** established — a test call to a domestic number
-  would settle it.
+  `GET /v1/convai/conversations/{id}` → `metadata.error`. **It blocks every
+  outbound call, not only international ones** — verified across three country
+  codes, `+1` (US), `+86` (China) and `+880` (Bangladesh), every one `code: 1011`
+  from the same agent number `+12408203149`. The compliance gate is reached
+  before the destination is considered at all, which is why the `+1` attempt
+  failed identically even though `+15559990001` is a reserved fictional number
+  that could never have connected. Until Trust Hub is approved `dispatched: true`
+  is unreachable and every lead lands `failed`.
 - **A separate quota signal, seen once:** an inbound conversation on 2026-08-25
   terminated with `"This request exceeds your quota limit."` Unrelated to the
   Twilio failure above and not investigated further; the plan quota cannot be

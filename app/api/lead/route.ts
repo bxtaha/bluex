@@ -76,11 +76,39 @@ export async function POST(request: Request) {
   ]);
 
   if (!byIp.allowed || !byPhone.allowed) {
+    /*
+     * Say what is actually true, which the previous copy did not.
+     *
+     * It read "We've already got a call queued for that number. Give it a few
+     * minutes." Three things were wrong with that. Nothing is necessarily
+     * queued — the allowance is spent by *attempts*, and an attempt that
+     * failed to dial spends it just the same, so someone whose calls all
+     * failed was told a call was on its way. "A few minutes" described a
+     * sixty-minute window. And the sentence is about a phone number, but it
+     * also fired for the per-address limit, so a second person in the same
+     * office submitting a different number was told *their* number already had
+     * a call coming.
+     *
+     * The limit itself is unchanged and stays counted on attempts rather than
+     * on successes: a guard that only counts calls that connected is one an
+     * abuser can spin freely against any endpoint that happens to be failing.
+     */
+    const resetAt = !byPhone.allowed ? byPhone.resetAt : byIp.resetAt;
+    const minutes = Math.max(
+      1,
+      Math.ceil((resetAt.getTime() - Date.now()) / 60_000),
+    );
+    const wait =
+      minutes >= 60
+        ? "in about an hour"
+        : `in about ${minutes} minute${minutes === 1 ? "" : "s"}`;
+
     return NextResponse.json(
       {
         ok: false,
-        message:
-          "We've already got a call queued for that number. Give it a few minutes.",
+        message: byPhone.allowed
+          ? `That's a few requests from this device in a short time. Please try again ${wait}.`
+          : `We've already taken a couple of requests for that number. Please try again ${wait}, or call us directly.`,
       },
       { status: 429 },
     );
