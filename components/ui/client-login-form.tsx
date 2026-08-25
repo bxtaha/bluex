@@ -65,8 +65,16 @@ export function ClientLoginForm({ notice }: { notice?: string }) {
     }
   }
 
+  /* `method="post"` although this form is always submitted by the handler
+     above, which calls `preventDefault`. It is the no-JS fallback that
+     matters: without it a native submit defaults to GET and puts the password
+     in the query string, where it lands in browser history, the server access
+     log and any outgoing Referer header. Seen for real — a page whose JS had
+     not hydrated navigated to `?email=...&password=...`. POST cannot render a
+     password into a URL, so the failure mode becomes a harmless 405 instead of
+     a credential leak. */
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form onSubmit={onSubmit} method="post" noValidate>
       <div className="space-y-4">
         <ClientField
           label="Email"

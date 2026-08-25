@@ -2,6 +2,7 @@
 
 import { useId, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 /**
  * Form pieces shared by the portal's sign-in and setup forms.
@@ -185,10 +186,11 @@ export function ClientSubmit({
       className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-electric text-sm font-semibold text-white transition-[background-color,opacity] hover:bg-electric-glow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? (
-        <span
-          className="size-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
-          aria-hidden
-        />
+        /* `.bx-spinner` rather than a hand-rolled ring: this one and the
+           sign-out button had each grown their own, at different sizes and
+           opacities, and both were frozen under reduced motion because a bare
+           `animate-spin` loses to the blanket rule. See globals.css. */
+        <Spinner />
       ) : Icon ? (
         <Icon className="size-4" aria-hidden />
       ) : null}

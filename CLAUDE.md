@@ -192,6 +192,31 @@ can beat without `!important`. Progress uses **one** formula over
 `sectionHeight + viewportHeight`; it used to branch on whether the section was
 taller than the viewport and popped when a URL bar collapsed across that line.
 
+**Every credential form carries `method="post"`, and it is not decoration.**
+`client-login-form`, `client-setup-form` and `admin-login-form` all submit
+through an `onSubmit` handler that calls `preventDefault`, so the attribute
+never fires in normal use. It exists for the case where it does: a form used
+before hydration completes falls back to a *native* submit, and a form with no
+`method` defaults to GET — which writes the password into the query string,
+where it reaches browser history, the server access log and any outgoing
+`Referer`. This was observed, not theorised: the agent's in-app browser never
+hydrates (see Performance), and a login attempt there navigated to
+`?email=...&password=...`. POST cannot put a body field in a URL, so the same
+failure becomes a harmless 405.
+
+**Progress indicators are exempt from the blanket reduced-motion rule.**
+`.bx-spinner` (globals.css) is the site's spinner; the admin uses lucide's
+`Loader2` with Tailwind's `.animate-spin`. The universal rule in the
+motion-safety block sets `animation-iteration-count: 1 !important`, which for a
+spinner means one 0.01ms rotation and then a motionless ring — indistinguishable
+from a crashed request, which is the opposite of reassuring. Both selectors are
+therefore re-animated in that same block as an opacity pulse: still "working",
+without the rotation that the preference exists to remove. `.animate-spin` needs
+it as much as `.bx-spinner` does, because Tailwind's utility carries no
+`!important` and loses to the blanket rule outright — every `Loader2` in the
+admin was silently frozen before this. If you add a new progress indicator, add
+it to that selector list or it will freeze.
+
 ## Gotchas that cost real time
 
 - **Never write `scrollbar-width`/`scrollbar-color` beside `::-webkit-scrollbar`.**
@@ -306,10 +331,16 @@ system here already had — it is a canvas that chases a cursor, so on a phone i
 was repainting the hero every frame to render something structurally invisible.
 
 **None of the above was verified in a browser.** See the note in "Verifying
-work": this machine cannot profile, and the in-app browser does not deliver
-IntersectionObserver callbacks at all, so any runtime check of the gating here
-reports a false negative. What *was* verified is static: tsc, lint, tests, and
-the compiled CSS in `.next/static/chunks`.
+work": this machine cannot profile, and **React does not hydrate in the agent's
+in-app browser at all** — its CSP blocks `eval()`, which React's development
+bootstrap needs, so `Object.keys(formEl).filter(k => k.startsWith('__react'))`
+comes back empty and no client component ever mounts. An earlier version of this
+note blamed IntersectionObserver specifically; that was the symptom, not the
+cause. Anything client-side checked there reports a false negative, so it proves
+nothing either way. What *is* verifiable there: server-rendered HTML (`curl` the
+route), the compiled CSS in `.next/static/chunks`, and the cascade, by injecting
+rules and reading `getComputedStyle`. Static checks — tsc, lint, tests, build —
+remain the real safety net.
 
 ## Open items
 

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Check } from "lucide-react";
 import { submitContactMessage } from "@/app/actions/contact";
+import { Spinner } from "@/components/ui/spinner";
 import {
   EMPTY_CONTACT,
   MESSAGE_MIN_LENGTH,
@@ -195,6 +196,7 @@ export function ContactForm() {
         disabled={pending}
         className="bx-btn bx-btn--signal bx-btn--sm mt-6 w-full disabled:opacity-60 sm:w-auto"
       >
+        {pending && <Spinner />}
         {pending ? "Sending…" : "Send message"}
       </button>
     </form>

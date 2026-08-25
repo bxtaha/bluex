@@ -83,8 +83,13 @@ export function AdminLoginForm({ notice }: { notice?: string }) {
           </p>
         </div>
 
+        {/* See client-login-form for the reasoning: `method="post"` so a
+            native submit — which is what happens if this form is used before
+            hydration finishes — cannot write the password into the query
+            string, where it would reach browser history and the access log. */}
         <form
           onSubmit={onSubmit}
+          method="post"
           className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900"
         >
           <label

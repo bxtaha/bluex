@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 /**
  * Sign out.
@@ -45,10 +46,7 @@ export function ClientLogoutButton() {
       className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/12 px-3 text-[0.8125rem] font-medium text-ink-muted transition-colors hover:border-white/25 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? (
-        <span
-          className="size-3.5 animate-spin rounded-full border-2 border-white/25 border-t-white/70"
-          aria-hidden
-        />
+        <Spinner />
       ) : (
         <LogOut className="size-3.5" aria-hidden />
       )}

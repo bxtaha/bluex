@@ -343,6 +343,48 @@
     color 0.3s ease;
 }
 
+/* ── Spinner ───────────────────────────────────────────────────────────────
+   The site's progress indicator. The admin has lucide's `Loader2` on every
+   pending button; the marketing side had nothing at all, so a form that was
+   waiting on the network looked identical to one that had ignored the click.
+
+   Sized in `em` so it matches whatever text it sits beside — inside a
+   `.bx-btn--sm` it comes out smaller without a modifier, and `gap: 0.55em` on
+   the button already spaces it correctly.
+
+   `currentColor` for the lit arc and a transparent remainder: the ring
+   inherits the button's own text colour, so it works on the signal button, the
+   ghost button and plain body text without a variant for each. */
+.bx-spinner {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  border: 2px solid color-mix(in oklab, currentColor 25%, transparent);
+  border-top-color: currentColor;
+  animation: bx-spin 0.7s linear infinite;
+}
+
+@keyframes bx-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The reduced-motion treatment for this lives in the motion-safety block near
+   the end of the file, beside the blanket rule it has to survive. */
+
+@keyframes bx-spinner-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 /* Buttons get the house lift by default — the hover interaction is the same
    everywhere, so it belongs on the base class rather than being opted into
    per instance. */
@@ -2488,6 +2530,38 @@
 
   .bx-wave-bar {
     animation: none !important;
+    transform: none !important;
+  }
+
+  /**
+   * Progress indicators keep animating. They are the exception, and the only
+   * one.
+   *
+   * The blanket rule above is written for decoration: land it on its final
+   * frame and stop. Applied to a spinner that means one 0.01ms rotation and
+   * then a motionless ring — which does not read as "reduced motion", it reads
+   * as a hung page, because a stopped spinner is exactly what a crashed
+   * request looks like. This animation is not ornament; it is the only thing
+   * telling someone their click was received.
+   *
+   * So they animate, but as an opacity pulse rather than a rotation. Rotation
+   * is the vestibular trigger the preference exists to remove; a fade carries
+   * the same "still working" meaning with none of it.
+   *
+   * `.animate-spin` is included because Tailwind's utility carries no
+   * `!important` and therefore loses to the blanket rule outright — every
+   * lucide `Loader2` in the admin, and the refresh icons in Leads, Calls and
+   * the Inbox, were silently frozen for anyone with the preference set. The
+   * `!important` here is not decoration: it is what beats the rule above, and
+   * the class selector out-specifies `*` so source order does not decide it.
+   */
+  .bx-spinner,
+  .animate-spin {
+    animation: bx-spinner-pulse 1.4s ease-in-out infinite !important;
+    animation-iteration-count: infinite !important;
+    /* The lit arc is what reads as rotation; without motion it is just a
+       lopsided ring, so the border evens out and opacity does the work. */
+    border-top-color: currentColor;
     transform: none !important;
   }
 

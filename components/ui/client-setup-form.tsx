@@ -78,8 +78,10 @@ export function ClientSetupForm({
     }
   }
 
+  /* See client-login-form: `method="post"` so a native submit before
+     hydration cannot put the password in the URL. */
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form onSubmit={onSubmit} method="post" noValidate>
       {/* Read-only rather than absent: someone arriving from an email days later
           should be able to see which account they are about to set up, and an
           editable field here would imply they could set up a different one. */}

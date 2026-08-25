@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { EMPTY_LEAD, validateLead, type LeadErrors, type LeadInput } from "@/lib/lead";
+import { Spinner } from "@/components/ui/spinner";
 
 type Status = "idle" | "sending" | "done" | "error";
 
@@ -212,11 +213,18 @@ export function LeadForm({
             >
               Cancel
             </button>
+            {/* The longest wait anywhere on this site, and the one it can least
+                afford to leave unexplained. `/api/lead` deliberately awaits the
+                dispatch to ElevenLabs rather than deferring it — the response's
+                `dispatched` flag is what the copy above reads — and that call
+                carries a 10s timeout. The label alone changed, which on a slow
+                connection is a button that looks like it simply stopped. */}
             <button
               type="submit"
               disabled={status === "sending"}
               className="bx-btn bx-btn--signal bx-btn--sm disabled:opacity-60"
             >
+              {status === "sending" && <Spinner />}
               {status === "sending" ? "Starting the call…" : "Call me now"}
             </button>
           </div>
