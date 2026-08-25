@@ -349,6 +349,28 @@ remain the real safety net.
   acting on any SEO finding — several of the obvious readings were wrong. The
   short version: on-page work is largely exhausted, and what remains is backlinks
   (7 links, 6 domains) and putting a CDN in front of a single-region origin.
+- **Outbound calls currently fail at Twilio, not at ElevenLabs, and not in this
+  repo.** Every outbound dispatch on record — three attempts, all to
+  `+8613132740404` — comes back with
+  `metadata.error.reason = "HTTP 401 error: Unable to create record: Primary
+  compliance profile is not approved. Please refer to documentation and complete
+  the KYC process in Trust Hub to gain access."` (`code: 1011`,
+  `error_type: call_initialization_error`). Trust Hub and the Primary Customer
+  Profile are Twilio's regulatory-compliance system; the fix is completing KYC in
+  the **Twilio** console, and nothing in this codebase or in ElevenLabs will
+  change it. **Note the failure shape**, because it is genuinely misleading:
+  ElevenLabs returns HTTP 200, *does* create a conversation record, and only then
+  hands off to Twilio and gets refused — so `placeCall` sees a success status
+  with no `conversation_id` and the visitor sees "We couldn't start the call."
+  The real reason exists only on the conversation, readable via
+  `GET /v1/convai/conversations/{id}` → `metadata.error`. Every recorded outbound
+  attempt went to the same +86 number, so whether this blocks all outbound or
+  only international is **not** established — a test call to a domestic number
+  would settle it.
+- **A separate quota signal, seen once:** an inbound conversation on 2026-08-25
+  terminated with `"This request exceeds your quota limit."` Unrelated to the
+  Twilio failure above and not investigated further; the plan quota cannot be
+  read from the API on this key (see the voice-usage note above).
 - **Two things outstanding, both in the ElevenLabs dashboard, neither fixable
   from this repo.** (1) The post-call webhook still needs to be repointed at
   `/api/calls/webhook` — until that's confirmed, leave

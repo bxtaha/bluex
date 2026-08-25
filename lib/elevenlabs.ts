@@ -135,9 +135,37 @@ export async function placeCall(request: CallRequest): Promise<CallResult> {
 
   const conversationId = stringField(body, "conversation_id");
   if (!conversationId) {
-    // A 200 with no conversation id means the call is un-trackable: the
-    // post-call webhook would arrive with nothing to match it against.
-    return { ok: false, reason: "The provider returned no conversation id." };
+    /*
+     * A 200 with no conversation id means the call is un-trackable: the
+     * post-call webhook would arrive with nothing to match it against.
+     *
+     * The body is logged in full because this branch is otherwise a dead end
+     * for diagnosis, and that cost real time once. A dispatch to a Chinese
+     * number came back here, and the stored `failureReason` read "the provider
+     * returned no conversation id" — accurate about the response and useless
+     * about the cause. The conversation *had* been created; the reason it went
+     * nowhere was only visible by fetching that conversation back and reading
+     * `metadata.error`, which said Twilio had refused with "Primary compliance
+     * profile is not approved… complete the KYC process in Trust Hub".
+     *
+     * Whatever the provider does put in this body is the closest thing to that
+     * message available at dispatch time, so it goes to the log rather than
+     * being discarded. `extractError` is tried first in case it is one of the
+     * shapes we already know how to read.
+     */
+    const detail = extractError(body);
+    console.error(
+      "[elevenlabs] dispatch returned 200 with no conversation id.",
+      detail || "(no message field)",
+      "body:",
+      JSON.stringify(body)?.slice(0, 800),
+    );
+    return {
+      ok: false,
+      reason: detail
+        ? `The provider accepted the request but did not start a call: ${detail}`
+        : "The provider accepted the request but returned no conversation id. Check the conversation's metadata.error in the ElevenLabs dashboard.",
+    };
   }
 
   return {
