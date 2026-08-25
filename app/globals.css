@@ -2033,9 +2033,14 @@
   padding-left: 1.5em;
 }
 
+/* Matched to `.bx-prose blockquote` — 2px, and the brand token rather than a
+   hardcoded Tailwind blue. This surface is a preview of the published post, so
+   any place it disagrees with `.bx-prose` is a small lie about what the writer
+   is about to ship. It was 3px of `rgb(59 130 246 / 60%)`, which is a different
+   weight and a different blue from the one the blog actually renders. */
 .bx-editor__surface blockquote {
   padding-left: 1em;
-  border-left: 3px solid rgb(59 130 246 / 60%);
+  border-left: 2px solid var(--color-electric);
 }
 
 .bx-editor__surface a {
