@@ -9,6 +9,7 @@ import {
   advanceStageOnContact,
   findOrCreateLeadByPhone,
   hasLeadWithConversation,
+  markLeadCallNotConnected,
   markLeadSpokenTo,
 } from "./lead-store.ts";
 
@@ -83,8 +84,20 @@ export async function recordConversation(
   if (!call) return { stored: false, reason: "duplicate" };
 
   if (leadId) {
-    await markLeadSpokenTo(leadId, parsed.conversationId);
-    await advanceStageOnContact(leadId);
+    if (parsed.connected) {
+      await markLeadSpokenTo(leadId, parsed.conversationId);
+      await advanceStageOnContact(leadId);
+    } else if (direction === "outbound") {
+      // A dispatch that produced a conversation but never rang. Only outbound
+      // touches `callStatus` — the field describes whether our own dispatch got
+      // through, so a failed inbound attempt has nothing to say about it and
+      // must not overwrite the result of the last call we placed.
+      await markLeadCallNotConnected(
+        leadId,
+        parsed.conversationId,
+        parsed.failureReason,
+      );
+    }
   }
 
   return { stored: true, reason: "stored" };

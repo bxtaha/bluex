@@ -71,6 +71,61 @@ test("survives missing analysis and metadata entirely", () => {
   assert.equal(parsed!.callSuccessful, "unknown");
 });
 
+/**
+ * The shape a call that never reached anyone comes back as. Copied from a real
+ * failed dispatch (`conv_6801m15j0ckhftvr5a7d1skgkprc`, 2026-08-29): the
+ * provider accepts the request, creates a conversation, then hands off to the
+ * telephony carrier and is refused — so a record exists for a call that never
+ * rang. Nothing under `analysis` says so; only `status` and `metadata.error`.
+ */
+const FAILED = {
+  conversation_id: "conv_failed",
+  status: "failed",
+  agent_id: "agent_1",
+  metadata: {
+    call_duration_secs: 0,
+    start_time_unix_secs: 1_700_000_000,
+    phone_call: { direction: "outbound", external_number: "+15735334354" },
+    error: {
+      code: 1011,
+      reason: "HTTP 401 error: Primary compliance profile is not approved.",
+      error_type: "call_initialization_error",
+    },
+  },
+  transcript: [],
+};
+
+test("reports a call that never connected", () => {
+  const parsed = parseConversation(FAILED);
+  assert.equal(parsed!.connected, false);
+  assert.match(parsed!.failureReason, /compliance profile is not approved/);
+});
+
+test("treats a finished call as connected even though it carries an error key", () => {
+  // `metadata.error` is present and null on every successful conversation, so
+  // testing whether the key exists would mark every real call as failed. Only
+  // the status decides.
+  const parsed = parseConversation({
+    conversation_id: "conv_done",
+    status: "done",
+    metadata: { call_duration_secs: 169, error: null },
+  });
+  assert.equal(parsed!.connected, true);
+  assert.equal(parsed!.failureReason, "");
+});
+
+test("fails open when the status is missing or unrecognised", () => {
+  // A renamed or absent status must not silence a real conversation. Only an
+  // explicit "failed" suppresses contact; anything else is treated as a call
+  // that happened, because wrongly dropping a contact is worse than wrongly
+  // keeping one.
+  assert.equal(parseConversation({ conversation_id: "c" })!.connected, true);
+  assert.equal(
+    parseConversation({ conversation_id: "c", status: "some_new_state" })!.connected,
+    true,
+  );
+});
+
 test("phoneKey keeps only digits", () => {
   assert.equal(phoneKey("+1 240 820 3149"), "12408203149");
   assert.equal(phoneKey("(240) 820-3149"), "2408203149");

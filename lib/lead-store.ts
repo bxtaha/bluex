@@ -348,6 +348,44 @@ export async function markLeadSpokenTo(
 }
 
 /**
+ * A conversation record exists, but the call never reached this person.
+ *
+ * The counterpart to `markLeadSpokenTo`, and the reason that function is not
+ * simply called for every conversation that arrives: the provider files a real
+ * conversation for a dispatch the carrier then refuses, so "a record came back"
+ * and "we spoke to them" are different facts. Marking the second when only the
+ * first is true is how a lead nobody could reach ends up reading `completed`
+ * with an empty failure reason.
+ *
+ * `attempts` deliberately does not increment here. The dispatch already counted
+ * this call when it placed it; counting it again on the way back would report
+ * two attempts for one phone call.
+ */
+export async function markLeadCallNotConnected(
+  leadId: string,
+  conversationId: string,
+  reason: string,
+): Promise<void> {
+  if (!ObjectId.isValid(leadId)) return;
+  const leads = await collection();
+  const _id = new ObjectId(leadId);
+
+  await leads.updateOne(
+    { _id },
+    {
+      $set: {
+        callStatus: "failed",
+        failureReason: reason.slice(0, 500),
+      },
+    },
+  );
+  await leads.updateOne(
+    { _id, conversationId: "" },
+    { $set: { conversationId } },
+  );
+}
+
+/**
  * What a completed call does to a stage.
  *
  * Pure and exported so the rule can be pinned down without a database. Only

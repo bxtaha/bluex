@@ -86,6 +86,24 @@ stays until the ElevenLabs dashboard is confirmed pointing at
 this repo, and renaming the route without repointing it would silently drop
 every call.
 
+**A conversation record is not proof that anyone was reached.** The provider
+files a conversation the moment it accepts a dispatch and only *then* hands off
+to the carrier, so a call the carrier refuses still comes back as a complete,
+well-formed record — 0 seconds, empty `call_sid`, and nothing under `analysis`
+saying anything is wrong. `parseConversation` therefore reports `connected`,
+read from the conversation's `status` field, and `recordConversation` only
+marks a lead spoken-to and advances its stage when that is true; otherwise an
+outbound lead gets `callStatus: "failed"` and the provider's own reason.
+**Do not test `metadata.error` for existence** — that key is sent on every
+conversation and is simply `null` on the ones that worked, so presence-testing
+it marks every real call as failed. Only `status === "failed"` counts, and
+anything unrecognised is treated as connected: a renamed status should cost the
+failure reporting, not silently discard genuine contact. Note that the repair
+runs forward only — `insertCallIfNew` dedupes on `conversationId`, so
+`recordConversation` returns `"duplicate"` and never re-judges a lead whose
+call is already stored. A lead mislabelled before this existed stays that way
+until something corrects it directly.
+
 **Two principals, two collections, two cookies.** `lib/auth-core.ts` holds the
 shared mechanics — token generation and hashing, lockout arithmetic, session
 expiry, `DUMMY_HASH`. `lib/admin-auth.ts` reads `admin_users`/`admin_sessions`

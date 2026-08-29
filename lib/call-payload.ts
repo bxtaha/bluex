@@ -30,6 +30,20 @@ export type ParsedCall = {
   durationSeconds: number;
   transcript: TranscriptTurn[];
   summary: string;
+
+  /**
+   * Did this conversation reach the other end at all?
+   *
+   * A different question from `callSuccessful`, which grades a conversation
+   * that happened. This one asks whether one happened. The provider creates a
+   * conversation record the moment a dispatch is accepted and only then hands
+   * off to the carrier, so a refusal downstream leaves a real record for a call
+   * that never rang — indistinguishable from a completed call by every other
+   * field here, `analysis` included.
+   */
+  connected: boolean;
+  /** The provider's reason it never connected. Empty when it did. */
+  failureReason: string;
 };
 
 function pick(value: unknown, key: string): unknown {
@@ -99,6 +113,14 @@ export function parseConversation(payload: unknown): ParsedCall | null {
     durationSeconds: number(metadata, "call_duration_secs"),
     transcript: parseTranscript(pick(data, "transcript")),
     summary: text(analysis, "transcript_summary"),
+    // Only an explicit "failed" counts, and it is read from `status` rather
+    // than from the presence of `metadata.error` — that key is sent on every
+    // conversation and is simply null on the ones that worked, so testing for
+    // it would mark every real call as failed. Unrecognised and missing states
+    // both mean "connected" so that a renamed status loses the failure
+    // reporting rather than silently discarding genuine contact.
+    connected: text(data, "status") !== "failed",
+    failureReason: text(pick(metadata, "error"), "reason"),
   };
 }
 
