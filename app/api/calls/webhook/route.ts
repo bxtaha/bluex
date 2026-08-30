@@ -42,8 +42,11 @@ export async function POST(request: Request) {
     if (result.reason === "unparseable") {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
-    // A duplicate is a success. The provider retries on anything else, and
-    // retrying a call we already hold would loop forever.
+    // A duplicate is a success, and so is a deliberate skip — a browser
+    // conversation arriving with "Record conversations" switched off was
+    // received correctly and thrown away on purpose. The provider retries on
+    // anything else, so reporting either as a failure would have it redeliver
+    // forever something we will discard every time.
     return NextResponse.json({ ok: true, stored: result.stored });
   } catch (error) {
     // 5xx on purpose: the provider retries on one, and losing a transcript to

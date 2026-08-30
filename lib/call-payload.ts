@@ -12,6 +12,35 @@
 
 export type CallDirection = "inbound" | "outbound";
 
+/**
+ * How the conversation was held, as distinct from which way it went.
+ *
+ * Deliberately *not* a third `CallDirection`. Direction is a telephony
+ * concept — it answers "who dialled whom" — and "outbound" is meaningless for
+ * somebody who clicked a button on the website. Modelling the browser channel
+ * as a direction would also have meant touching every branch that already
+ * switches on one, including the usage aggregation, to teach them a value that
+ * answers a different question.
+ *
+ * A web conversation is `direction: "inbound"`, which is true in the sense
+ * that matters: the visitor came to us.
+ */
+export type CallChannel = "phone" | "web";
+
+/**
+ * The structured fields the agent was asked to collect during the call.
+ *
+ * Empty strings rather than optionals, so every consumer reads the same shape
+ * whether the agent collected nothing or everything.
+ */
+export type CollectedFields = {
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  serviceInterest: string;
+};
+
 export type TranscriptTurn = {
   role: "agent" | "user";
   message: string;
@@ -44,6 +73,18 @@ export type ParsedCall = {
   connected: boolean;
   /** The provider's reason it never connected. Empty when it did. */
   failureReason: string;
+
+  /**
+   * Whether the payload carries a `phone_call` block.
+   *
+   * The one honest signal that separates a browser conversation from a phone
+   * one: nothing was dialled, so there is no telephony metadata. Reported here
+   * rather than inferred downstream from an empty number, because "" is also
+   * what a withheld caller ID looks like and those are different situations.
+   */
+  hasPhoneCall: boolean;
+
+  collected: CollectedFields;
 };
 
 function pick(value: unknown, key: string): unknown {
@@ -121,6 +162,49 @@ export function parseConversation(payload: unknown): ParsedCall | null {
     // reporting rather than silently discarding genuine contact.
     connected: text(data, "status") !== "failed",
     failureReason: text(pick(metadata, "error"), "reason"),
+    hasPhoneCall: phone !== null && typeof phone === "object",
+    collected: parseCollected(analysis),
+  };
+}
+
+/**
+ * The fields the agent collected, out of `analysis.data_collection_results`.
+ *
+ * The provider's shape is `{ [key]: { value, json_schema, rationale } }` where
+ * every key is whatever whoever configured the agent typed into the dashboard.
+ * That means there is no canonical spelling to match on, so a handful of
+ * obvious ones map to each field — collecting nothing because the agent's
+ * author wrote `full_name` instead of `name` is a silent failure, and this is
+ * the cheapest possible guard against it.
+ *
+ * Unrecognised keys are ignored rather than stored. This is a lead's contact
+ * details, not a general-purpose bag, and every consumer downstream expects
+ * exactly these five.
+ */
+export function parseCollected(analysis: unknown): CollectedFields {
+  const results = pick(analysis, "data_collection_results");
+
+  const read = (...keys: string[]): string => {
+    for (const key of keys) {
+      const entry = pick(results, key);
+      if (entry === null) continue;
+
+      const value = pick(entry, "value");
+      // A number is an ordinary thing to receive: the provider types the field
+      // from the JSON schema the agent was given. Null means the agent was
+      // asked and did not get an answer, which is absence, not the word.
+      if (typeof value === "string" && value.trim()) return value.trim();
+      if (typeof value === "number" && Number.isFinite(value)) return String(value);
+    }
+    return "";
+  };
+
+  return {
+    name: read("name", "full_name", "customer_name", "caller_name"),
+    email: read("email", "email_address"),
+    phone: read("phone", "phone_number", "telephone"),
+    company: read("company", "business", "company_name", "business_name"),
+    serviceInterest: read("service_interest", "service", "interest", "enquiry_type"),
   };
 }
 

@@ -1,6 +1,6 @@
 import { ObjectId, type Collection, type Filter } from "mongodb";
 import { getDb } from "./mongodb.ts";
-import type { CallDirection, TranscriptTurn } from "./call-payload.ts";
+import type { CallChannel, CallDirection, TranscriptTurn } from "./call-payload.ts";
 
 /**
  * `calls` — every conversation the agent has had, in either direction.
@@ -18,6 +18,17 @@ export type Call = {
   /** The provider's handle. Unique — the dedupe key for both write paths. */
   conversationId: string;
   direction: CallDirection;
+
+  /**
+   * How the conversation was held — over the phone, or through the browser
+   * support widget.
+   *
+   * Separate from `direction` rather than folded into it, for the reasons in
+   * `call-payload.ts`. Every record written before this field existed is a
+   * phone call, which is why `toCall` defaults it that way rather than
+   * treating the absence as unknown.
+   */
+  channel: CallChannel;
 
   counterpartyNumber: string;
   /** Digits only. The join key to a lead. */
@@ -71,6 +82,7 @@ function ensureIndexes(calls: Collection<CallDoc>): Promise<unknown> {
     calls.createIndex({ conversationId: 1 }, { unique: true }),
     calls.createIndex({ startedAt: -1 }),
     calls.createIndex({ direction: 1, startedAt: -1 }),
+    calls.createIndex({ channel: 1, startedAt: -1 }),
     calls.createIndex({ leadId: 1, startedAt: -1 }),
     calls.createIndex({ counterpartyKey: 1 }),
     // One text index per collection is a Mongo limit, so this is the only
@@ -92,6 +104,10 @@ function toCall(doc: CallDoc & { _id: ObjectId }): Call {
     id: doc._id.toHexString(),
     conversationId: doc.conversationId ?? "",
     direction: doc.direction === "outbound" ? "outbound" : "inbound",
+    // Every row written before this field existed came from a telephone, so an
+    // absent value is "phone" rather than unknown — there is no backfill to
+    // run and no third state to render.
+    channel: doc.channel === "web" ? "web" : "phone",
     counterpartyNumber: doc.counterpartyNumber ?? "",
     counterpartyKey: doc.counterpartyKey ?? "",
     agentId: doc.agentId ?? "",
@@ -155,6 +171,7 @@ export async function hasCall(conversationId: string): Promise<boolean> {
 export async function listCalls(
   options: {
     direction?: CallDirection;
+    channel?: CallChannel;
     query?: string;
     leadId?: string;
     limit?: number;
@@ -165,6 +182,15 @@ export async function listCalls(
 
   if (options.direction) filter.direction = options.direction;
   if (options.leadId) filter.leadId = options.leadId;
+
+  if (options.channel === "web") {
+    filter.channel = "web";
+  } else if (options.channel === "phone") {
+    // Matches rows written before the field existed as well as rows that carry
+    // it — those are all phone calls, and a bare `{ channel: "phone" }` would
+    // hide the entire archive that predates this feature.
+    filter.channel = { $ne: "web" };
+  }
 
   const query = options.query?.trim() ?? "";
   const digits = query.replace(/\D/g, "");

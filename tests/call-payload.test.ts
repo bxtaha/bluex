@@ -148,3 +148,125 @@ test("phoneKey strips a leading trunk zero but does not guess a country", () => 
   assert.equal(phoneKey("07123456789"), "7123456789");
   assert.notEqual(phoneKey("07123456789"), phoneKey("+447123456789"));
 });
+
+/* ── The browser channel ──────────────────────────────────────────────────────
+   A conversation held through the support widget rather than a phone. The
+   distinguishing feature is what is *missing*: there is no `phone_call` block,
+   because nothing was dialled. */
+
+const WEB = {
+  type: "post_call_transcription",
+  data: {
+    conversation_id: "conv_web_1",
+    agent_id: "agent_support",
+    status: "done",
+    metadata: {
+      call_duration_secs: 88,
+      start_time_unix_secs: 1_700_000_500,
+      error: null,
+    },
+    transcript: [
+      { role: "agent", message: "Hi, how can I help?", time_in_call_secs: 1 },
+      { role: "user", message: "Do you build online shops?", time_in_call_secs: 6 },
+    ],
+    analysis: {
+      transcript_summary: "Asked about e-commerce.",
+      call_successful: "success",
+      data_collection_results: {
+        name: { value: "Jane Okafor", rationale: "Gave her name." },
+        email: { value: "jane@example.com" },
+        phone_number: { value: "+15551230000" },
+        company: { value: "Okafor Studio" },
+        service_interest: { value: "E-commerce build" },
+      },
+    },
+  },
+};
+
+test("a phone conversation is marked as having a phone call", () => {
+  const parsed = parseConversation(WEBHOOK);
+  assert.equal(parsed!.hasPhoneCall, true);
+});
+
+test("a browser conversation has no phone call and no counterparty number", () => {
+  // This is the whole signal. `call-intake` reads it to decide the channel,
+  // because a conversation nobody dialled is not a phone call in either
+  // direction.
+  const parsed = parseConversation(WEB);
+  assert.ok(parsed);
+  assert.equal(parsed.hasPhoneCall, false);
+  assert.equal(parsed.counterpartyNumber, "");
+  assert.equal(parsed.direction, null);
+});
+
+test("a browser conversation still parses everything else normally", () => {
+  const parsed = parseConversation(WEB);
+  assert.equal(parsed!.durationSeconds, 88);
+  assert.equal(parsed!.summary, "Asked about e-commerce.");
+  assert.equal(parsed!.transcript.length, 2);
+  assert.equal(parsed!.connected, true);
+});
+
+test("reads the fields the agent collected", () => {
+  const parsed = parseConversation(WEB);
+  assert.deepEqual(parsed!.collected, {
+    name: "Jane Okafor",
+    email: "jane@example.com",
+    phone: "+15551230000",
+    company: "Okafor Studio",
+    serviceInterest: "E-commerce build",
+  });
+});
+
+test("accepts the other names an agent might give the same fields", () => {
+  // The keys are whatever whoever configured the agent typed into the
+  // dashboard, so a handful of obvious spellings map to the same field rather
+  // than silently collecting nothing.
+  const parsed = parseConversation({
+    conversation_id: "conv_web_2",
+    analysis: {
+      data_collection_results: {
+        full_name: { value: "Sam" },
+        email_address: { value: "sam@example.com" },
+        phone: { value: "+15559990000" },
+        business: { value: "Sam Ltd" },
+        service: { value: "Website" },
+      },
+    },
+  });
+
+  assert.equal(parsed!.collected.name, "Sam");
+  assert.equal(parsed!.collected.email, "sam@example.com");
+  assert.equal(parsed!.collected.phone, "+15559990000");
+  assert.equal(parsed!.collected.company, "Sam Ltd");
+  assert.equal(parsed!.collected.serviceInterest, "Website");
+});
+
+test("a collected value that is not a string is coerced, not dropped", () => {
+  // The provider types a collected field from the JSON schema the agent was
+  // given, so a number is a perfectly ordinary thing to receive here.
+  const parsed = parseConversation({
+    conversation_id: "conv_web_3",
+    analysis: { data_collection_results: { phone: { value: 15559990000 } } },
+  });
+  assert.equal(parsed!.collected.phone, "15559990000");
+});
+
+test("a null collected value reads as absent rather than as the word null", () => {
+  const parsed = parseConversation({
+    conversation_id: "conv_web_4",
+    analysis: { data_collection_results: { name: { value: null } } },
+  });
+  assert.equal(parsed!.collected.name, "");
+});
+
+test("no analysis block at all still yields an empty collected record", () => {
+  const parsed = parseConversation({ conversation_id: "conv_web_5" });
+  assert.deepEqual(parsed!.collected, {
+    name: "",
+    email: "",
+    phone: "",
+    company: "",
+    serviceInterest: "",
+  });
+});
