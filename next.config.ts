@@ -27,6 +27,21 @@ const CANONICAL_HOST = new URL(
  * `img-src` is wide because it has to be. Project cards, blog covers and the
  * admin's uploads are all admin-supplied absolute URLs rendered through a plain
  * `<img>`, and the host is whatever was pasted in.
+ *
+ * `connect-src` names the voice provider because the browser support widget
+ * opens a WebSocket to it. That is the *whole* of what this policy gives up for
+ * that feature, and keeping it that small took deliberate work — see
+ * `scripts/sync-worklets.ts`. Shipped as it comes, the SDK loads its audio
+ * worklets from `blob:` and `data:` URLs and pulls libsamplerate from
+ * `cdn.jsdelivr.net`, which would have meant three additions to `script-src`
+ * including a third-party host. The worklets are served from this origin
+ * instead, so `script-src` is untouched and the sentence above about no
+ * third-party script stays true.
+ *
+ * Note what is still absent: no `media-src` and no `worker-src`. The SDK plays
+ * audio by assigning a `MediaStream` to `srcObject` rather than loading a URL,
+ * and it starts no workers. Adding either would be widening the policy for a
+ * request that is never made.
  */
 const CSP = [
   "default-src 'self'",
@@ -38,7 +53,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://api.elevenlabs.io wss://api.elevenlabs.io",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
 ].join("; ");
@@ -51,10 +66,22 @@ const CSP = [
  * browser preload list — shorter values are accepted by browsers but rejected
  * by hstspreload.org, so a one-year value is the worst of both worlds.
  *
- * `Permissions-Policy` denies the three capabilities this site has no use for.
- * The voice agent talks to ElevenLabs from the server; nothing in the browser
- * ever asks for a microphone, and a policy that says so is a promise a future
- * dependency cannot quietly break.
+ * `Permissions-Policy` denies the capabilities this site has no use for, and
+ * grants exactly one.
+ *
+ * **`microphone=(self)` is load-bearing, not boilerplate.** This entry used to
+ * read `microphone=()`, which denies the microphone to *every* origin including
+ * this one — `getUserMedia` fails before the browser ever shows a permission
+ * prompt, and the failure looks like a broken feature rather than a policy. The
+ * comment here used to say that nothing in the browser ever asks for a
+ * microphone and that the denial was a promise a future dependency could not
+ * quietly break. The Customer Support widget is that dependency, and it asks
+ * deliberately: a visitor clicks a button and talks to the agent through their
+ * own microphone.
+ *
+ * `(self)` and not `*`. This origin may ask; an embedded frame from anywhere
+ * else still may not, which keeps the original promise everywhere it still
+ * applies. Camera, geolocation and browsing-topics remain denied outright.
  */
 const SECURITY_HEADERS = [
   {
@@ -67,7 +94,7 @@ const SECURITY_HEADERS = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
+    value: "camera=(), microphone=(self), geolocation=(), browsing-topics=()",
   },
 ];
 
