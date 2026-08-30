@@ -9,6 +9,7 @@ import type { Project } from "@/lib/project-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
 import { AdminVoiceSettings } from "@/components/ui/admin/admin-voice-settings";
+import { AdminSupportVoice } from "@/components/ui/admin/admin-support-voice";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
 import { AdminInbox } from "@/components/ui/admin-inbox";
@@ -279,6 +280,7 @@ export function AdminDashboard({
             {selected === "Settings" && (
               <div className="space-y-8">
                 <AdminVoiceSettings />
+                <AdminSupportVoice />
                 <AdminChangePassword email={email} />
               </div>
             )}
@@ -397,7 +399,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
     title: "Contact",
     subtitle: "Details shown in the contact section of the site",
   },
-  Settings: { title: "Settings", subtitle: "Your account, and the voice agent's credentials" },
+  Settings: {
+    title: "Settings",
+    subtitle: "Your account, and how the voice agents are configured",
+  },
 };
 
 const OVERVIEW = {
