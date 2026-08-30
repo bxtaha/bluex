@@ -205,6 +205,75 @@ function extractError(body: unknown): string {
   return "";
 }
 
+/* ── Browser sessions ────────────────────────────────────────────────────── */
+
+/**
+ * A short-lived URL the browser may open a conversation on.
+ *
+ * The support widget is the only caller. It exists so the API key never has to:
+ * the browser asks our server for a session, the server signs one with the
+ * workspace key, and the key stays on this side of the wire. The agent id is
+ * passed in rather than resolved here because it is *not* one of the outbound
+ * credentials — a support agent that answers questions is a different agent
+ * from the one that chases a lead, and it lives in
+ * `lib/support-voice-schema.ts`. The key is shared, because the provider has
+ * one key per workspace.
+ *
+ * A signed URL implies a WebSocket connection rather than WebRTC, which is
+ * also why the site's `connect-src` needs only `api.elevenlabs.io` — the
+ * WebRTC path would need the whole LiveKit host list behind it.
+ *
+ * Never throws, like everything else here: the caller's job is to turn a
+ * failure into a sentence the visitor can read, not to decide which class of
+ * network error deserves a stack trace.
+ */
+export async function getSignedUrl(
+  agentId: string,
+): Promise<{ ok: true; signedUrl: string } | { ok: false; reason: string }> {
+  const { apiKey } = await resolveVoiceCredentials();
+  if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
+  if (!agentId) return { ok: false, reason: "No support agent is configured." };
+
+  let response: Response;
+  try {
+    response = await fetch(
+      `${API_BASE}/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}`,
+      {
+        headers: { "xi-api-key": apiKey },
+        signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
+      },
+    );
+  } catch (error) {
+    const reason =
+      error instanceof Error && error.name === "TimeoutError"
+        ? "The voice provider did not respond in time."
+        : "Could not reach the voice provider.";
+    console.error("[elevenlabs] signed url threw:", error);
+    return { ok: false, reason };
+  }
+
+  const body = await readJson(response);
+
+  if (!response.ok) {
+    const detail = extractError(body) || `HTTP ${response.status}`;
+    console.error("[elevenlabs] signed url refused:", response.status, detail);
+    return { ok: false, reason: detail };
+  }
+
+  const signedUrl = stringField(body, "signed_url");
+  if (!signedUrl) {
+    // Same shape of failure as a 200 with no conversation id on dispatch, and
+    // worth the same treatment: the body is the only diagnostic available.
+    console.error(
+      "[elevenlabs] signed url returned 200 with no url. body:",
+      JSON.stringify(body)?.slice(0, 400),
+    );
+    return { ok: false, reason: "The provider returned no session URL." };
+  }
+
+  return { ok: true, signedUrl };
+}
+
 /* ── Reading conversations back ──────────────────────────────────────────── */
 
 /**
