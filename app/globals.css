@@ -3334,8 +3334,15 @@
   position: fixed;
   right: calc(clamp(1rem, 3vw, 2.5rem) + env(safe-area-inset-right));
   /* Cleared above the 2px progress bar pinned to the very bottom edge, and
-     above the home indicator where there is one. */
-  bottom: calc(clamp(1.25rem, 3vw, 2.5rem) + env(safe-area-inset-bottom));
+     above the home indicator where there is one.
+
+     `--btt-lift` is normally 0 and becomes a launcher's height when the
+     support widget occupies this same corner — see the Customer Support block
+     at the end of this file. Written as a variable rather than a second rule
+     so there is one place that computes this button's offset. */
+  bottom: calc(
+    clamp(1.25rem, 3vw, 2.5rem) + env(safe-area-inset-bottom) + var(--btt-lift, 0rem)
+  );
   z-index: 40;
   width: 2.75rem;
   height: 2.75rem;
@@ -4272,4 +4279,353 @@ html:has(.bx-admin)::-webkit-scrollbar-button,
 .bx-admin::-webkit-scrollbar-button,
 .bx-admin *::-webkit-scrollbar-button {
   display: none;
+}
+
+/* ── Customer Support voice ───────────────────────────────────────────────────
+   The launcher in the corner and the conversation panel above it.
+
+   Layer 45: over the page and the side dock (41), under the site header (50)
+   and well under `.bx-modal` (60), so a modal always covers this rather than
+   fighting it. The number is chosen against the stack that exists, not picked
+   large to win.
+
+   Both surfaces are single instances, which is why they may carry
+   `backdrop-filter` at all — the rule against it is about elements that repeat
+   (`.bx-card` renders 20-25 times a page), not about glass as such. */
+
+.bx-support-root {
+  position: fixed;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+
+  /* Clears the 2px progress bar pinned to the bottom edge and the home
+     indicator beneath it — the same arithmetic `.btt-root` already does. */
+  bottom: calc(clamp(1.25rem, 3vw, 2.5rem) + env(safe-area-inset-bottom));
+  right: calc(clamp(1rem, 3vw, 2.5rem) + env(safe-area-inset-right));
+}
+
+.bx-support-root[data-placement="bottom-left"] {
+  right: auto;
+  left: calc(clamp(1rem, 3vw, 2.5rem) + env(safe-area-inset-left));
+  align-items: flex-start;
+}
+
+/* Back-to-top shares the bottom-right corner, so it moves up out of the way —
+   but only when the launcher is actually rendered there. The lift is a custom
+   property on the root rather than a rule on `.btt-root`, because the two are
+   siblings and a value cannot inherit sideways. */
+:root:has(.bx-support-root[data-placement="bottom-right"]) {
+  --btt-lift: 3.5rem;
+}
+
+@media (max-width: 639px) {
+  /* Hidden on small screens by the admin's "Show on mobile" toggle. With no
+     launcher there, back-to-top keeps the corner it already had. */
+  .bx-support-root[data-mobile="off"] {
+    display: none;
+  }
+
+  :root:has(.bx-support-root[data-mobile="off"]) {
+    --btt-lift: 0rem;
+  }
+}
+
+/* ── Launcher ─────────────────────────────────────────────────────────────── */
+
+.bx-support-launcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-electric);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 18%),
+    0 10px 30px -12px rgb(46 107 255 / 80%);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color 200ms ease,
+    transform 200ms ease;
+}
+
+.bx-support-launcher:hover {
+  background: var(--color-electric-glow);
+}
+
+.bx-support-launcher:active {
+  transform: scale(0.97);
+}
+
+/* A visible ring, not the browser default that the reset removes. */
+.bx-support-launcher:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 3px;
+}
+
+.bx-support-launcher__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+}
+
+/* Icon-only on phones. The label is hidden rather than unmounted so the
+   accessible name is identical at every width. */
+@media (max-width: 639px) {
+  .bx-support-launcher {
+    padding: 0;
+    width: 2.75rem;
+    justify-content: center;
+  }
+
+  .bx-support-launcher__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────────── */
+
+.bx-support-panel {
+  width: min(20rem, calc(100vw - 2rem));
+  padding: 1rem;
+  border-radius: var(--radius-2xl);
+  background: var(--glass-tint);
+  backdrop-filter: var(--glass-blur);
+  box-shadow:
+    inset 0 0 0 1px var(--glass-edge),
+    0 var(--glass-shadow-size) calc(var(--glass-shadow-size) * 1.4) calc(var(--glass-shadow-size) * -1)
+      var(--glass-shadow-tint);
+  color: var(--color-ink);
+}
+
+/* The "site" theme is the default surface above. Dark is the same thing named
+   explicitly; light is for a pale host page, which this site is not — it exists
+   because the setting offers it, not because anything here needs it. */
+.bx-support-panel[data-theme="light"] {
+  background: rgb(255 255 255 / 92%);
+  box-shadow:
+    inset 0 0 0 1px rgb(10 11 15 / 10%),
+    0 30px 60px -30px rgb(10 11 15 / 35%);
+  color: var(--color-void);
+}
+
+.bx-support-panel__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.bx-support-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.bx-support-panel__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bx-support-panel__status {
+  margin-top: 0.125rem;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.bx-support-panel__lang {
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 10%);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.bx-support-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.bx-support-icon-btn:hover {
+  opacity: 1;
+}
+
+.bx-support-icon-btn:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+/* ── Waveform ─────────────────────────────────────────────────────────────── */
+
+.bx-support-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  height: 4.5rem;
+  margin: 0.875rem 0;
+}
+
+.bx-support-wave__bar {
+  width: 0.25rem;
+  height: 3rem;
+  border-radius: 999px;
+  /* Written by the frame loop as `scaleY()`. A transform and nothing else, so
+     the work stays on the compositor — a height animation would put a layout
+     pass in every frame. */
+  transform: scaleY(0.12);
+  transform-origin: center;
+  background: rgb(255 255 255 / 30%);
+  transition: background-color 220ms ease;
+}
+
+/* Who has the floor, as a colour. Electric blue for the agent, signal cream
+   for the visitor — far enough apart in hue to read without a legend. */
+.bx-support-wave[data-speaker="agent"] .bx-support-wave__bar {
+  background: var(--color-electric-glow);
+}
+
+.bx-support-wave[data-speaker="visitor"] .bx-support-wave__bar {
+  background: var(--color-signal);
+}
+
+/* The reduced-motion substitute: a state, not an animation. This is a rAF loop
+   rather than a CSS animation, so the blanket `animation-iteration-count: 1`
+   rule in the motion-safety block never reaches it — the component gates
+   itself and renders this instead. */
+.bx-support-wave--static {
+  gap: 0;
+}
+
+.bx-support-wave__dot {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 35%);
+  transition: background-color 200ms ease;
+}
+
+.bx-support-wave--static[data-speaker="agent"] .bx-support-wave__dot {
+  background: var(--color-electric-glow);
+}
+
+.bx-support-wave--static[data-speaker="visitor"] .bx-support-wave__dot {
+  background: var(--color-signal);
+}
+
+/* ── Panel controls ───────────────────────────────────────────────────────── */
+
+.bx-support-panel__controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.bx-support-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: rgb(255 255 255 / 10%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  color: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.bx-support-btn:hover:not(:disabled) {
+  background: rgb(255 255 255 / 16%);
+}
+
+.bx-support-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bx-support-btn:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.bx-support-btn--end {
+  background: rgb(239 68 68 / 22%);
+  box-shadow: inset 0 0 0 1px rgb(239 68 68 / 35%);
+}
+
+.bx-support-btn--end:hover:not(:disabled) {
+  background: rgb(239 68 68 / 32%);
+}
+
+/* ── Fallback ─────────────────────────────────────────────────────────────── */
+
+/* Shown whenever the conversation cannot continue — permission refused, the
+   session refused, or simply finished. Never a dead end: the form still works
+   and is one tap away. */
+.bx-support-panel__fallback {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.bx-support-panel__link {
+  display: inline-block;
+  margin-top: 0.625rem;
+  color: var(--color-electric-glow);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.bx-support-panel__link:focus-visible {
+  outline: 2px solid var(--color-electric-glow);
+  outline-offset: 2px;
+}
+
+.bx-support-panel--loading .bx-support-panel__status {
+  margin-top: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-support-launcher,
+  .bx-support-btn,
+  .bx-support-icon-btn,
+  .bx-support-wave__bar,
+  .bx-support-wave__dot {
+    transition: none;
+  }
+
+  .bx-support-launcher:active {
+    transform: none;
+  }
 }

@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored audio worklets, copied verbatim from their packages by
+    // `npm run worklets:sync` — see `scripts/sync-worklets.ts` for why they
+    // are served from this origin. Linting them reports 240 warnings about
+    // somebody else's minified build output, which buries our own.
+    "public/worklets/**",
   ]),
 ]);
 

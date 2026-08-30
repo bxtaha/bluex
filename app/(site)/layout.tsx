@@ -6,7 +6,9 @@ import { BackToTop } from "@/components/ui/back-to-top";
 import { SectionNav } from "@/components/ui/section-nav";
 import { SplashCursorMount } from "@/components/ui/splash-cursor-mount";
 import { SiteHeader } from "@/components/site-header";
+import { SupportVoiceMount } from "@/components/ui/support-voice/support-voice-mount";
 import { getContactSettings } from "@/lib/contact";
+import { getSupportVoice, toPublicSupportVoice } from "@/lib/support-voice";
 import {
   CONTACT_EMAIL,
   SITE_DESCRIPTION,
@@ -85,7 +87,18 @@ export default async function SiteLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   // Cached and tagged, and the contact section on the home page reads the same
   // entry — so this is a shared cache hit rather than a second round trip.
-  const { phone } = await getContactSettings();
+  //
+  // The support settings are read the same way, and this is the **first of the
+  // three gates** that decide whether the voice widget loads at all. Resolved
+  // here, on the server: switched off, nothing below renders, so a disabled
+  // widget is absent from the HTML rather than hidden by CSS — no markup, no
+  // agent id, and not a byte of the SDK. `getSupportVoice` never throws and
+  // defaults to disabled, so an unreachable database costs the button rather
+  // than the page.
+  const [{ phone }, support] = await Promise.all([
+    getContactSettings(),
+    getSupportVoice(),
+  ]);
 
   return (
     <>
@@ -115,6 +128,13 @@ export default async function SiteLayout({
         <ScrollProgress />
         <SectionNav />
         <BackToTop />
+
+        {/* Gate one. An agent id is required as well as the toggle: switched
+            on with nothing to connect to renders a button that can only fail,
+            which is worse than no button. */}
+        {support.enabled && support.agentId ? (
+          <SupportVoiceMount settings={toPublicSupportVoice(support)} />
+        ) : null}
       </SectionProvider>
 
       {/* Last in the body and outside the providers: it reads no section state
