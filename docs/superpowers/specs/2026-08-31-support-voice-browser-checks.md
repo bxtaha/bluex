@@ -137,6 +137,28 @@ finding.
 
 ---
 
+## 10. The SDK is not downloaded until you click
+
+Verified structurally here, but not observed loading — that needs a browser.
+
+Measured in the build: the SDK lands in exactly one chunk, **159 KB gzipped**,
+holding `livekit` and none of our markup. The launcher lands in a different
+chunk, **17 KB gzipped**, holding none of `livekit` — and referencing the SDK
+chunk by name, which is the lazy edge itself. The site's eager payload is six
+files totalling **133 KB gzipped**, and the SDK chunk is not among them.
+
+**Do:** DevTools → Network → JS, with the widget enabled. Load the page and
+leave it alone. Then click the button.
+
+**Pass:** no ~600 KB (159 KB transferred) chunk before the click; it arrives on
+the click. If it loads on page load, something imported `support-panel.tsx`
+eagerly and the whole performance argument is void.
+
+**Also worth a look while you are there:** with the widget *disabled* in
+Settings, the ~17 KB launcher chunk should also be absent — the layout renders
+nothing at all. I could not settle that one from the build manifests, so it is
+genuinely open.
+
 ## What was verified here, for contrast
 
 Static and server-side only: `tsc`, `eslint`, `npm test`, `npm run build`, the
