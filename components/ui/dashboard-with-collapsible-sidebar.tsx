@@ -42,6 +42,7 @@ import {
   PhoneIncoming,
   PhoneOutgoing,
   Settings,
+  LifeBuoy,
   Sun,
   Tag,
   Users,
@@ -141,10 +142,13 @@ export function AdminDashboard({
    * moment the sidebar selection changes, and a modal that vanishes when its
    * own panel re-renders is a modal that loses a half-typed agent id.
    */
-  const [settingsFor, setSettingsFor] = useState<"inbound" | "outbound" | null>(null);
+  const [settingsFor, setSettingsFor] = useState<"inbound" | "outbound" | "support" | null>(
+    null,
+  );
   const closeSettings = useCallback(() => setSettingsFor(null), []);
   const openInboundSettings = useCallback(() => setSettingsFor("inbound"), []);
   const openOutboundSettings = useCallback(() => setSettingsFor("outbound"), []);
+  const openSupportSettings = useCallback(() => setSettingsFor("support"), []);
 
   const signOut = useCallback(async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -175,6 +179,11 @@ export function AdminDashboard({
         // to an archive.
         { title: "Inbound Calls", icon: PhoneIncoming },
         { title: "Outbound Calls", icon: PhoneOutgoing },
+        // The third channel: conversations held through the website rather
+        // than over a phone. Beside the other two rather than merged into
+        // them with a filter, for the same reason inbound and outbound are
+        // separate — each channel's volume is visible without opening it.
+        { title: "Supports", icon: LifeBuoy },
         {
           title: "Inbox",
           icon: Inbox,
@@ -296,6 +305,13 @@ export function AdminDashboard({
                 onOpenSettings={openOutboundSettings}
               />
             )}
+            {selected === "Supports" && (
+              <AdminCalls
+                scope={{ kind: "channel", channel: "web" }}
+                onViewLeads={handleViewLeads}
+                onOpenSettings={openSupportSettings}
+              />
+            )}
             {selected === "Inbox" && <AdminInbox onUnreadChange={handleUnread} />}
             {selected === "Clients" && (
               <AdminClients onInvitedChange={handleInvited} />
@@ -303,7 +319,6 @@ export function AdminDashboard({
             {selected === "Settings" && (
               <div className="space-y-8">
                 <VoiceCredentialsSettings />
-                <AdminSupportVoice />
                 <AdminChangePassword email={email} />
               </div>
             )}
@@ -345,6 +360,15 @@ export function AdminDashboard({
         description="The agent and number this app dials with. Changes apply to the next call placed."
       >
         <VoiceOutboundSettings onDone={closeSettings} />
+      </AdminModal>
+
+      <AdminModal
+        open={settingsFor === "support"}
+        onClose={closeSettings}
+        title="Customer Support voice"
+        description="The button on the public site that lets a visitor talk to your agent through their browser."
+      >
+        <AdminSupportVoice onDone={closeSettings} />
       </AdminModal>
     </div>
   );
@@ -420,6 +444,10 @@ const VIEWS: Record<string, { title: string; subtitle: string }> = {
   "Outbound Calls": {
     title: "Outbound Calls",
     subtitle: "Calls the agent placed to a lead",
+  },
+  Supports: {
+    title: "Supports",
+    subtitle: "Conversations held through the website, not over the phone",
   },
   Inbox: {
     title: "Inbox",

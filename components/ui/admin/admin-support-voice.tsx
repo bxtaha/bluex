@@ -215,7 +215,7 @@ function TextArea({
 
 /* ── The card ─────────────────────────────────────────────────────────────── */
 
-export function AdminSupportVoice() {
+export function AdminSupportVoice({ onDone }: { onDone?: () => void }) {
   const [settings, setSettings] = useState<StoredSupportVoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -322,6 +322,12 @@ export function AdminSupportVoice() {
         return;
       }
       apply(data.settings);
+      // Closes the modal when there is one. On the Settings page there is not,
+      // and the toast is the whole feedback.
+      if (onDone) {
+        onDone();
+        return;
+      }
       toast.success("Support agent settings saved.");
     } catch {
       toast.failure("Could not reach the server.");
@@ -355,8 +361,8 @@ export function AdminSupportVoice() {
   const live = settings.enabled && settings.agentId.length > 0;
 
   return (
-    <form onSubmit={save} className="max-w-2xl space-y-5">
-      <AdminCard>
+    <form onSubmit={save} className="space-y-6 pt-1">
+      <section>
         <AdminSectionHeader
           title="Customer Support voice"
           description="A button on the public site that lets a visitor talk to your agent through their browser. No phone call is placed — this is a separate channel from the two above."
@@ -404,9 +410,9 @@ export function AdminSupportVoice() {
             disabled={saving}
           />
         </div>
-      </AdminCard>
+      </section>
 
-      <AdminCard>
+      <section>
         <AdminSectionHeader
           title="Where it appears"
           description="One path per line. A path on its own matches that page exactly; ending it with /* matches the section beneath it as well."
@@ -453,9 +459,9 @@ export function AdminSupportVoice() {
             disabled={saving}
           />
         </div>
-      </AdminCard>
+      </section>
 
-      <AdminCard>
+      <section>
         <AdminSectionHeader
           title="The conversation"
           description="What the agent opens with, how long a session may run, and where it is recorded."
@@ -508,9 +514,14 @@ export function AdminSupportVoice() {
             </span>
           </p>
         </div>
-      </AdminCard>
+      </section>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-2">
+        {onDone && (
+          <AdminButton type="button" onClick={onDone} disabled={saving}>
+            Cancel
+          </AdminButton>
+        )}
         <AdminButton type="submit" variant="primary" pending={saving}>
           Save support settings
         </AdminButton>
