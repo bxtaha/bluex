@@ -13,9 +13,10 @@ import {
   RefreshCw,
   RotateCw,
   Search,
+  Settings,
 } from "lucide-react";
 import type { Call } from "@/lib/call-store";
-import type { CallDirection } from "@/lib/call-payload";
+import type { CallChannel, CallDirection } from "@/lib/call-payload";
 
 /**
  * The call archive: every conversation the agent has had, read straight from
@@ -71,12 +72,28 @@ type SyncState = {
   configured: boolean;
 };
 
+/**
+ * Which slice of the archive a panel shows.
+ *
+ * A discriminated union rather than two optional props, so a caller states
+ * exactly one thing and cannot ask for a direction *and* a channel and get
+ * whichever the query string happened to win.
+ *
+ * Inbound and Outbound pass a direction; Supports passes `channel: "web"`.
+ */
+export type CallScope =
+  | { kind: "direction"; direction: CallDirection }
+  | { kind: "channel"; channel: CallChannel };
+
 export function AdminCalls({
-  direction,
+  scope,
   onViewLeads,
+  onOpenSettings,
 }: {
-  direction: CallDirection;
+  scope: CallScope;
   onViewLeads?: () => void;
+  /** Renders the gear only when given — not every panel has settings. */
+  onOpenSettings?: () => void;
 }) {
   const [query, setQuery] = useState("");
   const [calls, setCalls] = useState<Call[]>([]);
@@ -104,6 +121,21 @@ export function AdminCalls({
    */
   const [reloadKey, setReloadKey] = useState(0);
 
+  /*
+   * The scope, flattened to a query string before the effect ever sees it.
+   *
+   * `scope` is an object literal at every call site, so it is a new reference
+   * on every render of the dashboard: listing it in the dependencies would
+   * refetch the archive continuously, and listing nothing would leave the panel
+   * showing the previous slice after a switch. Reducing it to a string here
+   * means the effect depends on the *value* and refetches exactly when the
+   * slice actually changes — and it keeps `scope` out of the effect entirely,
+   * so the dependency list is honest rather than suppressed.
+   */
+  const scopeQuery =
+    scope.kind === "direction" ? `direction=${scope.direction}` : `channel=${scope.channel}`;
+  const scopeValue = scope.kind === "direction" ? scope.direction : scope.channel;
+
   const reload = useCallback(() => {
     setLoading(true);
     setReloadKey((key) => key + 1);
@@ -129,7 +161,7 @@ export function AdminCalls({
 
         void (async () => {
           try {
-            const params = new URLSearchParams({ direction });
+            const params = new URLSearchParams(scopeQuery);
             const trimmed = query.trim();
             if (trimmed) params.set("q", trimmed);
 
@@ -161,7 +193,7 @@ export function AdminCalls({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [query, direction, reloadKey]);
+  }, [query, scopeQuery, reloadKey]);
 
   // Derived rather than stored. Holding the selected call in its own state
   // means the detail pane keeps showing stale data after a refetch.
@@ -258,6 +290,21 @@ export function AdminCalls({
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} aria-hidden />
           Refresh
         </button>
+
+        {/* Only when the panel has settings to open. Rendering a disabled gear
+            on the panels that do not would be a control that teaches people it
+            does nothing. */}
+        {onOpenSettings && (
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            title="Settings for this channel"
+            aria-label="Settings for this channel"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-electric dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800"
+          >
+            <Settings className="h-4 w-4" aria-hidden />
+          </button>
+        )}
       </div>
 
       {/* Said plainly, for the same reason the Leads panel reports it: an
@@ -293,7 +340,7 @@ export function AdminCalls({
             loading={loading}
             selectedId={selectedId}
             isFiltered={isFiltered}
-            direction={direction}
+            scopeLabel={scopeValue}
             onOpen={(call) => setSelectedId(call.id)}
           />
         </div>
@@ -394,7 +441,7 @@ function CallList({
   loading,
   selectedId,
   isFiltered,
-  direction,
+  scopeLabel,
   onOpen,
 }: {
   calls: Call[];
@@ -402,7 +449,8 @@ function CallList({
   selectedId: string | null;
   /** Distinguishes "no calls yet" from "nothing matched that search." */
   isFiltered: boolean;
-  direction: CallDirection;
+  /** "inbound", "outbound" or "web" — only ever used in the empty-state line. */
+  scopeLabel: string;
   onOpen: (call: Call) => void;
 }) {
   if (loading && calls.length === 0) {
@@ -419,7 +467,7 @@ function CallList({
       <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-gray-300 px-6 text-center text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">
         {isFiltered
           ? "Nothing matched that search."
-          : `No ${direction} calls yet.`}
+          : `No ${scopeLabel} conversations yet.`}
       </div>
     );
   }

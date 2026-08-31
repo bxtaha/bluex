@@ -8,7 +8,10 @@ import type { PostCard } from "@/lib/blog-store";
 import type { Project } from "@/lib/project-store";
 import { useAdminTheme } from "@/components/providers/admin-theme";
 import { AdminChangePassword } from "@/components/ui/admin-change-password";
-import { AdminVoiceSettings } from "@/components/ui/admin/admin-voice-settings";
+import { AdminModal } from "@/components/ui/admin/admin-modal";
+import { VoiceCredentialsSettings } from "@/components/ui/admin/voice-settings/credentials";
+import { VoiceInboundSettings } from "@/components/ui/admin/voice-settings/inbound";
+import { VoiceOutboundSettings } from "@/components/ui/admin/voice-settings/outbound";
 import { AdminSupportVoice } from "@/components/ui/admin/admin-support-voice";
 import { AdminPricingManager } from "@/components/ui/admin-pricing-manager";
 import { AdminContactManager } from "@/components/ui/admin-contact-manager";
@@ -130,6 +133,18 @@ export function AdminDashboard({
   // Handed down to the Calls panel so its "view this lead" link can switch
   // the sidebar's own tab — the selection lives here, not in the panel.
   const handleViewLeads = useCallback(() => setSelected("Leads"), []);
+
+  /*
+   * Which channel's settings modal is open.
+   *
+   * Held here rather than inside each panel because the panel is unmounted the
+   * moment the sidebar selection changes, and a modal that vanishes when its
+   * own panel re-renders is a modal that loses a half-typed agent id.
+   */
+  const [settingsFor, setSettingsFor] = useState<"inbound" | "outbound" | null>(null);
+  const closeSettings = useCallback(() => setSettingsFor(null), []);
+  const openInboundSettings = useCallback(() => setSettingsFor("inbound"), []);
+  const openOutboundSettings = useCallback(() => setSettingsFor("outbound"), []);
 
   const signOut = useCallback(async () => {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -268,10 +283,18 @@ export function AdminDashboard({
               <AdminLeads onAttentionChange={handleAttention} />
             )}
             {selected === "Inbound Calls" && (
-              <AdminCalls direction="inbound" onViewLeads={handleViewLeads} />
+              <AdminCalls
+                scope={{ kind: "direction", direction: "inbound" }}
+                onViewLeads={handleViewLeads}
+                onOpenSettings={openInboundSettings}
+              />
             )}
             {selected === "Outbound Calls" && (
-              <AdminCalls direction="outbound" onViewLeads={handleViewLeads} />
+              <AdminCalls
+                scope={{ kind: "direction", direction: "outbound" }}
+                onViewLeads={handleViewLeads}
+                onOpenSettings={openOutboundSettings}
+              />
             )}
             {selected === "Inbox" && <AdminInbox onUnreadChange={handleUnread} />}
             {selected === "Clients" && (
@@ -279,7 +302,7 @@ export function AdminDashboard({
             )}
             {selected === "Settings" && (
               <div className="space-y-8">
-                <AdminVoiceSettings />
+                <VoiceCredentialsSettings />
                 <AdminSupportVoice />
                 <AdminChangePassword email={email} />
               </div>
@@ -300,6 +323,29 @@ export function AdminDashboard({
           </div>
         </main>
       </div>
+
+      {/* Mounted at the dashboard's root rather than inside the panels that
+          open them. A modal rendered inside a panel is unmounted the moment the
+          sidebar selection changes, which would discard a half-typed agent id;
+          and it would inherit that panel's stacking context, so its backdrop
+          could not cover the sidebar. */}
+      <AdminModal
+        open={settingsFor === "inbound"}
+        onClose={closeSettings}
+        title="Inbound call settings"
+        description="Which agent and number answer a call placed to your business."
+      >
+        <VoiceInboundSettings onDone={closeSettings} />
+      </AdminModal>
+
+      <AdminModal
+        open={settingsFor === "outbound"}
+        onClose={closeSettings}
+        title="Outbound call settings"
+        description="The agent and number this app dials with. Changes apply to the next call placed."
+      >
+        <VoiceOutboundSettings onDone={closeSettings} />
+      </AdminModal>
     </div>
   );
 }
