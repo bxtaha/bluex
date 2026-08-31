@@ -4629,3 +4629,136 @@ html:has(.bx-admin)::-webkit-scrollbar-button,
     transform: none;
   }
 }
+
+/* ── Admin modal ──────────────────────────────────────────────────────────────
+   A dialog that holds a form, as opposed to `AdminConfirmDialog`'s single
+   irreversible decision.
+
+   Layer 75, between the admin toast (70) and the confirm dialog (80): a modal
+   must cover a toast, and a confirmation opened from inside a modal must cover
+   the modal. Two elements sharing 80 would be ordered by DOM position, which
+   is how a confirmation renders behind the thing it is confirming.
+
+   Written here rather than as Tailwind utilities because of the height cap and
+   the scroll container, which need the sibling header and footer subtracted —
+   a relationship that does not survive being spread across three className
+   strings. */
+
+.bx-admin-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 75;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  /* Clears the home indicator on a phone, where this becomes a bottom sheet. */
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 640px) {
+  .bx-admin-modal {
+    align-items: center;
+  }
+}
+
+.bx-admin-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(3 7 18 / 60%);
+}
+
+.bx-admin-modal__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 32rem;
+  /* Never taller than the viewport minus the gutter, so the footer with the
+     Save button cannot be pushed off screen by a long form. */
+  max-height: calc(100dvh - 2rem);
+  border-radius: 0.75rem;
+  border: 1px solid rgb(229 231 235);
+  background: #fff;
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 10%),
+    0 8px 10px -6px rgb(0 0 0 / 10%);
+  outline: none;
+}
+
+.dark .bx-admin-modal__panel {
+  border-color: rgb(31 41 55);
+  background: rgb(17 24 39);
+}
+
+.bx-admin-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.25rem 0.875rem;
+  flex-shrink: 0;
+}
+
+.bx-admin-modal__close {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: rgb(107 114 128);
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.bx-admin-modal__close:hover:not(:disabled) {
+  background: rgb(243 244 246);
+  color: rgb(17 24 39);
+}
+
+.dark .bx-admin-modal__close:hover:not(:disabled) {
+  background: rgb(31 41 55);
+  color: rgb(243 244 246);
+}
+
+.bx-admin-modal__close:focus-visible {
+  outline: 2px solid var(--color-electric);
+  outline-offset: 2px;
+}
+
+.bx-admin-modal__close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* The only scrolling region. Both axes stated: `overflow-y: auto` alone
+   computes `overflow-x` to `auto` and grows a phantom horizontal scrollbar —
+   15px of offsetHeight on desktop, 0 under mobile emulation, which is exactly
+   the kind of bug that survives a review. */
+.bx-admin-modal__body {
+  overflow: hidden auto;
+  padding: 0 1.25rem 1.25rem;
+  flex: 1 1 auto;
+}
+
+.bx-admin-modal__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  border-top: 1px solid rgb(229 231 235);
+  flex-shrink: 0;
+}
+
+.dark .bx-admin-modal__foot {
+  border-top-color: rgb(31 41 55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bx-admin-modal__close {
+    transition: none;
+  }
+}
