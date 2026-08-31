@@ -48,6 +48,7 @@
   "devDependencies": {
     "@alexanderolsen/libsamplerate-js": "^2.1.2",
     "@tailwindcss/postcss": "^4",
+    "@types/geoip-lite": "^1.4.4",
     "@types/mailparser": "^3.4.6",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",
