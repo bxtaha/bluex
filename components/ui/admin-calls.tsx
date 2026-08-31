@@ -7,6 +7,7 @@ import {
   ExternalLink,
   Globe,
   Loader2,
+  MapPin,
   PhoneCall,
   PhoneIncoming,
   PhoneOutgoing,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import type { Call } from "@/lib/call-store";
 import type { CallChannel, CallDirection } from "@/lib/call-payload";
+import { formatLocation } from "@/lib/visitor-location";
 
 /**
  * The call archive: every conversation the agent has had, read straight from
@@ -425,6 +427,30 @@ function ChannelBadge({ channel }: { channel: Call["channel"] }) {
   );
 }
 
+/**
+ * Roughly where a web visitor was.
+ *
+ * Only rendered for the web channel, and only when a location was actually
+ * recorded. A phone call has a number rather than an address, and a web
+ * conversation from before this existed has nothing to show — printing
+ * "Unknown" against either would be inventing a fact about them rather than
+ * reporting one. `formatLocation` is what guarantees a country with no city
+ * renders as "BD" and not ", BD".
+ */
+function LocationTag({ call }: { call: Call }) {
+  if (call.channel !== "web" || !call.location) return null;
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[0.65rem] font-medium uppercase tracking-wide text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+      title="Approximate, from the visitor's connection. No address is stored."
+    >
+      <MapPin className="h-3 w-3" aria-hidden />
+      {formatLocation(call.location)}
+    </span>
+  );
+}
+
 function OutcomeBadge({ outcome }: { outcome: Call["callSuccessful"] }) {
   const style = OUTCOME_STYLES[outcome];
   return (
@@ -507,6 +533,7 @@ function CallList({
             <div className="mt-2 flex items-center gap-2">
               <DirectionBadge direction={call.direction} />
               <ChannelBadge channel={call.channel} />
+              <LocationTag call={call} />
               <OutcomeBadge outcome={call.callSuccessful} />
               <span className="text-[0.65rem] text-gray-400 dark:text-gray-500">
                 {formatDuration(call.durationSeconds)}

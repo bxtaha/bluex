@@ -1,6 +1,7 @@
 import { ObjectId, type Collection, type Filter } from "mongodb";
 import { getDb } from "./mongodb.ts";
 import type { CallChannel, CallDirection, TranscriptTurn } from "./call-payload.ts";
+import type { VisitorLocation } from "./visitor-location.ts";
 
 /**
  * `calls` — every conversation the agent has had, in either direction.
@@ -29,6 +30,16 @@ export type Call = {
    * treating the absence as unknown.
    */
   channel: CallChannel;
+
+  /**
+   * Roughly where a web visitor was, or null.
+   *
+   * Null on every phone call — a telephone number has no address behind it —
+   * and on any web conversation whose session predates this field or whose
+   * address did not resolve. **There is no address here**: see
+   * `lib/visitor-location.ts` for why only the place survives.
+   */
+  location: VisitorLocation | null;
 
   counterpartyNumber: string;
   /** Digits only. The join key to a lead. */
@@ -108,6 +119,10 @@ function toCall(doc: CallDoc & { _id: ObjectId }): Call {
     // absent value is "phone" rather than unknown — there is no backfill to
     // run and no third state to render.
     channel: doc.channel === "web" ? "web" : "phone",
+    // Absent on every row written before this field existed, which is most of
+    // the archive. Null rather than an empty object so the panel can tell
+    // "nowhere recorded" from "recorded as unknown".
+    location: doc.location ?? null,
     counterpartyNumber: doc.counterpartyNumber ?? "",
     counterpartyKey: doc.counterpartyKey ?? "",
     agentId: doc.agentId ?? "",

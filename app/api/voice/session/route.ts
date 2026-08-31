@@ -2,6 +2,8 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { clientIp, hashIp } from "@/lib/client-ip";
 import { getSignedUrl } from "@/lib/elevenlabs";
+import { lookupLocation } from "@/lib/geoip";
+import { rememberVoiceSession } from "@/lib/voice-session-store";
 import { rateLimit } from "@/lib/rate-limit";
 import { SITE_URL } from "@/lib/site";
 import { getSupportVoice } from "@/lib/support-voice";
@@ -83,6 +85,22 @@ export async function POST() {
     );
   }
 
+  /*
+   * Where this visitor is, resolved before the session is minted and dropped
+   * immediately after.
+   *
+   * `ip` is already in hand for the rate limit above. It is used here and then
+   * goes out of scope — nothing below writes it, and `VisitorLocation` has no
+   * field for it. That keeps the promise in `lib/client-ip.ts` that this
+   * database holds no address that resolves to a person's connection.
+   *
+   * Resolved *before* the provider call rather than after, so a slow or failing
+   * provider cannot leave a location computed for a conversation that never
+   * started. The lookup is in-process and around a millisecond, so it costs the
+   * visitor nothing.
+   */
+  const location = lookupLocation(ip);
+
   const session = await getSignedUrl(settings.agentId);
   if (!session.ok) {
     // The provider's reason goes to the log, not to the visitor. It can name
@@ -93,6 +111,19 @@ export async function POST() {
       { ok: false, message: "Couldn't start the conversation. Please try again." },
       { status: 502 },
     );
+  }
+
+  // Written down under the id the webhook will quote, so the conversation can
+  // be joined to a place when it is filed minutes later by the provider's
+  // servers — which carry no trace of this visitor's connection.
+  //
+  // Awaited rather than fired and forgotten: a serverless instance can be
+  // frozen the moment the response is returned, and a dangling write is one
+  // that sometimes lands. It is a single primary-key upsert, and
+  // `rememberVoiceSession` never throws, so it cannot delay or fail the
+  // conversation.
+  if (location) {
+    await rememberVoiceSession(session.conversationId, location);
   }
 
   return NextResponse.json({

@@ -103,6 +103,26 @@ const nextConfig: NextConfig = {
   output: "standalone",
 
   /**
+   * And the data itself, which the trace cannot see either.
+   *
+   * Next decides what a standalone build needs by following JavaScript
+   * *imports*. Those `.dat` files are never imported — they are opened by path
+   * — so without this they are simply absent from the container.
+   *
+   * The failure mode is what makes it worth naming: it works in development,
+   * where `node_modules` is right there, and fails only in the container, as
+   * lookups that quietly return nothing. Every conversation would show
+   * "Unknown", which is also what a private address looks like — so it reads as
+   * normal rather than broken.
+   *
+   * Verified by checking the files exist under `.next/standalone` after a
+   * build, not by trusting that this entry did its job.
+   */
+  outputFileTracingIncludes: {
+    "/api/voice/session": ["./node_modules/geoip-lite/data/**"],
+  },
+
+  /**
    * `x-powered-by: Next.js` on every response tells anyone probing the site
    * exactly what to look up advisories for and tells visitors nothing.
    */
@@ -150,8 +170,17 @@ const nextConfig: NextConfig = {
    * `nodemailer` resolves transports the same way. Bundling them either fails
    * at build time or, worse, succeeds and then cannot find a module for a
    * charset that only some real email uses.
+   *
+   * `geoip-lite` is here for a sharper version of the same problem. It opens
+   * its ~115MB of `.dat` files **at module evaluation**, by a path built from
+   * `__dirname` — and a bundler rewrites `__dirname`. Turbopack rewrites it to
+   * `/ROOT/`, so bundling it makes the first import throw
+   * `ENOENT: /ROOT/node_modules/geoip-lite/data/geoip-country.dat` and fails
+   * the build outright while collecting page data for the session route. Left
+   * external, it is a real `require` from `node_modules`, where `__dirname`
+   * means what it says.
    */
-  serverExternalPackages: ["imapflow", "mailparser", "nodemailer"],
+  serverExternalPackages: ["imapflow", "mailparser", "nodemailer", "geoip-lite"],
 };
 
 export default nextConfig;

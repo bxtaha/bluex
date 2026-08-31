@@ -229,7 +229,9 @@ function extractError(body: unknown): string {
  */
 export async function getSignedUrl(
   agentId: string,
-): Promise<{ ok: true; signedUrl: string } | { ok: false; reason: string }> {
+): Promise<
+  { ok: true; signedUrl: string; conversationId: string } | { ok: false; reason: string }
+> {
   const { apiKey } = await resolveVoiceCredentials();
   if (!apiKey) return { ok: false, reason: "ElevenLabs credentials are not set." };
   if (!agentId) return { ok: false, reason: "No support agent is configured." };
@@ -237,7 +239,12 @@ export async function getSignedUrl(
   let response: Response;
   try {
     response = await fetch(
-      `${API_BASE}/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}`,
+      // `include_conversation_id` hands back the id the post-call webhook will
+      // later quote, which is the only key the two halves of a browser
+      // conversation share — see `lib/voice-session-store.ts`. It also makes
+      // the returned signature single-use, which is documented behaviour and a
+      // small security gain rather than a side effect to work around.
+      `${API_BASE}/conversation/get-signed-url?agent_id=${encodeURIComponent(agentId)}&include_conversation_id=true`,
       {
         headers: { "xi-api-key": apiKey },
         signal: AbortSignal.timeout(DISPATCH_TIMEOUT_MS),
@@ -271,7 +278,15 @@ export async function getSignedUrl(
     return { ok: false, reason: "The provider returned no session URL." };
   }
 
-  return { ok: true, signedUrl };
+  // Absent only if the provider ignored `include_conversation_id`. The session
+  // still works; it simply cannot be joined to a location later, which is worth
+  // a log line and not worth refusing a conversation over.
+  const conversationId = stringField(body, "conversation_id");
+  if (!conversationId) {
+    console.error("[elevenlabs] signed url returned no conversation id.");
+  }
+
+  return { ok: true, signedUrl, conversationId };
 }
 
 /* ── Reading conversations back ──────────────────────────────────────────── */

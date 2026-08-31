@@ -6,6 +6,7 @@ import {
   type ParsedCall,
 } from "./call-payload.ts";
 import { readSupportVoiceUncached } from "./support-voice-store.ts";
+import { readVoiceSessionLocation } from "./voice-session-store.ts";
 import { insertCallIfNew } from "./call-store.ts";
 import {
   advanceStageOnContact,
@@ -105,10 +106,23 @@ export async function recordConversation(
     name = lead.name;
   }
 
+  /*
+   * Where the visitor was, if this is a browser conversation and the session
+   * route managed to record it.
+   *
+   * Only for the web channel: a phone call arrives with a number, not an
+   * address, and there is no session row to join to. Looked up before the
+   * insert so the location lands in the same write as the rest of the call
+   * rather than needing a second one.
+   */
+  const location =
+    channel === "web" ? await readVoiceSessionLocation(parsed.conversationId) : null;
+
   const call = await insertCallIfNew({
     conversationId: parsed.conversationId,
     direction,
     channel,
+    location,
     counterpartyNumber: number,
     counterpartyKey: key,
     agentId: parsed.agentId,
